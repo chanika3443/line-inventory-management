@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#f5f5f7">
+  <base target="_top">
+  <title>ระบบคลังวัสดุ</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+    iframe {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border: 0;
+      display: block;
+    }
+    /* Loading screen */
+    #loading {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #f5f5f7;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      transition: opacity 0.3s ease;
+    }
+    #loading.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid rgba(0,122,255,0.2);
+      border-top-color: #007aff;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <!-- Loading Screen -->
+  <div id="loading">
+    <div class="spinner"></div>
+  </div>
+  
+  <!-- Main App -->
+  <iframe 
+    id="appFrame"
+    src="https://script.google.com/macros/s/AKfycbx485xIyUla9r78h6rxgwbr0JHlCt4skYjsXdxwPgHwjjwshVqhYI9OOVWY9fjVpYT0/exec"
+    allow="clipboard-write"
+    sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox"
+    loading="eager">
+  </iframe>
+
+  <script>
+    // Hide loading when iframe loads
+    var iframe = document.getElementById('appFrame');
+    var loading = document.getElementById('loading');
+    
+    iframe.addEventListener('load', function() {
+      setTimeout(function() {
+        loading.classList.add('hidden');
+      }, 300);
+    });
+    
+    // Timeout fallback (hide loading after 5 seconds even if not loaded)
+    setTimeout(function() {
+      loading.classList.add('hidden');
+    }, 5000);
+    
+    // Handle iframe errors
+    iframe.addEventListener('error', function() {
+      loading.innerHTML = '<div style="text-align: center; color: #ff3b30;"><div style="font-size: 48px; margin-bottom: 16px;">⚠️</div><div style="font-size: 16px; font-weight: 600;">ไม่สามารถโหลดแอปได้</div><div style="font-size: 14px; color: #86868b; margin-top: 8px;">กรุณาลองใหม่อีกครั้ง</div></div>';
+    });
+  </script>
+</body>
+</html>
