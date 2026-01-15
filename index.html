@@ -180,17 +180,13 @@
       return baseUrl;
     }
     
-    // Set iframe src with cache busting
+    // Set iframe src
     var iframe = document.getElementById('appFrame');
     var loading = document.getElementById('loading');
     var targetUrl = getTargetUrl();
     console.log('=== LOADING IFRAME ===');
     console.log('Final Target URL:', targetUrl);
-    
-    // Add timestamp to prevent caching (replace old timestamp if exists)
-    var cleanUrl = targetUrl.replace(/[&?]_t=\d+/, '');
-    var separator = cleanUrl.indexOf('?') !== -1 ? '&' : '?';
-    iframe.src = cleanUrl + separator + '_t=' + Date.now();
+    iframe.src = targetUrl;
     
     // Hide loading when iframe loads
     iframe.addEventListener('load', function() {
@@ -218,38 +214,14 @@
       var newUrl = getTargetUrl();
       console.log('Reloading iframe with:', newUrl);
       
-      // Add timestamp to force reload (replace old timestamp if exists)
-      var cleanUrl = newUrl.replace(/[&?]_t=\d+/, '');
-      var separator = cleanUrl.indexOf('?') !== -1 ? '&' : '?';
-      iframe.src = cleanUrl + separator + '_t=' + Date.now();
+      // Force reload by changing src
+      iframe.src = newUrl;
       
       loading.classList.remove('hidden');
       setTimeout(function() {
         loading.classList.add('hidden');
       }, 1000);
     });
-    
-    // Also listen for URL parameter changes (when LIFF redirects)
-    var lastUrl = window.location.href;
-    setInterval(function() {
-      if (window.location.href !== lastUrl) {
-        lastUrl = window.location.href;
-        console.log('=== URL CHANGED ===');
-        console.log('New URL:', lastUrl);
-        var newUrl = getTargetUrl();
-        console.log('Reloading iframe with:', newUrl);
-        
-        // Add timestamp to force reload (replace old timestamp if exists)
-        var cleanUrl = newUrl.replace(/[&?]_t=\d+/, '');
-        var separator = cleanUrl.indexOf('?') !== -1 ? '&' : '?';
-        iframe.src = cleanUrl + separator + '_t=' + Date.now();
-        
-        loading.classList.remove('hidden');
-        setTimeout(function() {
-          loading.classList.add('hidden');
-        }, 1000);
-      }
-    }, 500);
   </script>
 </body>
 </html>
