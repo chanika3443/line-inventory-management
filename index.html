@@ -224,31 +224,65 @@
     });
     
     // Listen for postMessage from iframe (for navigation)
+    var lastNavigateTime = 0;
+    var navigateDebounce = 300; // Prevent rapid navigation
+    
     window.addEventListener('message', function(event) {
-      // Security: Check origin if needed (optional, since we control the iframe)
-      // if (event.origin !== 'https://script.google.com') return;
+      if (!event.data || event.data.type !== 'navigate') return;
       
-      if (event.data && event.data.type === 'navigate') {
-        console.log('=== RECEIVED NAVIGATE MESSAGE ===');
-        console.log('Hash:', event.data.hash);
-        
+      // Debounce: Ignore if navigated recently
+      var now = Date.now();
+      if (now - lastNavigateTime < navigateDebounce) {
+        console.log('Navigation debounced');
+        return;
+      }
+      lastNavigateTime = now;
+      
+      console.log('=== RECEIVED NAVIGATE MESSAGE ===');
+      console.log('Hash:', event.data.hash);
+      console.log('Timestamp:', event.data.timestamp);
+      
+      try {
         // Change hash (this will trigger hashchange event)
         if (event.data.hash) {
-          window.location.hash = event.data.hash;
+          if (window.location.hash !== event.data.hash) {
+            window.location.hash = event.data.hash;
+          } else {
+            // Same hash, force reload iframe
+            console.log('Same hash, force reload');
+            var newUrl = getTargetUrl();
+            iframe.src = newUrl;
+            loading.classList.remove('hidden');
+            setTimeout(function() {
+              loading.classList.add('hidden');
+            }, 800);
+          }
         } else {
           // Home page - remove hash
           if (window.location.hash) {
             window.location.hash = '';
           } else {
             // Already on home, just reload iframe
+            console.log('Already on home, force reload');
             var newUrl = getTargetUrl();
             iframe.src = newUrl;
             loading.classList.remove('hidden');
             setTimeout(function() {
               loading.classList.add('hidden');
-            }, 1000);
+            }, 800);
           }
         }
+      } catch (e) {
+        console.error('Navigation error:', e);
+        // Fallback: reload iframe directly
+        loading.classList.remove('hidden');
+        setTimeout(function() {
+          var newUrl = getTargetUrl();
+          iframe.src = newUrl;
+          setTimeout(function() {
+            loading.classList.add('hidden');
+          }, 800);
+        }, 100);
       }
     });
   </script>
