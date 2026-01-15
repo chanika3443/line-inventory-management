@@ -222,6 +222,35 @@
         loading.classList.add('hidden');
       }, 1000);
     });
+    
+    // Listen for postMessage from iframe (for navigation)
+    window.addEventListener('message', function(event) {
+      // Security: Check origin if needed (optional, since we control the iframe)
+      // if (event.origin !== 'https://script.google.com') return;
+      
+      if (event.data && event.data.type === 'navigate') {
+        console.log('=== RECEIVED NAVIGATE MESSAGE ===');
+        console.log('Hash:', event.data.hash);
+        
+        // Change hash (this will trigger hashchange event)
+        if (event.data.hash) {
+          window.location.hash = event.data.hash;
+        } else {
+          // Home page - remove hash
+          if (window.location.hash) {
+            window.location.hash = '';
+          } else {
+            // Already on home, just reload iframe
+            var newUrl = getTargetUrl();
+            iframe.src = newUrl;
+            loading.classList.remove('hidden');
+            setTimeout(function() {
+              loading.classList.add('hidden');
+            }, 1000);
+          }
+        }
+      }
+    });
   </script>
 </body>
 </html>
