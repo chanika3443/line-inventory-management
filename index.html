@@ -80,15 +80,57 @@
     // Parse URL to get page parameter
     function getTargetUrl() {
       var fullUrl = window.location.href;
+      console.log('Full URL:', fullUrl);
       
-      // Method 1: Check hash first (most reliable for LIFF)
+      // Method 1: Check LIFF state parameter first
+      var params = new URLSearchParams(window.location.search);
+      var liffState = params.get('liff.state');
+      
+      if (liffState) {
+        console.log('liff.state (raw):', liffState);
+        
+        try {
+          // Decode liff.state
+          var decoded = decodeURIComponent(liffState);
+          console.log('liff.state (decoded):', decoded);
+          
+          // Check if it's a hash (#products)
+          if (decoded.indexOf('#') === 0) {
+            var page = decoded.substring(1); // Remove #
+            console.log('✓ Found page in liff.state hash:', page);
+            return baseUrl + '?page=' + page;
+          }
+          
+          // Check if it contains page= parameter
+          if (decoded.indexOf('page=') !== -1) {
+            var match = decoded.match(/page=([^&]+)/);
+            if (match) {
+              console.log('✓ Found page in liff.state param:', match[1]);
+              return baseUrl + '?page=' + match[1];
+            }
+          }
+          
+          // Check if it's just a page name
+          var validPages = ['products', 'withdraw', 'receive', 'reports', 'dashboard', 'logs'];
+          if (validPages.indexOf(decoded) !== -1) {
+            console.log('✓ Found valid page name in liff.state:', decoded);
+            return baseUrl + '?page=' + decoded;
+          }
+        } catch (e) {
+          console.error('Error decoding liff.state:', e);
+        }
+      }
+      
+      // Method 2: Check hash (#products)
       var hash = window.location.hash;
       if (hash && hash.length > 1) {
         var hashContent = hash.substring(1); // Remove #
+        console.log('Hash content:', hashContent);
         
         // Direct page name: #products
         var validPages = ['products', 'withdraw', 'receive', 'reports', 'dashboard', 'logs'];
         if (validPages.indexOf(hashContent) !== -1) {
+          console.log('✓ Found page in hash:', hashContent);
           return baseUrl + '?page=' + hashContent;
         }
         
@@ -96,46 +138,30 @@
         if (hashContent.indexOf('page=') !== -1) {
           var match = hashContent.match(/page=([^&]+)/);
           if (match) {
+            console.log('✓ Found page param in hash:', match[1]);
             return baseUrl + '?page=' + match[1];
           }
         }
       }
       
-      // Method 2: Check query parameters
-      var params = new URLSearchParams(window.location.search);
-      
-      // Direct page parameter
+      // Method 3: Check direct page parameter
       var page = params.get('page');
       if (page) {
+        console.log('✓ Found page in query:', page);
         return baseUrl + '?page=' + page;
       }
       
-      // LIFF state parameter
-      var liffState = params.get('liff.state');
-      if (liffState) {
-        try {
-          var decoded = decodeURIComponent(liffState);
-          
-          if (decoded.indexOf('page=') !== -1) {
-            var match = decoded.match(/page=([^&]+)/);
-            if (match) {
-              return baseUrl + '?page=' + match[1];
-            }
-          }
-        } catch (e) {
-          console.error('Error decoding liff.state:', e);
-        }
-      }
-      
-      // Method 3: Parse entire URL
+      // Method 4: Parse entire URL for page parameter
       if (fullUrl.indexOf('page=') !== -1) {
         var match = fullUrl.match(/[?&#]page=([^&]+)/);
         if (match) {
+          console.log('✓ Found page in URL:', match[1]);
           return baseUrl + '?page=' + match[1];
         }
       }
       
       // Default to home
+      console.log('→ Loading home (no page found)');
       return baseUrl;
     }
     
@@ -143,7 +169,7 @@
     var iframe = document.getElementById('appFrame');
     var loading = document.getElementById('loading');
     var targetUrl = getTargetUrl();
-    console.log('Loading:', targetUrl);
+    console.log('Loading iframe with:', targetUrl);
     iframe.src = targetUrl;
     
     // Hide loading when iframe loads
