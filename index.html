@@ -187,9 +187,10 @@
     console.log('=== LOADING IFRAME ===');
     console.log('Final Target URL:', targetUrl);
     
-    // Add timestamp to prevent caching
-    var separator = targetUrl.indexOf('?') !== -1 ? '&' : '?';
-    iframe.src = targetUrl + separator + '_t=' + Date.now();
+    // Add timestamp to prevent caching (replace old timestamp if exists)
+    var cleanUrl = targetUrl.replace(/[&?]_t=\d+/, '');
+    var separator = cleanUrl.indexOf('?') !== -1 ? '&' : '?';
+    iframe.src = cleanUrl + separator + '_t=' + Date.now();
     
     // Hide loading when iframe loads
     iframe.addEventListener('load', function() {
@@ -217,9 +218,10 @@
       var newUrl = getTargetUrl();
       console.log('Reloading iframe with:', newUrl);
       
-      // Add timestamp to force reload and prevent caching
-      var separator = newUrl.indexOf('?') !== -1 ? '&' : '?';
-      iframe.src = newUrl + separator + '_t=' + Date.now();
+      // Add timestamp to force reload (replace old timestamp if exists)
+      var cleanUrl = newUrl.replace(/[&?]_t=\d+/, '');
+      var separator = cleanUrl.indexOf('?') !== -1 ? '&' : '?';
+      iframe.src = cleanUrl + separator + '_t=' + Date.now();
       
       loading.classList.remove('hidden');
       setTimeout(function() {
@@ -237,9 +239,10 @@
         var newUrl = getTargetUrl();
         console.log('Reloading iframe with:', newUrl);
         
-        // Add timestamp to force reload
-        var separator = newUrl.indexOf('?') !== -1 ? '&' : '?';
-        iframe.src = newUrl + separator + '_t=' + Date.now();
+        // Add timestamp to force reload (replace old timestamp if exists)
+        var cleanUrl = newUrl.replace(/[&?]_t=\d+/, '');
+        var separator = cleanUrl.indexOf('?') !== -1 ? '&' : '?';
+        iframe.src = cleanUrl + separator + '_t=' + Date.now();
         
         loading.classList.remove('hidden');
         setTimeout(function() {
