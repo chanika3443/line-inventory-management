@@ -180,13 +180,16 @@
       return baseUrl;
     }
     
-    // Set iframe src
+    // Set iframe src with cache busting
     var iframe = document.getElementById('appFrame');
     var loading = document.getElementById('loading');
     var targetUrl = getTargetUrl();
     console.log('=== LOADING IFRAME ===');
     console.log('Final Target URL:', targetUrl);
-    iframe.src = targetUrl;
+    
+    // Add timestamp to prevent caching
+    var separator = targetUrl.indexOf('?') !== -1 ? '&' : '?';
+    iframe.src = targetUrl + separator + '_t=' + Date.now();
     
     // Hide loading when iframe loads
     iframe.addEventListener('load', function() {
@@ -213,12 +216,37 @@
       console.log('New hash:', window.location.hash);
       var newUrl = getTargetUrl();
       console.log('Reloading iframe with:', newUrl);
-      iframe.src = newUrl;
+      
+      // Add timestamp to force reload and prevent caching
+      var separator = newUrl.indexOf('?') !== -1 ? '&' : '?';
+      iframe.src = newUrl + separator + '_t=' + Date.now();
+      
       loading.classList.remove('hidden');
       setTimeout(function() {
         loading.classList.add('hidden');
       }, 1000);
     });
+    
+    // Also listen for URL parameter changes (when LIFF redirects)
+    var lastUrl = window.location.href;
+    setInterval(function() {
+      if (window.location.href !== lastUrl) {
+        lastUrl = window.location.href;
+        console.log('=== URL CHANGED ===');
+        console.log('New URL:', lastUrl);
+        var newUrl = getTargetUrl();
+        console.log('Reloading iframe with:', newUrl);
+        
+        // Add timestamp to force reload
+        var separator = newUrl.indexOf('?') !== -1 ? '&' : '?';
+        iframe.src = newUrl + separator + '_t=' + Date.now();
+        
+        loading.classList.remove('hidden');
+        setTimeout(function() {
+          loading.classList.add('hidden');
+        }, 1000);
+      }
+    }, 500);
   </script>
 </body>
 </html>
