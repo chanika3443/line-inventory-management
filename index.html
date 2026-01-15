@@ -80,6 +80,7 @@
     // Parse URL to get page parameter
     function getTargetUrl() {
       var fullUrl = window.location.href;
+      console.log('=== URL PARSING ===');
       console.log('Full URL:', fullUrl);
       
       // Method 1: Check LIFF state parameter first
@@ -98,7 +99,9 @@
           if (decoded.indexOf('#') === 0) {
             var page = decoded.substring(1); // Remove #
             console.log('✓ Found page in liff.state hash:', page);
-            return baseUrl + '?page=' + page;
+            var targetUrl = baseUrl + '?page=' + page;
+            console.log('Target URL:', targetUrl);
+            return targetUrl;
           }
           
           // Check if it contains page= parameter
@@ -106,7 +109,9 @@
             var match = decoded.match(/page=([^&]+)/);
             if (match) {
               console.log('✓ Found page in liff.state param:', match[1]);
-              return baseUrl + '?page=' + match[1];
+              var targetUrl = baseUrl + '?page=' + match[1];
+              console.log('Target URL:', targetUrl);
+              return targetUrl;
             }
           }
           
@@ -114,7 +119,9 @@
           var validPages = ['products', 'withdraw', 'receive', 'reports', 'dashboard', 'logs'];
           if (validPages.indexOf(decoded) !== -1) {
             console.log('✓ Found valid page name in liff.state:', decoded);
-            return baseUrl + '?page=' + decoded;
+            var targetUrl = baseUrl + '?page=' + decoded;
+            console.log('Target URL:', targetUrl);
+            return targetUrl;
           }
         } catch (e) {
           console.error('Error decoding liff.state:', e);
@@ -131,7 +138,9 @@
         var validPages = ['products', 'withdraw', 'receive', 'reports', 'dashboard', 'logs'];
         if (validPages.indexOf(hashContent) !== -1) {
           console.log('✓ Found page in hash:', hashContent);
-          return baseUrl + '?page=' + hashContent;
+          var targetUrl = baseUrl + '?page=' + hashContent;
+          console.log('Target URL:', targetUrl);
+          return targetUrl;
         }
         
         // Hash with params: #page=products
@@ -139,7 +148,9 @@
           var match = hashContent.match(/page=([^&]+)/);
           if (match) {
             console.log('✓ Found page param in hash:', match[1]);
-            return baseUrl + '?page=' + match[1];
+            var targetUrl = baseUrl + '?page=' + match[1];
+            console.log('Target URL:', targetUrl);
+            return targetUrl;
           }
         }
       }
@@ -148,7 +159,9 @@
       var page = params.get('page');
       if (page) {
         console.log('✓ Found page in query:', page);
-        return baseUrl + '?page=' + page;
+        var targetUrl = baseUrl + '?page=' + page;
+        console.log('Target URL:', targetUrl);
+        return targetUrl;
       }
       
       // Method 4: Parse entire URL for page parameter
@@ -156,7 +169,9 @@
         var match = fullUrl.match(/[?&#]page=([^&]+)/);
         if (match) {
           console.log('✓ Found page in URL:', match[1]);
-          return baseUrl + '?page=' + match[1];
+          var targetUrl = baseUrl + '?page=' + match[1];
+          console.log('Target URL:', targetUrl);
+          return targetUrl;
         }
       }
       
@@ -169,11 +184,13 @@
     var iframe = document.getElementById('appFrame');
     var loading = document.getElementById('loading');
     var targetUrl = getTargetUrl();
-    console.log('Loading iframe with:', targetUrl);
+    console.log('=== LOADING IFRAME ===');
+    console.log('Final Target URL:', targetUrl);
     iframe.src = targetUrl;
     
     // Hide loading when iframe loads
     iframe.addEventListener('load', function() {
+      console.log('Iframe loaded successfully');
       setTimeout(function() {
         loading.classList.add('hidden');
       }, 300);
@@ -186,12 +203,14 @@
     
     // Handle iframe errors
     iframe.addEventListener('error', function() {
+      console.error('Iframe failed to load');
       loading.innerHTML = '<div style="text-align: center; color: #ff3b30;"><div style="font-size: 48px; margin-bottom: 16px;">⚠️</div><div style="font-size: 16px; font-weight: 600;">ไม่สามารถโหลดแอปได้</div><div style="font-size: 14px; color: #86868b; margin-top: 8px;">กรุณาลองใหม่อีกครั้ง</div></div>';
     });
     
     // Listen for hash changes (IMPORTANT: This makes navigation work!)
     window.addEventListener('hashchange', function() {
-      console.log('Hash changed to:', window.location.hash);
+      console.log('=== HASH CHANGED ===');
+      console.log('New hash:', window.location.hash);
       var newUrl = getTargetUrl();
       console.log('Reloading iframe with:', newUrl);
       iframe.src = newUrl;
