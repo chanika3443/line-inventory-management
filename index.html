@@ -119,18 +119,8 @@
     // Set iframe src
     var iframe = document.getElementById('appFrame');
     var loading = document.getElementById('loading');
-    var currentPage = ''; // Track current page
-    
     var targetUrl = getTargetUrl();
     iframe.src = targetUrl;
-    
-    // Extract page from URL for tracking
-    function getPageFromUrl(url) {
-      var match = url.match(/[?&]page=([^&]+)/);
-      return match ? match[1] : 'index';
-    }
-    
-    currentPage = getPageFromUrl(targetUrl);
     
     // Hide loading when iframe loads
     iframe.addEventListener('load', function() {
@@ -145,29 +135,8 @@
     }, 5000);
     
     // Listen for hash changes
-    var lastHash = window.location.hash;
     window.addEventListener('hashchange', function() {
-      var newHash = window.location.hash;
-      
-      // Skip if hash didn't actually change
-      if (newHash === lastHash) {
-        console.log('Hash unchanged, skipping reload');
-        return;
-      }
-      
-      lastHash = newHash;
       var newUrl = getTargetUrl();
-      var newPage = getPageFromUrl(newUrl);
-      
-      // Skip if same page
-      if (newPage === currentPage) {
-        console.log('Same page, skipping reload');
-        return;
-      }
-      
-      console.log('Navigating from', currentPage, 'to', newPage);
-      currentPage = newPage;
-      
       iframe.src = newUrl;
       loading.classList.remove('hidden');
     });
