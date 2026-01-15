@@ -66,17 +66,57 @@
   <!-- Main App -->
   <iframe 
     id="appFrame"
-    src="https://script.google.com/macros/s/AKfycbx485xIyUla9r78h6rxgwbr0JHlCt4skYjsXdxwPgHwjjwshVqhYI9OOVWY9fjVpYT0/exec"
+    src=""
     allow="clipboard-write"
-    sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox"
+    sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox allow-top-navigation allow-top-navigation-by-user-activation"
     loading="eager">
   </iframe>
 
   <script>
-    // Hide loading when iframe loads
+    // Get base URL
+    var baseUrl = 'https://script.google.com/macros/s/AKfycbx485xIyUla9r78h6rxgwbr0JHlCt4skYjsXdxwPgHwjjwshVqhYI9OOVWY9fjVpYT0/exec';
+    
+    // Parse URL parameters including LIFF state
+    function getTargetUrl() {
+      var params = new URLSearchParams(window.location.search);
+      var hash = window.location.hash;
+      
+      // Check for liff.state parameter
+      var liffState = params.get('liff.state');
+      if (liffState) {
+        // Decode liff.state (it contains the actual page parameter)
+        var stateParams = new URLSearchParams(liffState);
+        var page = stateParams.get('page');
+        if (page) {
+          return baseUrl + '?page=' + page;
+        }
+      }
+      
+      // Check for direct page parameter
+      var page = params.get('page');
+      if (page) {
+        return baseUrl + '?page=' + page;
+      }
+      
+      // Check hash
+      if (hash && hash.length > 1) {
+        var hashPage = hash.substring(1);
+        if (hashPage.indexOf('page=') === 0) {
+          return baseUrl + '?' + hashPage;
+        }
+        return baseUrl + '?page=' + hashPage;
+      }
+      
+      // Default to home
+      return baseUrl;
+    }
+    
+    // Set iframe src
     var iframe = document.getElementById('appFrame');
     var loading = document.getElementById('loading');
+    iframe.src = getTargetUrl();
     
+    // Hide loading when iframe loads
     iframe.addEventListener('load', function() {
       setTimeout(function() {
         loading.classList.add('hidden');
@@ -91,6 +131,16 @@
     // Handle iframe errors
     iframe.addEventListener('error', function() {
       loading.innerHTML = '<div style="text-align: center; color: #ff3b30;"><div style="font-size: 48px; margin-bottom: 16px;">⚠️</div><div style="font-size: 16px; font-weight: 600;">ไม่สามารถโหลดแอปได้</div><div style="font-size: 14px; color: #86868b; margin-top: 8px;">กรุณาลองใหม่อีกครั้ง</div></div>';
+    });
+    
+    // Listen for URL changes from parent (LIFF navigation)
+    window.addEventListener('message', function(event) {
+      // Security check
+      if (event.origin !== window.location.origin) return;
+      
+      if (event.data && event.data.type === 'navigate') {
+        iframe.src = baseUrl + '?page=' + event.data.page;
+      }
     });
   </script>
 </body>
