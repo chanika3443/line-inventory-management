@@ -35,6 +35,7 @@
       height: 100%;
       background: #f5f5f7;
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
       z-index: 9999;
@@ -76,34 +77,49 @@
     // Get base URL
     var baseUrl = 'https://script.google.com/macros/s/AKfycbx485xIyUla9r78h6rxgwbr0JHlCt4skYjsXdxwPgHwjjwshVqhYI9OOVWY9fjVpYT0/exec';
     
-    // Debug: Log all URL info
-    console.log('Full URL:', window.location.href);
-    console.log('Search:', window.location.search);
-    console.log('Hash:', window.location.hash);
-    
-    // Parse URL parameters including LIFF state
+    // Parse URL to get page parameter
     function getTargetUrl() {
       var fullUrl = window.location.href;
-      var params = new URLSearchParams(window.location.search);
+      
+      // Method 1: Check hash first (most reliable for LIFF)
       var hash = window.location.hash;
+      if (hash && hash.length > 1) {
+        var hashContent = hash.substring(1); // Remove #
+        
+        // Direct page name: #products
+        var validPages = ['products', 'withdraw', 'receive', 'reports', 'dashboard', 'logs'];
+        if (validPages.indexOf(hashContent) !== -1) {
+          return baseUrl + '?page=' + hashContent;
+        }
+        
+        // Hash with params: #page=products
+        if (hashContent.indexOf('page=') !== -1) {
+          var match = hashContent.match(/page=([^&]+)/);
+          if (match) {
+            return baseUrl + '?page=' + match[1];
+          }
+        }
+      }
       
-      console.log('Parsing URL parameters...');
+      // Method 2: Check query parameters
+      var params = new URLSearchParams(window.location.search);
       
-      // Method 1: Check for liff.state parameter (LINE LIFF format)
+      // Direct page parameter
+      var page = params.get('page');
+      if (page) {
+        return baseUrl + '?page=' + page;
+      }
+      
+      // LIFF state parameter
       var liffState = params.get('liff.state');
       if (liffState) {
-        console.log('Found liff.state:', liffState);
-        // liff.state might be URL encoded
         try {
           var decoded = decodeURIComponent(liffState);
-          console.log('Decoded liff.state:', decoded);
-          // Extract page parameter from decoded state
+          
           if (decoded.indexOf('page=') !== -1) {
             var match = decoded.match(/page=([^&]+)/);
             if (match) {
-              var page = match[1];
-              console.log('Extracted page from liff.state:', page);
-              return baseUrl + '?page=' + page;
+              return baseUrl + '?page=' + match[1];
             }
           }
         } catch (e) {
@@ -111,48 +127,15 @@
         }
       }
       
-      // Method 2: Check for direct page parameter
-      var page = params.get('page');
-      if (page) {
-        console.log('Found direct page parameter:', page);
-        return baseUrl + '?page=' + page;
-      }
-      
-      // Method 3: Check hash (for #page=products format)
-      if (hash && hash.length > 1) {
-        var hashContent = hash.substring(1);
-        console.log('Found hash:', hashContent);
-        
-        // If hash contains page=
-        if (hashContent.indexOf('page=') !== -1) {
-          var hashParams = new URLSearchParams(hashContent);
-          var hashPage = hashParams.get('page');
-          if (hashPage) {
-            console.log('Extracted page from hash:', hashPage);
-            return baseUrl + '?page=' + hashPage;
-          }
-        }
-        
-        // If hash is just the page name
-        var validPages = ['products', 'withdraw', 'receive', 'reports', 'dashboard', 'logs'];
-        if (validPages.indexOf(hashContent) !== -1) {
-          console.log('Hash is valid page name:', hashContent);
-          return baseUrl + '?page=' + hashContent;
-        }
-      }
-      
-      // Method 4: Parse entire URL for page parameter (fallback)
+      // Method 3: Parse entire URL
       if (fullUrl.indexOf('page=') !== -1) {
-        var match = fullUrl.match(/[?&]page=([^&]+)/);
+        var match = fullUrl.match(/[?&#]page=([^&]+)/);
         if (match) {
-          var extractedPage = match[1];
-          console.log('Extracted page from full URL:', extractedPage);
-          return baseUrl + '?page=' + extractedPage;
+          return baseUrl + '?page=' + match[1];
         }
       }
       
       // Default to home
-      console.log('No page parameter found, loading home');
       return baseUrl;
     }
     
@@ -160,47 +143,36 @@
     var iframe = document.getElementById('appFrame');
     var loading = document.getElementById('loading');
     var targetUrl = getTargetUrl();
-    console.log('Loading iframe with URL:', targetUrl);
+    console.log('Loading:', targetUrl);
     iframe.src = targetUrl;
     
     // Hide loading when iframe loads
     iframe.addEventListener('load', function() {
-      console.log('Iframe loaded successfully');
       setTimeout(function() {
         loading.classList.add('hidden');
       }, 300);
     });
     
-    // Timeout fallback (hide loading after 5 seconds even if not loaded)
+    // Timeout fallback
     setTimeout(function() {
       loading.classList.add('hidden');
     }, 5000);
     
     // Handle iframe errors
     iframe.addEventListener('error', function() {
-      console.error('Iframe failed to load');
       loading.innerHTML = '<div style="text-align: center; color: #ff3b30;"><div style="font-size: 48px; margin-bottom: 16px;">⚠️</div><div style="font-size: 16px; font-weight: 600;">ไม่สามารถโหลดแอปได้</div><div style="font-size: 14px; color: #86868b; margin-top: 8px;">กรุณาลองใหม่อีกครั้ง</div></div>';
     });
     
-    // Listen for URL changes from parent (LIFF navigation)
-    window.addEventListener('message', function(event) {
-      console.log('Received message:', event.data);
-      
-      if (event.data && event.data.type === 'navigate') {
-        var newUrl = baseUrl + '?page=' + event.data.page;
-        console.log('Navigating to:', newUrl);
-        iframe.src = newUrl;
-      }
-    });
-    
-    // Listen for hash changes (for client-side routing)
+    // Listen for hash changes (IMPORTANT: This makes navigation work!)
     window.addEventListener('hashchange', function() {
       console.log('Hash changed to:', window.location.hash);
       var newUrl = getTargetUrl();
-      if (newUrl !== iframe.src) {
-        console.log('Reloading iframe with new URL:', newUrl);
-        iframe.src = newUrl;
-      }
+      console.log('Reloading iframe with:', newUrl);
+      iframe.src = newUrl;
+      loading.classList.remove('hidden');
+      setTimeout(function() {
+        loading.classList.add('hidden');
+      }, 1000);
     });
   </script>
 </body>
