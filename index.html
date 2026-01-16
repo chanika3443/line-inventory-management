@@ -136,9 +136,29 @@
     
     // Listen for hash changes
     window.addEventListener('hashchange', function() {
+      console.log('=== HASH CHANGED ===');
+      console.log('New hash:', window.location.hash);
       var newUrl = getTargetUrl();
+      console.log('Loading:', newUrl);
       iframe.src = newUrl;
       loading.classList.remove('hidden');
+    });
+    
+    // Listen for postMessage from iframe (for navigation)
+    window.addEventListener('message', function(event) {
+      // Accept messages from Google Apps Script
+      if (!event.data || event.data.type !== 'navigate') return;
+      
+      console.log('=== RECEIVED MESSAGE FROM IFRAME ===');
+      console.log('Hash:', event.data.hash);
+      
+      // Change hash (this will trigger hashchange event above)
+      if (event.data.hash) {
+        window.location.hash = event.data.hash;
+      } else {
+        // Home page - remove hash
+        window.location.hash = '';
+      }
     });
   </script>
 </body>
