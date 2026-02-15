@@ -53,9 +53,25 @@ function rowToProduct(row) {
  * Convert row data to Transaction object
  */
 function rowToTransaction(row) {
+  // Parse timestamp from format "15/1/2026, 0:23:39" to ISO format
+  let timestamp = row[1] || ''
+  if (timestamp && timestamp.includes('/')) {
+    try {
+      // Split "15/1/2026, 0:23:39" into parts
+      const [datePart, timePart] = timestamp.split(', ')
+      const [day, month, year] = datePart.split('/')
+      const [hour, minute, second] = timePart.split(':')
+      
+      // Create ISO format: 2026-01-15T00:23:39
+      timestamp = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}T${hour.padStart(2, '0')}:${minute.padStart(2, '0')}:${second.padStart(2, '0')}`
+    } catch (e) {
+      console.error('Error parsing timestamp:', row[1], e)
+    }
+  }
+  
   return {
     id: row[0] || '',
-    timestamp: row[1] || '',
+    timestamp: timestamp,
     type: row[2] || '',
     productCode: row[3] || '',
     productName: row[4] || '',
