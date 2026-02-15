@@ -101,11 +101,26 @@ export default function Products() {
       </div>
 
       <div className="container" style={{ paddingTop: '16px' }}>
-        <div className="page-header">
-        <button onClick={handleAdd} className="btn btn-primary" style={{ fontSize: '13px', padding: '10px 16px' }}>
-          + เพิ่มวัสดุ
+        <button 
+          onClick={handleAdd} 
+          className="btn btn-primary" 
+          style={{ 
+            fontSize: '14px', 
+            padding: '12px 20px',
+            width: '100%',
+            marginBottom: '16px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '8px',
+            fontWeight: '600',
+            borderRadius: 'var(--radius-lg)',
+            boxShadow: '0 4px 12px rgba(10, 132, 255, 0.3)'
+          }}
+        >
+          <span style={{ fontSize: '18px', fontWeight: '700' }}>+</span>
+          เพิ่มวัสดุ
         </button>
-      </div>
 
       {message && (
         <div className={message.type === 'success' ? 'success-message' : 'error-message'} style={{ fontSize: '13px', padding: '10px', marginBottom: '10px' }}>
