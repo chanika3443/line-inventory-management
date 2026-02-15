@@ -256,7 +256,7 @@ export default function Logs() {
         {showFilters && (
           <div className="filters-card card" style={{ marginBottom: '12px', padding: '14px' }}>
             <div className="input-group" style={{ marginBottom: '8px' }}>
-              <label className="input-label" style={{ fontSize: '11px', marginBottom: '4px', fontWeight: '600' }}>วันที่เริ่มต้น</label>
+              <label className="input-label" style={{ fontSize: '11px', marginBottom: '4px', fontWeight: '600', color: '#667eea' }}>วันที่เริ่มต้น</label>
               <input
                 type="date"
                 className="input"
@@ -267,7 +267,7 @@ export default function Logs() {
             </div>
 
             <div className="input-group" style={{ marginBottom: '8px' }}>
-              <label className="input-label" style={{ fontSize: '11px', marginBottom: '4px', fontWeight: '600' }}>วันที่สิ้นสุด</label>
+              <label className="input-label" style={{ fontSize: '11px', marginBottom: '4px', fontWeight: '600', color: '#667eea' }}>วันที่สิ้นสุด</label>
               <input
                 type="date"
                 className="input"
@@ -278,7 +278,7 @@ export default function Logs() {
             </div>
 
             <div className="input-group" style={{ marginBottom: '10px' }}>
-              <label className="input-label" style={{ fontSize: '11px', marginBottom: '4px', fontWeight: '600' }}>ประเภท</label>
+              <label className="input-label" style={{ fontSize: '11px', marginBottom: '4px', fontWeight: '600', color: '#667eea' }}>ประเภท</label>
               <select
                 className="select"
                 style={{ fontSize: '13px', padding: '8px 10px', height: '38px' }}
