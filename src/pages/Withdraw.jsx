@@ -15,7 +15,25 @@ export default function Withdraw() {
   const [quantity, setQuantity] = useState('')
   const [userName, setLocalUserName] = useState(liffUserName || '')
   const [roomNumber, setRoomNumber] = useState('')
-  const [patientType, setPatientType] = useState('ดึก') // ดึก or รับใหม่
+  
+  // Get default patient type based on current time
+  const getDefaultPatientType = () => {
+    const now = new Date()
+    const hours = now.getHours()
+    const minutes = now.getMinutes()
+    const timeInMinutes = hours * 60 + minutes
+    
+    // 20:30 = 1230 minutes, 06:30 = 390 minutes
+    // ดึก: 20:30-06:30 (1230-1440 and 0-390)
+    // รับใหม่: 06:30-20:30 (390-1230)
+    if (timeInMinutes >= 1230 || timeInMinutes < 390) {
+      return 'ดึก'
+    } else {
+      return 'รับใหม่'
+    }
+  }
+  
+  const [patientType, setPatientType] = useState(getDefaultPatientType())
   const [message, setMessage] = useState(null)
   
   // Multi-select mode
@@ -131,7 +149,7 @@ export default function Withdraw() {
       setSelectedProduct(null)
       setQuantity('')
       setRoomNumber('')
-      setPatientType('ดึก')
+      setPatientType(getDefaultPatientType()) // Reset to default based on time
       setSearchQuery('')
     } else {
       setMessage({ type: 'error', text: result.message })
