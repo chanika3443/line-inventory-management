@@ -12,6 +12,8 @@ export default function Logs() {
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage] = useState(20)
   const [dateRange, setDateRange] = useState('today') // Default to today
+  const [sortField, setSortField] = useState('timestamp')
+  const [sortDirection, setSortDirection] = useState('desc') // 'asc' or 'desc'
   const [filters, setFilters] = useState({
     startDate: '',
     endDate: '',
@@ -92,11 +94,55 @@ export default function Logs() {
     loadTransactions()
   }
 
+  function handleSort(field) {
+    if (sortField === field) {
+      // Toggle direction
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')
+    } else {
+      // New field, default to ascending
+      setSortField(field)
+      setSortDirection('asc')
+    }
+  }
+
+  // Sort transactions
+  const sortedTransactions = [...transactions].sort((a, b) => {
+    let aVal, bVal
+    
+    switch(sortField) {
+      case 'type':
+        aVal = a.type
+        bVal = b.type
+        break
+      case 'productName':
+        aVal = a.productName
+        bVal = b.productName
+        break
+      case 'quantity':
+        aVal = a.quantity
+        bVal = b.quantity
+        break
+      case 'userName':
+        aVal = a.userName
+        bVal = b.userName
+        break
+      case 'timestamp':
+      default:
+        aVal = new Date(a.timestamp)
+        bVal = new Date(b.timestamp)
+        break
+    }
+    
+    if (aVal < bVal) return sortDirection === 'asc' ? -1 : 1
+    if (aVal > bVal) return sortDirection === 'asc' ? 1 : -1
+    return 0
+  })
+
   // Pagination
   const indexOfLastItem = currentPage * itemsPerPage
   const indexOfFirstItem = indexOfLastItem - itemsPerPage
-  const currentTransactions = transactions.slice(indexOfFirstItem, indexOfLastItem)
-  const totalPages = Math.ceil(transactions.length / itemsPerPage)
+  const currentTransactions = sortedTransactions.slice(indexOfFirstItem, indexOfLastItem)
+  const totalPages = Math.ceil(sortedTransactions.length / itemsPerPage)
 
   function getTypeLabel(type) {
     const typeUpper = type.toUpperCase()
@@ -262,11 +308,71 @@ export default function Logs() {
             }}>
               <thead>
                 <tr style={{ background: 'var(--bg-secondary)', borderBottom: '2px solid var(--border)' }}>
-                  <th style={{ padding: '12px 8px', textAlign: 'left', fontWeight: '600', color: 'var(--text-primary)' }}>ประเภท</th>
-                  <th style={{ padding: '12px 8px', textAlign: 'left', fontWeight: '600', color: 'var(--text-primary)' }}>วัสดุ</th>
-                  <th style={{ padding: '12px 8px', textAlign: 'center', fontWeight: '600', color: 'var(--text-primary)' }}>จำนวน</th>
-                  <th style={{ padding: '12px 8px', textAlign: 'left', fontWeight: '600', color: 'var(--text-primary)' }}>ผู้ทำรายการ</th>
-                  <th style={{ padding: '12px 8px', textAlign: 'left', fontWeight: '600', color: 'var(--text-primary)' }}>เวลา</th>
+                  <th 
+                    onClick={() => handleSort('type')}
+                    style={{ 
+                      padding: '12px 8px', 
+                      textAlign: 'left', 
+                      fontWeight: '600', 
+                      color: 'var(--text-primary)',
+                      cursor: 'pointer',
+                      userSelect: 'none'
+                    }}
+                  >
+                    ประเภท {sortField === 'type' && (sortDirection === 'asc' ? '↑' : '↓')}
+                  </th>
+                  <th 
+                    onClick={() => handleSort('productName')}
+                    style={{ 
+                      padding: '12px 8px', 
+                      textAlign: 'left', 
+                      fontWeight: '600', 
+                      color: 'var(--text-primary)',
+                      cursor: 'pointer',
+                      userSelect: 'none'
+                    }}
+                  >
+                    วัสดุ {sortField === 'productName' && (sortDirection === 'asc' ? '↑' : '↓')}
+                  </th>
+                  <th 
+                    onClick={() => handleSort('quantity')}
+                    style={{ 
+                      padding: '12px 8px', 
+                      textAlign: 'center', 
+                      fontWeight: '600', 
+                      color: 'var(--text-primary)',
+                      cursor: 'pointer',
+                      userSelect: 'none'
+                    }}
+                  >
+                    จำนวน {sortField === 'quantity' && (sortDirection === 'asc' ? '↑' : '↓')}
+                  </th>
+                  <th 
+                    onClick={() => handleSort('userName')}
+                    style={{ 
+                      padding: '12px 8px', 
+                      textAlign: 'left', 
+                      fontWeight: '600', 
+                      color: 'var(--text-primary)',
+                      cursor: 'pointer',
+                      userSelect: 'none'
+                    }}
+                  >
+                    ผู้ทำรายการ {sortField === 'userName' && (sortDirection === 'asc' ? '↑' : '↓')}
+                  </th>
+                  <th 
+                    onClick={() => handleSort('timestamp')}
+                    style={{ 
+                      padding: '12px 8px', 
+                      textAlign: 'left', 
+                      fontWeight: '600', 
+                      color: 'var(--text-primary)',
+                      cursor: 'pointer',
+                      userSelect: 'none'
+                    }}
+                  >
+                    เวลา {sortField === 'timestamp' && (sortDirection === 'asc' ? '↑' : '↓')}
+                  </th>
                 </tr>
               </thead>
               <tbody>
