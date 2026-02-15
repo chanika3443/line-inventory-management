@@ -1,12 +1,8 @@
 .login-btn {
-  position: fixed;
-  top: 12px;
-  right: 16px;
-  z-index: 1000;
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 10px;
+  padding: 6px 12px;
   background: linear-gradient(180deg, #06c755 0%, #00b900 100%);
   color: white;
   border: none;
@@ -192,4 +188,107 @@
 
 .logout-btn:active {
   opacity: 0.8;
+}
+
+/* Login buttons group */
+.login-buttons {
+  position: fixed;
+  top: 12px;
+  right: 16px;
+  z-index: 1000;
+  display: flex;
+  gap: 8px;
+}
+
+.manual-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.manual-btn:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: scale(1.05);
+}
+
+.manual-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* Manual login input */
+.manual-login {
+  position: fixed;
+  top: 12px;
+  right: 16px;
+  z-index: 1000;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  background: var(--bg-elevated);
+  padding: 6px;
+  border-radius: var(--radius-full);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--border);
+}
+
+.manual-input {
+  width: 140px;
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 13px;
+  outline: none;
+}
+
+.manual-input:focus {
+  border-color: var(--accent);
+}
+
+.manual-ok-btn,
+.manual-cancel-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: bold;
+  transition: all 0.2s;
+}
+
+.manual-ok-btn {
+  background: var(--accent);
+  color: white;
+}
+
+.manual-ok-btn:hover {
+  background: var(--accent-dark);
+  transform: scale(1.05);
+}
+
+.manual-cancel-btn {
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+}
+
+.manual-cancel-btn:hover {
+  background: var(--danger-light);
+  color: var(--danger);
+  transform: scale(1.05);
 }

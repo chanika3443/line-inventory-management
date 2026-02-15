@@ -46,17 +46,19 @@ export function LiffProvider({ children }) {
             localStorage.setItem('liff_user_profile', JSON.stringify(profile))
           }
         } else {
-          // Not logged in via LIFF, clear saved data
-          if (savedProfile) {
+          // Not logged in via LIFF
+          // If we have saved profile, keep it (manual mode)
+          // Otherwise clear everything
+          if (!savedProfile) {
             setIsLoggedIn(false)
             setUserProfile(null)
             setUserName('')
-            localStorage.removeItem('liff_user_profile')
           }
         }
       } else {
-        // LIFF failed to initialize, use fallback mode
+        // LIFF failed to initialize
         console.warn('LIFF not available, using manual input mode')
+        // Keep saved profile if exists, otherwise use manual mode
       }
     }
     
