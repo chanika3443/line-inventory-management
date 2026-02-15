@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#f5f5f7">
+  <title>คืนวัสดุ</title>
+  <?!= include('base'); ?>
+</head>
+<body>
+  <div class="header">
+    <h1>คืนวัสดุ</h1>
+    <p class="header-subtitle">คืนวัสดุที่เบิกไปแล้วกลับเข้าคลัง</p>
+  </div>
+  
+  <div class="container">
+    <div id="alertContainer"></div>
+    
+    <div class="card">
+      <div class="card-title">รายละเอียดการคืน</div>
+      <form id="returnForm" onsubmit="showPreview(event)">
+        <div class="form-group" id="productGroup">
+          <label>เลือกวัสดุที่ต้องการคืน</label>
+          <select id="productSelect" onchange="updateStockInfo(); clearFieldError('productGroup');">
+            <option value="">-- เลือกวัสดุ --</option>
+          </select>
+          <div class="field-error">กรุณาเลือกวัสดุ</div>
+        </div>
+        
+        <div id="stockInfo" class="alert alert-warning hidden">
+          คงเหลือปัจจุบัน: <span id="currentStock">0</span> <span id="stockUnit"></span>
+        </div>
+        
+        <div class="form-group" id="quantityGroup">
+          <label>จำนวนที่คืน</label>
+          <input type="number" id="quantity" min="1" placeholder="ระบุจำนวน" oninput="clearFieldError('quantityGroup')">
+          <div class="field-error">กรุณาระบุจำนวนที่คืน</div>
+        </div>
+        
+        <div class="form-group" id="userNameGroup">
+          <label>ชื่อผู้คืน</label>
+          <input type="text" id="userName" placeholder="ระบุชื่อผู้คืน" oninput="clearFieldError('userNameGroup')">
+          <div class="field-error">กรุณาระบุชื่อผู้คืน</div>
+        </div>
+        
+        <div class="form-group">
+          <label>หมายเหตุ (ถ้ามี)</label>
+          <textarea id="note" placeholder="เช่น สภาพสินค้า, เหตุผลที่คืน" rows="3" style="width: 100%; padding: 14px 16px; border: 1.5px solid var(--border-strong); border-radius: var(--radius-md); font-size: var(--text-md); font-family: inherit; resize: vertical;"></textarea>
+        </div>
+        
+        <button type="submit" class="btn btn-primary btn-block">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+            <polyline points="9 22 9 12 15 12 15 22"/>
+          </svg>
+          ยืนยันการคืน
+        </button>
+      </form>
+    </div>
+    
+    <!-- Preview Modal -->
+    <div id="previewModal" class="modal-overlay hidden">
+      <div class="modal-content">
+        <div class="modal-header">
+          <div class="modal-icon" style="background: rgba(52,199,89,0.1);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#34c759">
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+              <polyline points="9 22 9 12 15 12 15 22"/>
+            </svg>
+          </div>
+          <div class="modal-title">ยืนยันการคืนวัสดุ</div>
+        </div>
+        <div class="modal-body">
+          <div class="preview-item">
+            <span class="preview-label">วัสดุ</span>
+            <span class="preview-value" id="prevProductName">-</span>
+          </div>
+          <div class="preview-item">
+            <span class="preview-label">รหัส</span>
+            <span class="preview-value" id="prevProductCode">-</span>
+          </div>
+          <div class="preview-item">
+            <span class="preview-label">จำนวนที่คืน</span>
+            <span class="preview-value highlight-green" id="prevQuantity">-</span>
+          </div>
+          <div class="preview-item">
+            <span class="preview-label">คงเหลือปัจจุบัน</span>
+            <span class="preview-value" id="prevCurrentStock">-</span>
+          </div>
+          <div class="preview-item">
+            <span class="preview-label">ผู้คืน</span>
+            <span class="preview-value" id="prevUserName">-</span>
+          </div>
+          <div class="preview-item" id="prevNoteItem" style="display: none;">
+            <span class="preview-label">หมายเหตุ</span>
+            <span class="preview-value" id="prevNote">-</span>
+          </div>
+          <div class="preview-summary">
+            <div class="preview-summary-label">คงเหลือหลังคืน</div>
+            <div class="preview-summary-value highlight-green" id="prevAfterStock">-</div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline" onclick="closePreview()">ยกเลิก</button>
+          <button class="btn btn-primary" id="confirmBtn" onclick="handleConfirmClick()">ยืนยันคืน</button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Success Modal -->
+    <div id="successModal" class="modal-overlay hidden">
+      <div class="modal-content">
+        <div class="modal-header">
+          <div class="modal-icon" style="background: var(--success-light);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="var(--success)" stroke-width="2.5">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+          </div>
+          <div class="modal-title">คืนวัสดุสำเร็จ</div>
+        </div>
+        <div class="modal-body">
+          <div id="successDetails"></div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-primary btn-block" id="successOkBtn" onclick="handleSuccessOkClick()">ตกลง</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Navigation -->
+  <nav class="bottom-nav">
+    <div class="nav-item" onclick="navigateTo('https://liff.line.me/2008893142-t04JvNpe')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      <span>หน้าแรก</span>
+    </div>
+    <div class="nav-item" onclick="navigateTo('https://liff.line.me/2008893142-t04JvNpe#withdraw')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      <span>เบิก</span>
+    </div>
+    <div class="nav-item" onclick="navigateTo('https://liff.line.me/2008893142-t04JvNpe#receive')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      <span>รับเข้า</span>
+    </div>
+    <div class="nav-item active" onclick="navigateTo('https://liff.line.me/2008893142-t04JvNpe#return')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M3 21v-5h5"/></svg>
+      <span>คืน</span>
+    </div>
+    <div class="nav-item" onclick="navigateTo('https://liff.line.me/2008893142-t04JvNpe#dashboard')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
+      <span>อื่นๆ</span>
+    </div>
+  </nav>
+
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <script>
+    var baseUrl = 'https://script.google.com/macros/s/AKfycbx485xIyUla9r78h6rxgwbr0JHlCt4skYjsXdxwPgHwjjwshVqhYI9OOVWY9fjVpYT0/exec';
+    var products = [];
+    var pendingData = null;
+    var isProcessing = false;
+    var preloadedData = <?!= preloadedData ? preloadedData : 'null' ?>;
+    
+    document.addEventListener('DOMContentLoaded', function() {
+      initLiff();
+      // Load from cache first
+      var cachedProducts = CacheService.get('products');
+      if (cachedProducts) {
+        products = cachedProducts;
+        renderProductOptions();
+      }
+      if (preloadedData) { 
+        products = preloadedData; 
+        renderProductOptions();
+        CacheService.set('products', preloadedData);
+      } else { 
+        loadProducts(); 
+      }
+      
+      // Auto refresh every 30 seconds
+      AutoRefresh.onRefresh(loadProducts);
+      AutoRefresh.start();
+    });
+    
+    function initLiff() {
+      // Auto-fill user name from localStorage
+      UserStorage.autoFill('userName');
+      
+      // Setup auto-save when user types
+      UserStorage.setupAutoSave('userName');
+      
+      // LIFF integration
+      var liffId = '<?= liffId ?>';
+      if (liffId) {
+        liff.init({ liffId: liffId }).then(function() {
+          if (liff.isLoggedIn()) { liff.getProfile().then(function(profile) { document.getElementById('userName').value = profile.displayName; }); }
+        }).catch(function(err) { console.log('LIFF init error:', err); });
+      }
+    }
+    
+    function loadProducts() {
+      if (!CacheService.get('products')) {
+        LoadingUI.show('กำลังโหลดข้อมูล...');
+      }
+      CacheService.fetchWithCache(
+        baseUrl + '?action=getProducts',
+        'products',
+        function(data, fromCache) {
+          products = data;
+          renderProductOptions();
+          LoadingUI.hide();
+        },
+        function(err) {
+          LoadingUI.hide();
+          showAlert('เกิดข้อผิดพลาดในการโหลดข้อมูล', 'error');
+        }
+      );
+    }
+    
+    function renderProductOptions() {
+      var select = document.getElementById('productSelect');
+      select.innerHTML = '<option value="">-- เลือกวัสดุ --</option>';
+      
+      console.log('Total products:', products.length);
+      
+      // Filter only returnable products
+      var returnableProducts = products.filter(function(p) {
+        var isReturnable = p.returnable === true || p.returnable === 'true' || p.returnable === 'TRUE';
+        console.log('Product:', p.code, p.name, 'returnable:', p.returnable, 'isReturnable:', isReturnable);
+        return isReturnable;
+      });
+      
+      console.log('Returnable products:', returnableProducts.length);
+      
+      if (returnableProducts.length === 0) {
+        var option = document.createElement('option');
+        option.textContent = 'ไม่มีวัสดุที่สามารถคืนได้ (ตรวจสอบการตั้งค่าในหน้าจัดการวัสดุ)';
+        option.disabled = true;
+        select.appendChild(option);
+        return;
+      }
+      
+      returnableProducts.forEach(function(p) {
+        var option = document.createElement('option');
+        option.value = p.code;
+        option.textContent = p.code + ' - ' + p.name + ' (คงเหลือ: ' + p.quantity + ' ' + p.unit + ')';
+        option.dataset.quantity = p.quantity;
+        option.dataset.unit = p.unit;
+        option.dataset.name = p.name;
+        select.appendChild(option);
+      });
+    }
+    
+    function updateStockInfo() {
+      var select = document.getElementById('productSelect');
+      var selected = select.options[select.selectedIndex];
+      var stockInfo = document.getElementById('stockInfo');
+      if (select.value) {
+        document.getElementById('currentStock').textContent = selected.dataset.quantity;
+        document.getElementById('stockUnit').textContent = selected.dataset.unit;
+        stockInfo.classList.remove('hidden');
+      } else { stockInfo.classList.add('hidden'); }
+    }
+    
+    function showPreview(e) {
+      e.preventDefault();
+      var select = document.getElementById('productSelect');
+      var productCode = select.value;
+      var quantity = document.getElementById('quantity').value;
+      var userName = document.getElementById('userName').value.trim();
+      var note = document.getElementById('note').value.trim();
+      
+      clearAllErrors();
+      var hasError = false;
+      if (!productCode) { document.getElementById('productGroup').classList.add('has-error'); hasError = true; }
+      if (!quantity || parseInt(quantity) <= 0) { document.getElementById('quantityGroup').classList.add('has-error'); hasError = true; }
+      if (!userName) { document.getElementById('userNameGroup').classList.add('has-error'); hasError = true; }
+      if (hasError) return;
+      
+      var selected = select.options[select.selectedIndex];
+      var productName = selected.dataset.name;
+      quantity = parseInt(quantity);
+      var currentStock = parseInt(selected.dataset.quantity);
+      var unit = selected.dataset.unit;
+      
+      pendingData = { productCode: productCode, quantity: quantity, userName: userName, note: note };
+      document.getElementById('prevProductName').textContent = productName;
+      document.getElementById('prevProductCode').textContent = productCode;
+      document.getElementById('prevQuantity').textContent = '+' + quantity + ' ' + unit;
+      document.getElementById('prevCurrentStock').textContent = currentStock + ' ' + unit;
+      document.getElementById('prevUserName').textContent = userName;
+      document.getElementById('prevAfterStock').textContent = (currentStock + quantity) + ' ' + unit;
+      
+      // Show/hide note
+      var noteItem = document.getElementById('prevNoteItem');
+      if (note) {
+        document.getElementById('prevNote').textContent = note;
+        noteItem.style.display = 'flex';
+      } else {
+        noteItem.style.display = 'none';
+      }
+      
+      document.getElementById('previewModal').classList.remove('hidden');
+      AutoRefresh.stop();
+      setTimeout(checkPreviewScroll, 200);
+    }
+    
+    function checkPreviewScroll() {
+      var modal = document.querySelector('#previewModal .modal-content');
+      var btn = document.getElementById('confirmBtn');
+      modal.scrollTop = 0;
+      var isScrollable = modal.scrollHeight > modal.clientHeight;
+      var isAtBottom = modal.scrollHeight - modal.scrollTop - modal.clientHeight < 10;
+      if (isScrollable && !isAtBottom) { btn.textContent = 'ต่อไป'; btn.dataset.needScroll = 'true'; }
+      else { btn.textContent = 'ยืนยันคืน'; btn.dataset.needScroll = 'false'; }
+      modal.onscroll = function() { updatePreviewButton(); };
+    }
+    
+    function updatePreviewButton() {
+      var modal = document.querySelector('#previewModal .modal-content');
+      var btn = document.getElementById('confirmBtn');
+      var isAtBottom = modal.scrollHeight - modal.scrollTop - modal.clientHeight < 10;
+      if (isAtBottom) { btn.textContent = 'ยืนยันคืน'; btn.dataset.needScroll = 'false'; }
+    }
+    
+    function handleConfirmClick() {
+      var btn = document.getElementById('confirmBtn');
+      var modal = document.querySelector('#previewModal .modal-content');
+      if (btn.dataset.needScroll === 'true') { modal.scrollTo({ top: modal.scrollHeight, behavior: 'smooth' }); }
+      else { confirmReturn(); }
+    }
+    
+    function closePreview() { 
+      document.getElementById('previewModal').classList.add('hidden'); 
+      pendingData = null; 
+      AutoRefresh.start();
+    }
+    
+    function confirmReturn() {
+      if (!pendingData || isProcessing) return;
+      isProcessing = true;
+      var btn = document.getElementById('confirmBtn');
+      btn.disabled = true; btn.textContent = 'กำลังดำเนินการ...';
+      LoadingUI.showProgress();
+      LoadingUI.simulateProgress(1500);
+      var formData = new FormData();
+      formData.append('payload', JSON.stringify({ 
+        action: 'return', 
+        productCode: pendingData.productCode, 
+        quantity: pendingData.quantity, 
+        userName: pendingData.userName,
+        note: pendingData.note
+      }));
+      
+      fetch(baseUrl, { method: 'POST', body: formData })
+        .then(function(res) { return res.json(); })
+        .then(function(result) {
+          isProcessing = false;
+          btn.disabled = false; btn.textContent = 'ยืนยันคืน'; 
+          LoadingUI.setProgress(100);
+          setTimeout(function() { LoadingUI.hideProgress(); }, 300);
+          closePreview();
+          if (result.success) { 
+            showSuccessModal(result.data); 
+            document.getElementById('returnForm').reset(); 
+            document.getElementById('stockInfo').classList.add('hidden'); 
+            CacheService.clear('products');
+            CacheService.clear('dashboard');
+            loadProducts(); 
+          }
+          else { showAlert(result.message, 'error'); }
+        })
+        .catch(function(err) { 
+          isProcessing = false; 
+          btn.disabled = false; 
+          btn.textContent = 'ยืนยันคืน'; 
+          LoadingUI.hideProgress();
+          closePreview(); 
+          showAlert('เกิดข้อผิดพลาด: ' + err.message, 'error'); 
+        });
+    }
+    
+    function showSuccessModal(data) {
+      document.getElementById('successDetails').innerHTML = '<div class="preview-item"><span class="preview-label">วัสดุ</span><span class="preview-value">' + data.productName + '</span></div><div class="preview-item"><span class="preview-label">จำนวนที่คืน</span><span class="preview-value highlight-green">+' + data.quantity + '</span></div><div class="preview-item"><span class="preview-label">คงเหลือก่อนคืน</span><span class="preview-value">' + data.beforeQuantity + '</span></div><div class="preview-item"><span class="preview-label">คงเหลือหลังคืน</span><span class="preview-value highlight-green">' + data.afterQuantity + '</span></div>';
+      document.getElementById('successModal').classList.remove('hidden');
+      setTimeout(checkSuccessScroll, 200);
+    }
+    
+    function checkSuccessScroll() {
+      var modal = document.querySelector('#successModal .modal-content');
+      var btn = document.getElementById('successOkBtn');
+      modal.scrollTop = 0;
+      var isScrollable = modal.scrollHeight > modal.clientHeight;
+      var isAtBottom = modal.scrollHeight - modal.scrollTop - modal.clientHeight < 10;
+      if (isScrollable && !isAtBottom) { btn.textContent = 'ต่อไป'; btn.dataset.needScroll = 'true'; }
+      else { btn.textContent = 'ตกลง'; btn.dataset.needScroll = 'false'; }
+      modal.onscroll = function() { updateSuccessButton(); };
+    }
+    
+    function updateSuccessButton() {
+      var modal = document.querySelector('#successModal .modal-content');
+      var btn = document.getElementById('successOkBtn');
+      var isAtBottom = modal.scrollHeight - modal.scrollTop - modal.clientHeight < 10;
+      if (isAtBottom) { btn.textContent = 'ตกลง'; btn.dataset.needScroll = 'false'; }
+    }
+    
+    function handleSuccessOkClick() {
+      var btn = document.getElementById('successOkBtn');
+      var modal = document.querySelector('#successModal .modal-content');
+      if (btn.dataset.needScroll === 'true') { modal.scrollTo({ top: modal.scrollHeight, behavior: 'smooth' }); }
+      else { document.getElementById('successModal').classList.add('hidden'); }
+    }
+    
+    function clearAllErrors() { document.getElementById('productGroup').classList.remove('has-error'); document.getElementById('quantityGroup').classList.remove('has-error'); document.getElementById('userNameGroup').classList.remove('has-error'); }
+    function clearFieldError(groupId) { document.getElementById(groupId).classList.remove('has-error'); }
+    function showAlert(message, type) { var container = document.getElementById('alertContainer'); container.innerHTML = '<div class="alert alert-' + type + '">' + message + '</div>'; setTimeout(function() { container.innerHTML = ''; }, 5000); }
+  </script>
+</body>
+</html>

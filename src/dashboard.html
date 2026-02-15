@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#f5f5f7">
+  <title>Dashboard</title>
+  <?!= include('base'); ?>
+  <style>
+    .hero-stat {
+      background: linear-gradient(135deg, var(--accent) 0%, #5856d6 100%);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      color: white;
+      margin-bottom: 16px;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-stat::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      right: -50%;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 70%);
+    }
+    .hero-stat-label {
+      font-size: 13px;
+      opacity: 0.9;
+      font-weight: 500;
+      position: relative;
+      text-align: center;
+    }
+    .hero-stat-value {
+      font-size: 48px;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      line-height: 1;
+      margin-top: 8px;
+      position: relative;
+      text-align: center;
+    }
+    .hero-stat-desc {
+      font-size: 14px;
+      opacity: 0.8;
+      margin-top: 8px;
+      position: relative;
+      text-align: center;
+    }
+    .warning-card {
+      background: linear-gradient(135deg, #ff9f0a 0%, #ff6b00 100%);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      color: white;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 16px;
+      box-shadow: 0 4px 16px rgba(255,159,10,0.3);
+    }
+    .warning-card-icon {
+      width: 52px;
+      height: 52px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .warning-card-icon svg {
+      width: 26px;
+      height: 26px;
+      stroke: white;
+      stroke-width: 2;
+    }
+    .warning-card-content {
+      flex: 1;
+    }
+    .warning-card-value {
+      font-size: 32px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+    .warning-card-label {
+      font-size: 14px;
+      opacity: 0.9;
+      margin-top: 2px;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>ภาพรวม</h1>
+    <p class="header-subtitle">ภาพรวมคลังวัสดุ</p>
+  </div>
+  
+  <div class="container">
+    <div class="hero-stat">
+      <div class="hero-stat-label">วัสดุทั้งหมด</div>
+      <div class="hero-stat-value" id="totalProducts">-</div>
+      <div class="hero-stat-desc">รายการในระบบ</div>
+    </div>
+    
+    <div class="stats-grid mb-4">
+      <div class="stat-card">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--success)" stroke-width="1.5">
+          <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+        </svg>
+        <div class="stat-value" id="totalQuantity">-</div>
+        <div class="stat-label">จำนวนรวม</div>
+      </div>
+      <div class="stat-card" id="lowStockCard">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--danger)" stroke-width="1.5">
+          <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+          <line x1="12" y1="9" x2="12" y2="13"/>
+          <line x1="12" y1="17" x2="12.01" y2="17"/>
+        </svg>
+        <div class="stat-value" id="lowStockCount" style="color: var(--danger);">-</div>
+        <div class="stat-label">ใกล้หมด</div>
+      </div>
+    </div>
+    
+    <div class="card">
+      <div class="card-title">วัสดุใกล้หมด</div>
+      <div id="lowStockList">
+        <div class="skeleton-list-item">
+          <div class="skeleton-list-item-content">
+            <div class="skeleton-list-item-title"></div>
+            <div class="skeleton-list-item-subtitle"></div>
+          </div>
+          <div class="skeleton-list-item-badge"></div>
+        </div>
+        <div class="skeleton-list-item">
+          <div class="skeleton-list-item-content">
+            <div class="skeleton-list-item-title"></div>
+            <div class="skeleton-list-item-subtitle"></div>
+          </div>
+          <div class="skeleton-list-item-badge"></div>
+        </div>
+        <div class="skeleton-list-item">
+          <div class="skeleton-list-item-content">
+            <div class="skeleton-list-item-title"></div>
+            <div class="skeleton-list-item-subtitle"></div>
+          </div>
+          <div class="skeleton-list-item-badge"></div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Stock History Graph -->
+    <div class="card">
+      <div class="card-title">กราฟความเคลื่อนไหว (7 วัน)</div>
+      <div id="chartContainer" style="position: relative; height: 200px;">
+        <canvas id="stockChart"></canvas>
+      </div>
+      <div style="display: flex; justify-content: center; gap: 16px; margin-top: 12px; font-size: 12px;">
+        <div style="display: flex; align-items: center; gap: 4px;">
+          <span style="width: 12px; height: 12px; background: #34C759; border-radius: 2px;"></span>
+          <span style="color: var(--text-secondary);">รับเข้า</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 4px;">
+          <span style="width: 12px; height: 12px; background: #FF3B30; border-radius: 2px;"></span>
+          <span style="color: var(--text-secondary);">เบิกออก</span>
+        </div>
+      </div>
+    </div>
+    
+    <div class="card">
+      <div class="card-title">ดำเนินการด่วน</div>
+      <a href="https://liff.line.me/2008893142-t04JvNpe#withdraw" class="btn btn-primary btn-block mb-2">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="17 8 12 3 7 8"/>
+          <line x1="12" y1="3" x2="12" y2="15"/>
+        </svg>
+        เบิกวัสดุ
+      </a>
+      <a href="https://liff.line.me/2008893142-t04JvNpe#receive" class="btn btn-block mb-2" style="background: linear-gradient(180deg, #34d058 0%, #30d158 100%); color: white; box-shadow: 0 2px 8px rgba(48,209,88,0.3);">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="7 10 12 15 17 10"/>
+          <line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+        รับเข้าวัสดุ
+      </a>
+      <a href="https://liff.line.me/2008893142-t04JvNpe#products" class="btn btn-outline btn-block">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <line x1="8" y1="6" x2="21" y2="6"/>
+          <line x1="8" y1="12" x2="21" y2="12"/>
+          <line x1="8" y1="18" x2="21" y2="18"/>
+          <line x1="3" y1="6" x2="3.01" y2="6"/>
+          <line x1="3" y1="12" x2="3.01" y2="12"/>
+          <line x1="3" y1="18" x2="3.01" y2="18"/>
+        </svg>
+        จัดการวัสดุ
+      </a>
+    </div>
+  </div>
+
+  <!-- Bottom Navigation -->
+  <nav class="bottom-nav">
+    <div class="nav-item" onclick="navigateTo('https://liff.line.me/2008893142-t04JvNpe')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      <span>หน้าแรก</span>
+    </div>
+    <div class="nav-item" onclick="navigateTo('https://liff.line.me/2008893142-t04JvNpe#withdraw')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      <span>เบิก</span>
+    </div>
+    <div class="nav-item" onclick="navigateTo('https://liff.line.me/2008893142-t04JvNpe#receive')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      <span>รับเข้า</span>
+    </div>
+    <div class="nav-item" onclick="navigateTo('https://liff.line.me/2008893142-t04JvNpe#return')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M3 21v-5h5"/></svg>
+      <span>คืน</span>
+    </div>
+    <div class="nav-item active" onclick="navigateTo('https://liff.line.me/2008893142-t04JvNpe#dashboard')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
+      <span>อื่นๆ</span>
+    </div>
+  </nav>
+  
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script>
+    var baseUrl = 'https://script.google.com/macros/s/AKfycbx485xIyUla9r78h6rxgwbr0JHlCt4skYjsXdxwPgHwjjwshVqhYI9OOVWY9fjVpYT0/exec';
+    var preloadedData = <?!= preloadedData ? preloadedData : 'null' ?>;
+    
+    document.addEventListener('DOMContentLoaded', function() {
+      initLiff();
+      // Load from cache first
+      var cachedDashboard = CacheService.get('dashboard');
+      if (cachedDashboard) {
+        renderDashboard(cachedDashboard.data || cachedDashboard);
+      }
+      if (preloadedData) { 
+        renderDashboard(preloadedData);
+        CacheService.set('dashboard', { data: preloadedData });
+      } else { 
+        loadDashboard(); 
+      }
+      
+      // Auto refresh every 30 seconds
+      AutoRefresh.onRefresh(loadDashboard);
+      AutoRefresh.start();
+    });
+    
+    function initLiff() {
+      var liffId = '<?= liffId ?>';
+      if (liffId) { liff.init({ liffId: liffId }).catch(function(err) { console.log('LIFF init error:', err); }); }
+    }
+    
+    function loadDashboard() {
+      if (!CacheService.get('dashboard')) {
+        LoadingUI.show('กำลังโหลดข้อมูล...');
+      }
+      CacheService.fetchWithCache(
+        baseUrl + '?action=getDashboard',
+        'dashboard',
+        function(data, fromCache) {
+          if (data.success !== false) {
+            renderDashboard(data.data || data);
+          }
+          LoadingUI.hide();
+        },
+        function(err) {
+          LoadingUI.hide();
+          console.error('Error loading dashboard:', err);
+        }
+      );
+    }
+    
+    function renderDashboard(data) {
+      document.getElementById('totalProducts').textContent = data.totalProducts;
+      document.getElementById('totalQuantity').textContent = data.totalQuantity.toLocaleString();
+      document.getElementById('lowStockCount').textContent = data.lowStockCount;
+      
+      var container = document.getElementById('lowStockList');
+      if (data.lowStockProducts.length === 0) {
+        container.innerHTML = '<div class="empty-state"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--success)" stroke-width="1.5"><polyline points="20 6 9 17 4 12"/></svg><div class="empty-state-text">ไม่มีวัสดุใกล้หมด</div></div>';
+      } else {
+        var html = '';
+        data.lowStockProducts.forEach(function(p) {
+          html += '<div class="list-item"><div><div class="list-item-title">' + p.name + '</div><div class="list-item-subtitle">' + p.code + '</div></div><div style="text-align: right;"><span class="badge badge-danger">' + p.quantity + ' / ' + p.lowStockThreshold + ' ' + p.unit + '</span></div></div>';
+        });
+        container.innerHTML = html;
+      }
+      
+      // Load chart data
+      loadChartData();
+    }
+    
+    var stockChart = null;
+    
+    function loadChartData() {
+      // Get last 7 days
+      var endDate = new Date();
+      var startDate = new Date();
+      startDate.setDate(startDate.getDate() - 6);
+      
+      var startStr = formatDate(startDate);
+      var endStr = formatDate(endDate);
+      
+      fetch(baseUrl + '?action=getLogs&startDate=' + startStr + '&endDate=' + endStr)
+        .then(function(res) { return res.json(); })
+        .then(function(logs) { 
+          // Handle both array and object response
+          var logsArray = Array.isArray(logs) ? logs : (logs.data || logs.transactions || []);
+          renderChart(logsArray, startDate); 
+        })
+        .catch(function(err) { console.error('Error loading chart data:', err); });
+    }
+    
+    function formatDate(date) {
+      var y = date.getFullYear();
+      var m = ('0' + (date.getMonth() + 1)).slice(-2);
+      var d = ('0' + date.getDate()).slice(-2);
+      return y + '-' + m + '-' + d;
+    }
+    
+    function renderChart(logs, startDate) {
+      var labels = [];
+      var receiveData = [];
+      var withdrawData = [];
+      
+      // Generate last 7 days
+      for (var i = 0; i < 7; i++) {
+        var date = new Date(startDate);
+        date.setDate(date.getDate() + i);
+        var dateStr = formatDate(date);
+        var dayLabel = (date.getDate()) + '/' + (date.getMonth() + 1);
+        labels.push(dayLabel);
+        
+        // Sum quantities for this day
+        var receiveSum = 0;
+        var withdrawSum = 0;
+        
+        logs.forEach(function(log) {
+          // Handle different timestamp formats
+          var logTimestamp = log.timestamp;
+          var logDate;
+          if (typeof logTimestamp === 'string') {
+            logDate = new Date(logTimestamp);
+          } else if (logTimestamp instanceof Date) {
+            logDate = logTimestamp;
+          } else {
+            logDate = new Date(logTimestamp);
+          }
+          
+          var logDateStr = formatDate(logDate);
+          if (logDateStr === dateStr) {
+            if (log.type === 'RECEIVE') {
+              receiveSum += parseInt(log.quantity) || 0;
+            } else if (log.type === 'WITHDRAW') {
+              withdrawSum += parseInt(log.quantity) || 0;
+            }
+          }
+        });
+        
+        receiveData.push(receiveSum);
+        withdrawData.push(withdrawSum);
+      }
+      
+      var ctx = document.getElementById('stockChart').getContext('2d');
+      
+      if (stockChart) {
+        stockChart.destroy();
+      }
+      
+      stockChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: 'รับเข้า',
+              data: receiveData,
+              backgroundColor: 'rgba(52, 199, 89, 0.8)',
+              borderColor: '#34C759',
+              borderWidth: 1,
+              borderRadius: 4
+            },
+            {
+              label: 'เบิกออก',
+              data: withdrawData,
+              backgroundColor: 'rgba(255, 59, 48, 0.8)',
+              borderColor: '#FF3B30',
+              borderWidth: 1,
+              borderRadius: 4
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              display: false
+            }
+          },
+          scales: {
+            x: {
+              grid: {
+                display: false
+              },
+              ticks: {
+                font: { size: 11 }
+              }
+            },
+            y: {
+              beginAtZero: true,
+              grid: {
+                color: 'rgba(0,0,0,0.05)'
+              },
+              ticks: {
+                font: { size: 11 },
+                stepSize: 1
+              }
+            }
+          }
+        }
+      });
+    }
+  </script>
+</body>
+</html>

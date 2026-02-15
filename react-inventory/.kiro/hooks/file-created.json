@@ -1,0 +1,13 @@
+{
+  "name": "New File Created",
+  "version": "1.0.0",
+  "description": "Check new files follow project standards",
+  "when": {
+    "type": "fileCreated",
+    "patterns": ["src/**/*.jsx", "src/**/*.js"]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "A new file was created. Please verify:\n1. File naming follows conventions (PascalCase for components, camelCase for utilities)\n2. Proper imports are added\n3. Component structure follows template\n4. PropTypes are defined (for components)\n5. Export statement is present\n\nReview the file and suggest improvements if needed."
+  }
+}

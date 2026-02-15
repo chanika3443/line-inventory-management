@@ -1,0 +1,1238 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#f5f5f7">
+  <title>จัดการวัสดุ</title>
+  <?!= include('base'); ?>
+</head>
+<body>
+  <!-- Authentication Overlay -->
+  <div id="authOverlay" class="auth-overlay">
+    <div class="auth-modal">
+      <div class="auth-header">
+        <div class="auth-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          </svg>
+        </div>
+        <h2>เข้าสู่ระบบ</h2>
+        <p>กรุณาเข้าสู่ระบบเพื่อจัดการวัสดุ</p>
+      </div>
+      
+      <form id="authForm" onsubmit="handleLogin(event)">
+        <div class="form-group">
+          <label>ชื่อผู้ใช้</label>
+          <div class="input-wrapper">
+            <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+              <circle cx="12" cy="7" r="4"/>
+            </svg>
+            <input type="text" id="username" placeholder="กรอกชื่อผู้ใช้" required autocomplete="username">
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label>รหัสผ่าน</label>
+          <div class="input-wrapper">
+            <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+            <input type="password" id="password" placeholder="กรอกรหัสผ่าน" required autocomplete="current-password">
+            <button type="button" class="toggle-password" onclick="togglePassword()" tabindex="-1">
+              <svg id="eyeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+                <line x1="1" y1="1" x2="23" y2="23"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+        
+        <div class="remember-me-wrapper">
+          <label class="toggle-switch">
+            <input type="checkbox" id="rememberMe">
+            <span class="toggle-slider"></span>
+          </label>
+          <span class="toggle-label">จดจำฉัน</span>
+        </div>
+        
+        <div id="authError" class="auth-error"></div>
+        
+        <div class="auth-buttons">
+          <button type="button" class="btn btn-outline" onclick="goToWithdraw()" id="backBtn">
+            ต้องการเบิก
+          </button>
+          <button type="submit" class="btn btn-primary" id="loginBtn">
+            <span class="btn-text">เข้าสู่ระบบ</span>
+            <div class="btn-loader"></div>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="header">
+    <h1>วัสดุ</h1>
+    <p class="header-subtitle">จัดการรายการวัสดุทั้งหมด</p>
+  </div>
+  
+  <div class="container">
+    <div id="alertContainer"></div>
+    
+    <div class="search-box">
+      <input type="text" id="searchInput" placeholder="ค้นหาวัสดุ...">
+    </div>
+    
+    <div class="form-group" style="margin-bottom: 16px;">
+      <select id="categoryFilter" onchange="filterProducts()" style="width: 100%;">
+        <option value="">ทุกหมวดหมู่</option>
+      </select>
+    </div>
+    
+    <button class="btn btn-primary btn-block mb-4" onclick="showAddModal()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <line x1="12" y1="5" x2="12" y2="19"/>
+        <line x1="5" y1="12" x2="19" y2="12"/>
+      </svg>
+      เพิ่มวัสดุใหม่
+    </button>
+    
+    <div class="card">
+      <div class="card-title">รายการวัสดุ</div>
+      <div id="productListContent">
+        <div class="skeleton-list-item">
+          <div class="skeleton-list-item-content">
+            <div class="skeleton-list-item-title"></div>
+            <div class="skeleton-list-item-subtitle"></div>
+          </div>
+          <div class="skeleton-list-item-badge"></div>
+        </div>
+        <div class="skeleton-list-item">
+          <div class="skeleton-list-item-content">
+            <div class="skeleton-list-item-title"></div>
+            <div class="skeleton-list-item-subtitle"></div>
+          </div>
+          <div class="skeleton-list-item-badge"></div>
+        </div>
+        <div class="skeleton-list-item">
+          <div class="skeleton-list-item-content">
+            <div class="skeleton-list-item-title"></div>
+            <div class="skeleton-list-item-subtitle"></div>
+          </div>
+          <div class="skeleton-list-item-badge"></div>
+        </div>
+        <div class="skeleton-list-item">
+          <div class="skeleton-list-item-content">
+            <div class="skeleton-list-item-title"></div>
+            <div class="skeleton-list-item-subtitle"></div>
+          </div>
+          <div class="skeleton-list-item-badge"></div>
+        </div>
+        <div class="skeleton-list-item">
+          <div class="skeleton-list-item-content">
+            <div class="skeleton-list-item-title"></div>
+            <div class="skeleton-list-item-subtitle"></div>
+          </div>
+          <div class="skeleton-list-item-badge"></div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Add/Edit Modal -->
+    <div id="formModal" class="modal-overlay hidden">
+      <div class="modal-content">
+        <div class="modal-header">
+          <div class="modal-icon" id="formIcon" style="background: var(--accent-light);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="var(--accent)">
+              <line x1="12" y1="5" x2="12" y2="19"/>
+              <line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+          </div>
+          <div class="modal-title" id="formTitle">เพิ่มวัสดุใหม่</div>
+        </div>
+        <div class="modal-body">
+          <form id="productForm">
+            <input type="hidden" id="editMode" value="add">
+            <input type="hidden" id="originalCode" value="">
+            
+            <div class="form-group">
+              <label>รหัสวัสดุ</label>
+              <input type="text" id="productCode" readonly style="background: var(--bg-tertiary); color: var(--text-secondary);">
+            </div>
+            
+            <div class="form-group" id="nameGroup">
+              <label>ชื่อวัสดุ</label>
+              <input type="text" id="productName" placeholder="ระบุชื่อวัสดุ">
+              <div class="field-error">กรุณากรอกชื่อวัสดุ</div>
+            </div>
+            
+            <div class="form-group" id="unitGroup">
+              <label>หน่วย</label>
+              <input type="text" id="productUnit" placeholder="เช่น ชิ้น, กล่อง, แพ็ค">
+              <div class="field-error">กรุณากรอกหน่วย</div>
+            </div>
+            
+            <div class="form-group">
+              <label>จำนวนเริ่มต้น</label>
+              <input type="number" id="productQuantity" value="0" min="0">
+            </div>
+            
+            <div class="form-group">
+              <label>จุดเตือนวัสดุใกล้หมด</label>
+              <input type="number" id="productThreshold" value="10" min="0">
+            </div>
+            
+            <div class="form-group">
+              <label>หมวดหมู่</label>
+              <input type="text" id="productCategory" placeholder="เช่น อุปกรณ์สำนักงาน">
+            </div>
+            
+            <div class="form-group" style="position: relative; z-index: 10;">
+              <label for="productReturnable" style="display: flex; align-items: center; gap: 12px; cursor: pointer; user-select: none; position: relative;">
+                <input type="checkbox" id="productReturnable" style="width: 20px; height: 20px; cursor: pointer; accent-color: var(--success); position: relative; z-index: 100; pointer-events: auto;">
+                <span style="cursor: pointer; position: relative; z-index: 100;">สามารถคืนได้</span>
+              </label>
+              <div style="font-size: 13px; color: var(--text-secondary); margin-top: 6px;">
+                ✓ เปิดใช้งานหากวัสดุนี้สามารถคืนกลับเข้าคลังได้
+              </div>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline" onclick="closeFormModal()">ยกเลิก</button>
+          <button class="btn btn-primary" id="formConfirmBtn" onclick="handleFormConfirmClick()">ยืนยัน</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Preview Modal -->
+    <div id="previewModal" class="modal-overlay hidden">
+      <div class="modal-content">
+        <div class="modal-header">
+          <div class="modal-icon" style="background: var(--warning-light);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="var(--warning)">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+              <circle cx="12" cy="12" r="3"/>
+            </svg>
+          </div>
+          <div class="modal-title" id="previewTitle">ยืนยันการเพิ่มวัสดุ</div>
+        </div>
+        <div class="modal-body">
+          <div class="preview-item">
+            <span class="preview-label">รหัสวัสดุ</span>
+            <span class="preview-value" id="prevCode">-</span>
+          </div>
+          <div class="preview-item">
+            <span class="preview-label">ชื่อวัสดุ</span>
+            <span class="preview-value" id="prevName">-</span>
+          </div>
+          <div class="preview-item">
+            <span class="preview-label">หน่วย</span>
+            <span class="preview-value" id="prevUnit">-</span>
+          </div>
+          <div class="preview-item">
+            <span class="preview-label">จำนวน</span>
+            <span class="preview-value" id="prevQuantity">-</span>
+          </div>
+          <div class="preview-item">
+            <span class="preview-label">จุดเตือน</span>
+            <span class="preview-value" id="prevThreshold">-</span>
+          </div>
+          <div class="preview-item">
+            <span class="preview-label">หมวดหมู่</span>
+            <span class="preview-value" id="prevCategory">-</span>
+          </div>
+          <div class="preview-item">
+            <span class="preview-label">สามารถคืนได้</span>
+            <span class="preview-value" id="prevReturnable">-</span>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline" onclick="backToForm()">แก้ไข</button>
+          <button class="btn btn-primary" id="confirmBtn" onclick="handleConfirmClick()">ยืนยันบันทึก</button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Delete Modal -->
+    <div id="deleteModal" class="modal-overlay hidden">
+      <div class="modal-content">
+        <div class="modal-header">
+          <div class="modal-icon" style="background: var(--danger-light);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="var(--danger)">
+              <polyline points="3 6 5 6 21 6"/>
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+            </svg>
+          </div>
+          <div class="modal-title">ยืนยันการลบ</div>
+        </div>
+        <div class="modal-body">
+          <div class="preview-item">
+            <span class="preview-label">รหัสวัสดุ</span>
+            <span class="preview-value" id="delCode">-</span>
+          </div>
+          <div class="preview-item">
+            <span class="preview-label">ชื่อวัสดุ</span>
+            <span class="preview-value" id="delName">-</span>
+          </div>
+          <div class="preview-item">
+            <span class="preview-label">จำนวนคงเหลือ</span>
+            <span class="preview-value highlight-red" id="delQuantity">-</span>
+          </div>
+          <div class="form-group mt-4">
+            <label style="color: var(--danger);">พิมพ์ "delete" เพื่อยืนยัน</label>
+            <input type="text" id="deleteConfirmInput" placeholder="delete" oninput="checkDeleteInput()">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline" onclick="closeDeleteModal()">ยกเลิก</button>
+          <button class="btn btn-danger" id="confirmDeleteBtn" onclick="handleDeleteConfirmClick()" disabled>ยืนยันลบ</button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Success Modal -->
+    <div id="successModal" class="modal-overlay hidden">
+      <div class="modal-content">
+        <div class="modal-header">
+          <div class="modal-icon" style="background: var(--success-light);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="var(--success)" stroke-width="2.5">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+          </div>
+          <div class="modal-title" id="successTitle">สำเร็จ</div>
+        </div>
+        <div class="modal-body">
+          <div id="successDetails"></div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-primary btn-block" id="successOkBtn" onclick="handleSuccessOkClick()">ตกลง</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Navigation -->
+  <nav class="bottom-nav">
+    <div class="nav-item" onclick="navigateTo('https://liff.line.me/2008893142-t04JvNpe')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      <span>หน้าแรก</span>
+    </div>
+    <div class="nav-item" onclick="navigateTo('https://liff.line.me/2008893142-t04JvNpe#withdraw')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      <span>เบิก</span>
+    </div>
+    <div class="nav-item" onclick="navigateTo('https://liff.line.me/2008893142-t04JvNpe#receive')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      <span>รับเข้า</span>
+    </div>
+    <div class="nav-item" onclick="navigateTo('https://liff.line.me/2008893142-t04JvNpe#return')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M3 21v-5h5"/></svg>
+      <span>คืน</span>
+    </div>
+    <div class="nav-item active" onclick="navigateTo('https://liff.line.me/2008893142-t04JvNpe#dashboard')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
+      <span>อื่นๆ</span>
+    </div>
+  </nav>
+
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  
+  <style>
+    /* Authentication Overlay */
+    .auth-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+      padding: 20px;
+    }
+    
+    .auth-overlay.hidden {
+      display: none;
+    }
+    
+    .auth-modal {
+      background: white;
+      border-radius: 20px;
+      padding: 32px;
+      max-width: 400px;
+      width: 100%;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      animation: authSlideIn 0.3s ease-out;
+    }
+    
+    @keyframes authSlideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-20px) scale(0.95);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+    
+    .auth-header {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+    
+    .auth-icon {
+      width: 64px;
+      height: 64px;
+      background: linear-gradient(135deg, #007aff 0%, #5856d6 100%);
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 16px;
+    }
+    
+    .auth-icon svg {
+      width: 32px;
+      height: 32px;
+      stroke: white;
+    }
+    
+    .auth-header h2 {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin: 0 0 8px 0;
+    }
+    
+    .auth-header p {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin: 0;
+    }
+    
+    /* Input with icon */
+    .input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+    
+    .input-wrapper input {
+      padding-left: 44px;
+      padding-right: 44px;
+      width: 100%;
+    }
+    
+    .input-icon {
+      position: absolute;
+      left: 14px;
+      width: 20px;
+      height: 20px;
+      stroke: var(--text-tertiary);
+      pointer-events: none;
+      z-index: 1;
+    }
+    
+    .toggle-password {
+      position: absolute;
+      right: 8px;
+      background: transparent;
+      border: none;
+      padding: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      transition: all 0.2s ease;
+      z-index: 2;
+    }
+    
+    .toggle-password:hover {
+      background: rgba(0, 0, 0, 0.05);
+    }
+    
+    .toggle-password:active {
+      transform: scale(0.95);
+      background: rgba(0, 0, 0, 0.08);
+    }
+    
+    .toggle-password svg {
+      width: 20px;
+      height: 20px;
+      stroke: var(--text-secondary);
+      transition: stroke 0.2s ease;
+    }
+    
+    .toggle-password:hover svg {
+      stroke: var(--text-primary);
+    }
+    
+    /* Remember Me Section */
+    .remember-me-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 24px;
+      padding: 4px 0;
+    }
+    
+    /* Toggle Switch */
+    .toggle-switch {
+      position: relative;
+      display: inline-block;
+      width: 51px;
+      height: 31px;
+      flex-shrink: 0;
+      cursor: pointer;
+    }
+    
+    .toggle-switch input[type="checkbox"] {
+      opacity: 0;
+      width: 0;
+      height: 0;
+      position: absolute;
+    }
+    
+    .toggle-slider {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: #e5e5ea;
+      border-radius: 31px;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      cursor: pointer;
+    }
+    
+    .toggle-slider::before {
+      content: '';
+      position: absolute;
+      height: 27px;
+      width: 27px;
+      left: 2px;
+      bottom: 2px;
+      background: white;
+      border-radius: 50%;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+    
+    .toggle-switch input:checked + .toggle-slider {
+      background: #34c759;
+    }
+    
+    .toggle-switch input:checked + .toggle-slider::before {
+      transform: translateX(20px);
+    }
+    
+    .toggle-switch input:focus + .toggle-slider {
+      box-shadow: 0 0 0 3px rgba(52, 199, 89, 0.2);
+    }
+    
+    .toggle-switch:active .toggle-slider::before {
+      width: 32px;
+    }
+    
+    .toggle-label {
+      font-size: 15px;
+      color: var(--text-primary);
+      font-weight: 500;
+      cursor: pointer;
+      user-select: none;
+    }
+    
+    .remember-me-wrapper:hover .toggle-label {
+      color: var(--accent);
+    }
+    
+    .auth-error {
+      background: var(--danger-light);
+      color: var(--danger);
+      padding: 12px 16px;
+      border-radius: 10px;
+      font-size: 14px;
+      margin-bottom: 16px;
+      display: none;
+    }
+    
+    .auth-error.show {
+      display: block;
+      animation: shake 0.3s ease;
+    }
+    
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-10px); }
+      75% { transform: translateX(10px); }
+    }
+    
+    .auth-buttons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    
+    .auth-buttons .btn {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 48px;
+      padding: 12px 24px;
+      overflow: hidden;
+    }
+    
+    /* Button text */
+    .btn-text {
+      transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+    
+    /* Button loader */
+    .btn-loader {
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      opacity: 0;
+      transform: scale(0);
+      transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+    
+    /* Loading state */
+    #loginBtn.loading {
+      pointer-events: none;
+    }
+    
+    #loginBtn.loading .btn-text {
+      opacity: 0;
+      transform: scale(0.8);
+    }
+    
+    #loginBtn.loading .btn-loader {
+      opacity: 1;
+      transform: scale(1);
+      animation: spin 0.6s linear infinite;
+    }
+    
+    @keyframes spin {
+      0% { transform: scale(1) rotate(0deg); }
+      100% { transform: scale(1) rotate(360deg); }
+    }
+    
+    #backBtn.disabled {
+      pointer-events: none;
+      opacity: 0.5;
+    }
+    
+    /* Blur content when auth is shown */
+    body.auth-required .header,
+    body.auth-required .container,
+    body.auth-required .bottom-nav {
+      filter: blur(8px);
+      pointer-events: none;
+    }
+  </style>
+  
+  <script>
+    var baseUrl = 'https://script.google.com/macros/s/AKfycbx485xIyUla9r78h6rxgwbr0JHlCt4skYjsXdxwPgHwjjwshVqhYI9OOVWY9fjVpYT0/exec';
+    var products = [];
+    
+    // Authentication Configuration
+    const AUTH_CONFIG = {
+      username: 'khim',  // เปลี่ยนเป็น username ที่ต้องการ
+      password: 'khim1234'  // เปลี่ยนเป็น password ที่ต้องการ
+    };
+    
+    // Check authentication on page load
+    document.addEventListener('DOMContentLoaded', function() {
+      checkAuth();
+      
+      // Make toggle label clickable
+      const toggleLabel = document.querySelector('.toggle-label');
+      if (toggleLabel) {
+        toggleLabel.addEventListener('click', function() {
+          const checkbox = document.getElementById('rememberMe');
+          checkbox.checked = !checkbox.checked;
+        });
+      }
+    });
+    
+    function checkAuth() {
+      const isAuthenticated = localStorage.getItem('productsAuth') === 'true';
+      const authOverlay = document.getElementById('authOverlay');
+      
+      if (isAuthenticated) {
+        // Already authenticated
+        authOverlay.classList.add('hidden');
+        document.body.classList.remove('auth-required');
+        loadProducts();
+      } else {
+        // Need authentication
+        authOverlay.classList.remove('hidden');
+        document.body.classList.add('auth-required');
+      }
+    }
+    
+    function handleLogin(event) {
+      event.preventDefault();
+      
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+      const rememberMe = document.getElementById('rememberMe').checked;
+      const authError = document.getElementById('authError');
+      const loginBtn = document.getElementById('loginBtn');
+      const backBtn = document.getElementById('backBtn');
+      
+      // Show loading
+      loginBtn.classList.add('loading');
+      backBtn.classList.add('disabled');
+      authError.classList.remove('show');
+      authError.textContent = '';
+      
+      // Simulate authentication delay (remove this in production if not needed)
+      setTimeout(function() {
+        // Validate credentials
+        if (username === AUTH_CONFIG.username && password === AUTH_CONFIG.password) {
+          // Success
+          if (rememberMe) {
+            localStorage.setItem('productsAuth', 'true');
+          } else {
+            sessionStorage.setItem('productsAuth', 'true');
+          }
+          
+          // Hide overlay and show content
+          setTimeout(function() {
+            document.getElementById('authOverlay').classList.add('hidden');
+            document.body.classList.remove('auth-required');
+            
+            // Load products
+            loadProducts();
+            
+            // Show success message
+            showAlert('เข้าสู่ระบบสำเร็จ', 'success');
+            
+            // Reset button
+            loginBtn.classList.remove('loading');
+            backBtn.classList.remove('disabled');
+          }, 300);
+        } else {
+          // Failed
+          loginBtn.classList.remove('loading');
+          backBtn.classList.remove('disabled');
+          
+          authError.textContent = '❌ ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง';
+          authError.classList.add('show');
+          
+          // Shake animation
+          setTimeout(function() {
+            authError.classList.remove('show');
+          }, 3000);
+        }
+      }, 800); // Simulate network delay
+    }
+    
+    function goToWithdraw() {
+      // Navigate to withdraw page
+      navigateTo('https://liff.line.me/2008893142-t04JvNpe#withdraw');
+    }
+    
+    function goBack() {
+      // Navigate back to home (kept for compatibility)
+      navigateTo('https://liff.line.me/2008893142-t04JvNpe');
+    }
+    
+    function togglePassword() {
+      const passwordInput = document.getElementById('password');
+      const eyeIcon = document.getElementById('eyeIcon');
+      
+      if (passwordInput.type === 'password') {
+        // แสดงรหัสผ่าน - ใช้ไอคอนตาลืม (เปิด)
+        passwordInput.type = 'text';
+        eyeIcon.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+      } else {
+        // ซ่อนรหัสผ่าน - ใช้ไอคอนตาหลับ (ปิด)
+        passwordInput.type = 'password';
+        eyeIcon.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>';
+      }
+    }
+    
+    // Logout function (optional - can be called from console or add a button)
+    function logout() {
+      localStorage.removeItem('productsAuth');
+      sessionStorage.removeItem('productsAuth');
+      location.reload();
+    }
+    var pendingData = null;
+    var deleteTarget = null;
+    var isProcessing = false;
+    var preloadedData = <?!= preloadedData ? preloadedData : 'null' ?>;
+    
+    document.addEventListener('DOMContentLoaded', function() {
+      initLiff();
+      
+      // Don't load products automatically - wait for authentication
+      // Load from cache first (only if authenticated)
+      if (localStorage.getItem('productsAuth') === 'true' || sessionStorage.getItem('productsAuth') === 'true') {
+        var cachedProducts = CacheService.get('products');
+        if (cachedProducts) {
+          products = cachedProducts;
+          renderProducts();
+        }
+        if (preloadedData) {
+          products = preloadedData;
+          renderProducts();
+          CacheService.set('products', preloadedData);
+        }
+      }
+      
+      document.getElementById('searchInput').addEventListener('input', filterProducts);
+      document.getElementById('productName').addEventListener('input', function() { clearFieldError('nameGroup'); });
+      document.getElementById('productUnit').addEventListener('input', function() { clearFieldError('unitGroup'); });
+      
+      // Add click handler for checkbox to ensure it works
+      var checkboxLabel = document.querySelector('label[for="productReturnable"]');
+      if (checkboxLabel) {
+        checkboxLabel.addEventListener('click', function(e) {
+          e.stopPropagation();
+          var checkbox = document.getElementById('productReturnable');
+          if (e.target !== checkbox) {
+            checkbox.checked = !checkbox.checked;
+            console.log('Checkbox toggled via label:', checkbox.checked);
+          }
+        });
+      }
+      
+      // Auto refresh every 30 seconds (only if authenticated)
+      AutoRefresh.onRefresh(function() {
+        if (localStorage.getItem('productsAuth') === 'true' || sessionStorage.getItem('productsAuth') === 'true') {
+          loadProducts();
+        }
+      });
+      AutoRefresh.start();
+    });
+    
+    function initLiff() {
+      var liffId = '<?= liffId ?>';
+      if (liffId) {
+        liff.init({ liffId: liffId }).catch(function(err) { console.log('LIFF init error:', err); });
+      }
+    }
+    
+    function loadProducts() {
+      if (!CacheService.get('products')) {
+        LoadingUI.show('กำลังโหลดข้อมูล...');
+      }
+      CacheService.fetchWithCache(
+        baseUrl + '?action=getProducts',
+        'products',
+        function(data, fromCache) {
+          products = data;
+          renderProducts();
+          LoadingUI.hide();
+        },
+        function(err) {
+          LoadingUI.hide();
+          showAlert('เกิดข้อผิดพลาดในการโหลดข้อมูล', 'error');
+        }
+      );
+    }
+    
+    function renderProducts() {
+      var container = document.getElementById('productListContent');
+      var search = document.getElementById('searchInput').value.toLowerCase();
+      var categoryFilter = document.getElementById('categoryFilter').value;
+      var filtered = products.filter(function(p) {
+        var matchSearch = p.name.toLowerCase().includes(search) || p.code.toLowerCase().includes(search);
+        var matchCategory = !categoryFilter || p.category === categoryFilter;
+        return matchSearch && matchCategory;
+      });
+      
+      // Update category dropdown
+      updateCategoryDropdown();
+      
+      if (filtered.length === 0) {
+        container.innerHTML = '<div class="empty-state"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--text-tertiary)" stroke-width="1.5"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg><div class="empty-state-text">ไม่พบวัสดุ</div></div>';
+        return;
+      }
+      
+      var html = '';
+      filtered.forEach(function(p) {
+        var threshold = p.lowStockThreshold || p.threshold || 0;
+        var badgeClass = p.quantity <= 0 ? 'badge-danger' : (p.quantity <= threshold ? 'badge-warning' : 'badge-success');
+        var badgeText = p.quantity <= 0 ? 'หมด' : (p.quantity <= threshold ? 'ใกล้หมด' : 'ปกติ');
+        html += '<div class="list-item"><div><div class="list-item-title">' + p.name + '</div><div class="list-item-subtitle">' + p.code + ' • ' + p.quantity + ' ' + p.unit + '</div></div><div style="text-align: right;"><span class="badge ' + badgeClass + '">' + badgeText + '</span><div class="action-buttons"><button class="btn btn-sm btn-outline" onclick="showEditModal(\'' + p.code + '\')">แก้ไข</button><button class="btn btn-sm btn-danger" onclick="showDeleteModal(\'' + p.code + '\')">ลบ</button></div></div></div>';
+      });
+      container.innerHTML = html;
+    }
+    
+    function filterProducts() { renderProducts(); }
+    
+    function updateCategoryDropdown() {
+      var select = document.getElementById('categoryFilter');
+      var currentValue = select.value;
+      var categories = [...new Set(products.map(function(p) { return p.category; }).filter(Boolean))];
+      select.innerHTML = '<option value="">ทุกหมวดหมู่</option>';
+      categories.forEach(function(cat) {
+        var option = document.createElement('option');
+        option.value = cat;
+        option.textContent = cat;
+        if (cat === currentValue) option.selected = true;
+        select.appendChild(option);
+      });
+    }
+    
+    function generateProductCode() {
+      var maxNum = 0;
+      products.forEach(function(p) {
+        var match = p.code.match(/^P(\d+)$/);
+        if (match) { var num = parseInt(match[1]); if (num > maxNum) maxNum = num; }
+      });
+      return 'P' + String(maxNum + 1).padStart(4, '0');
+    }
+    
+    function showAddModal() {
+      clearFormErrors();
+      document.getElementById('editMode').value = 'add';
+      document.getElementById('originalCode').value = '';
+      document.getElementById('productCode').value = generateProductCode();
+      document.getElementById('productName').value = '';
+      document.getElementById('productUnit').value = '';
+      document.getElementById('productQuantity').value = '0';
+      document.getElementById('productThreshold').value = '10';
+      document.getElementById('productCategory').value = '';
+      document.getElementById('productReturnable').checked = false;
+      document.getElementById('formTitle').textContent = 'เพิ่มวัสดุใหม่';
+      document.getElementById('formIcon').innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="var(--accent)"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>';
+      document.getElementById('formConfirmBtn').textContent = 'ยืนยัน';
+      document.getElementById('formConfirmBtn').dataset.needScroll = 'false';
+      document.getElementById('formModal').classList.remove('hidden');
+      AutoRefresh.stop();
+      
+      // Ensure checkbox is clickable
+      setTimeout(function() {
+        var checkbox = document.getElementById('productReturnable');
+        checkbox.disabled = false;
+        checkbox.style.pointerEvents = 'auto';
+      }, 50);
+      
+      setTimeout(checkFormScroll, 200);
+    }
+    
+    function showEditModal(code) {
+      clearFormErrors();
+      var product = products.find(function(p) { return p.code === code; });
+      if (!product) return;
+      
+      console.log('Edit product:', product);
+      console.log('Returnable value:', product.returnable, 'Type:', typeof product.returnable);
+      
+      document.getElementById('editMode').value = 'edit';
+      document.getElementById('originalCode').value = code;
+      document.getElementById('productCode').value = product.code;
+      document.getElementById('productName').value = product.name;
+      document.getElementById('productUnit').value = product.unit;
+      document.getElementById('productQuantity').value = product.quantity;
+      document.getElementById('productThreshold').value = product.lowStockThreshold || product.threshold || 10;
+      document.getElementById('productCategory').value = product.category || '';
+      
+      // Set returnable checkbox with better detection
+      var isReturnable = product.returnable === true || product.returnable === 'true' || product.returnable === 'TRUE';
+      document.getElementById('productReturnable').checked = isReturnable;
+      console.log('Checkbox set to:', isReturnable);
+      
+      document.getElementById('formTitle').textContent = 'แก้ไขวัสดุ';
+      document.getElementById('formIcon').innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="var(--accent)"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>';
+      document.getElementById('formConfirmBtn').textContent = 'ยืนยัน';
+      document.getElementById('formConfirmBtn').dataset.needScroll = 'false';
+      document.getElementById('formModal').classList.remove('hidden');
+      AutoRefresh.stop();
+      
+      // Ensure checkbox is clickable
+      setTimeout(function() {
+        var checkbox = document.getElementById('productReturnable');
+        checkbox.disabled = false;
+        checkbox.style.pointerEvents = 'auto';
+      }, 50);
+      
+      setTimeout(checkFormScroll, 200);
+    }
+    
+    function closeFormModal() { 
+      document.getElementById('formModal').classList.add('hidden'); 
+      clearFormErrors(); 
+      AutoRefresh.start();
+    }
+    function clearFormErrors() { document.getElementById('nameGroup').classList.remove('has-error'); document.getElementById('unitGroup').classList.remove('has-error'); }
+    function clearFieldError(groupId) { document.getElementById(groupId).classList.remove('has-error'); }
+    
+    function checkFormScroll() {
+      var modal = document.querySelector('#formModal .modal-content');
+      var btn = document.getElementById('formConfirmBtn');
+      modal.scrollTop = 0;
+      // ใช้ setTimeout เพื่อให้ modal render เสร็จก่อนเช็ค scroll
+      setTimeout(function() {
+        var isScrollable = modal.scrollHeight > modal.clientHeight;
+        var isAtBottom = modal.scrollHeight - modal.scrollTop - modal.clientHeight < 10;
+        if (isScrollable && !isAtBottom) { btn.textContent = 'ต่อไป'; btn.dataset.needScroll = 'true'; }
+        else { btn.textContent = 'ยืนยัน'; btn.dataset.needScroll = 'false'; }
+      }, 50);
+      modal.onscroll = function() { updateFormButton(); };
+    }
+    
+    function updateFormButton() {
+      var modal = document.querySelector('#formModal .modal-content');
+      var btn = document.getElementById('formConfirmBtn');
+      var isAtBottom = modal.scrollHeight - modal.scrollTop - modal.clientHeight < 10;
+      if (isAtBottom) { btn.textContent = 'ยืนยัน'; btn.dataset.needScroll = 'false'; }
+    }
+
+    function handleFormConfirmClick() {
+      var btn = document.getElementById('formConfirmBtn');
+      var modal = document.querySelector('#formModal .modal-content');
+      // ถ้า needScroll ไม่ได้ถูกตั้งค่า ให้ถือว่าไม่ต้อง scroll
+      if (btn.dataset.needScroll === 'true') { modal.scrollTo({ top: modal.scrollHeight, behavior: 'smooth' }); return; }
+      
+      var name = document.getElementById('productName').value.trim();
+      var unit = document.getElementById('productUnit').value.trim();
+      clearFormErrors();
+      var hasError = false;
+      if (!name) { document.getElementById('nameGroup').classList.add('has-error'); hasError = true; }
+      if (!unit) { document.getElementById('unitGroup').classList.add('has-error'); hasError = true; }
+      if (hasError) return;
+      
+      var mode = document.getElementById('editMode').value;
+      var code = document.getElementById('productCode').value;
+      var quantity = parseInt(document.getElementById('productQuantity').value) || 0;
+      var threshold = parseInt(document.getElementById('productThreshold').value) || 10;
+      var category = document.getElementById('productCategory').value.trim();
+      var returnable = document.getElementById('productReturnable').checked;
+      
+      pendingData = { mode: mode, code: code, originalCode: document.getElementById('originalCode').value, name: name, unit: unit, quantity: quantity, threshold: threshold, category: category, returnable: returnable };
+      
+      document.getElementById('prevCode').textContent = code;
+      document.getElementById('prevName').textContent = name;
+      document.getElementById('prevUnit').textContent = unit;
+      document.getElementById('prevQuantity').textContent = quantity;
+      document.getElementById('prevThreshold').textContent = threshold;
+      document.getElementById('prevCategory').textContent = category || '-';
+      document.getElementById('prevReturnable').textContent = returnable ? 'ใช่' : 'ไม่';
+      document.getElementById('prevReturnable').style.color = returnable ? 'var(--success)' : 'var(--text-secondary)';
+      document.getElementById('previewTitle').textContent = mode === 'add' ? 'ยืนยันการเพิ่มวัสดุ' : 'ยืนยันการแก้ไขวัสดุ';
+      
+      document.getElementById('formModal').classList.add('hidden');
+      document.getElementById('previewModal').classList.remove('hidden');
+      setTimeout(checkPreviewScroll, 200);
+    }
+    
+    function checkPreviewScroll() {
+      var modal = document.querySelector('#previewModal .modal-content');
+      var btn = document.getElementById('confirmBtn');
+      modal.scrollTop = 0;
+      var isScrollable = modal.scrollHeight > modal.clientHeight;
+      var isAtBottom = modal.scrollHeight - modal.scrollTop - modal.clientHeight < 10;
+      if (isScrollable && !isAtBottom) { btn.textContent = 'ต่อไป'; btn.dataset.needScroll = 'true'; }
+      else { btn.textContent = 'ยืนยันบันทึก'; btn.dataset.needScroll = 'false'; }
+      modal.onscroll = function() { updatePreviewButton(); };
+    }
+    
+    function updatePreviewButton() {
+      var modal = document.querySelector('#previewModal .modal-content');
+      var btn = document.getElementById('confirmBtn');
+      var isAtBottom = modal.scrollHeight - modal.scrollTop - modal.clientHeight < 10;
+      if (isAtBottom) { btn.textContent = 'ยืนยันบันทึก'; btn.dataset.needScroll = 'false'; }
+    }
+    
+    function handleConfirmClick() {
+      var btn = document.getElementById('confirmBtn');
+      var modal = document.querySelector('#previewModal .modal-content');
+      if (btn.dataset.needScroll === 'true') { modal.scrollTo({ top: modal.scrollHeight, behavior: 'smooth' }); }
+      else { saveProduct(); }
+    }
+    
+    function backToForm() { document.getElementById('previewModal').classList.add('hidden'); document.getElementById('formModal').classList.remove('hidden'); }
+    
+    function saveProduct() {
+      if (!pendingData || isProcessing) return;
+      isProcessing = true;
+      var btn = document.getElementById('confirmBtn');
+      btn.disabled = true; btn.textContent = 'กำลังบันทึก...';
+      LoadingUI.showProgress();
+      LoadingUI.simulateProgress(2000);
+      var action = pendingData.mode === 'add' ? 'addProduct' : 'updateProduct';
+      var formData = new FormData();
+      formData.append('payload', JSON.stringify({ action: action, code: pendingData.code, originalCode: pendingData.originalCode, name: pendingData.name, unit: pendingData.unit, quantity: pendingData.quantity, threshold: pendingData.threshold, category: pendingData.category, returnable: pendingData.returnable }));
+      
+      fetch(baseUrl, { method: 'POST', body: formData })
+        .then(function(res) { return res.json(); })
+        .then(function(result) {
+          isProcessing = false;
+          btn.disabled = false; btn.textContent = 'ยืนยันบันทึก';
+          LoadingUI.setProgress(100);
+          setTimeout(function() { LoadingUI.hideProgress(); }, 300);
+          document.getElementById('previewModal').classList.add('hidden');
+          if (result.success) { 
+            showSuccessModal(pendingData.mode === 'add' ? 'เพิ่มวัสดุสำเร็จ' : 'แก้ไขวัสดุสำเร็จ', pendingData); 
+            CacheService.clear('products');
+            CacheService.clear('dashboard');
+            loadProducts(); 
+          }
+          else { showAlert(result.message || 'เกิดข้อผิดพลาด', 'error'); }
+        })
+        .catch(function(err) { 
+          isProcessing = false; 
+          btn.disabled = false; 
+          btn.textContent = 'ยืนยันบันทึก'; 
+          LoadingUI.hideProgress();
+          showAlert('เกิดข้อผิดพลาด: ' + err.message, 'error'); 
+        });
+    }
+    
+    function showDeleteModal(code) {
+      var product = products.find(function(p) { return p.code === code; });
+      if (!product) return;
+      deleteTarget = product;
+      document.getElementById('delCode').textContent = product.code;
+      document.getElementById('delName').textContent = product.name;
+      document.getElementById('delQuantity').textContent = product.quantity + ' ' + product.unit;
+      document.getElementById('deleteConfirmInput').value = '';
+      document.getElementById('confirmDeleteBtn').disabled = true;
+      document.getElementById('confirmDeleteBtn').textContent = 'ยืนยันลบ';
+      document.getElementById('confirmDeleteBtn').dataset.needScroll = 'false';
+      document.getElementById('deleteModal').classList.remove('hidden');
+      AutoRefresh.stop();
+      setTimeout(checkDeleteScroll, 200);
+    }
+    
+    function checkDeleteScroll() {
+      var modal = document.querySelector('#deleteModal .modal-content');
+      var btn = document.getElementById('confirmDeleteBtn');
+      modal.scrollTop = 0;
+      setTimeout(function() {
+        var isScrollable = modal.scrollHeight > modal.clientHeight;
+        var isAtBottom = modal.scrollHeight - modal.scrollTop - modal.clientHeight < 10;
+        if (isScrollable && !isAtBottom) { btn.textContent = 'ต่อไป'; btn.dataset.needScroll = 'true'; btn.disabled = false; }
+        else { btn.textContent = 'ยืนยันลบ'; btn.dataset.needScroll = 'false'; }
+      }, 50);
+      modal.onscroll = function() { updateDeleteButton(); };
+    }
+    
+    function updateDeleteButton() {
+      var modal = document.querySelector('#deleteModal .modal-content');
+      var btn = document.getElementById('confirmDeleteBtn');
+      var isAtBottom = modal.scrollHeight - modal.scrollTop - modal.clientHeight < 10;
+      if (isAtBottom) { 
+        btn.dataset.needScroll = 'false'; 
+        btn.textContent = 'ยืนยันลบ';
+        btn.disabled = document.getElementById('deleteConfirmInput').value !== 'delete';
+      }
+    }
+    
+    function closeDeleteModal() { 
+      document.getElementById('deleteModal').classList.add('hidden'); 
+      deleteTarget = null; 
+      AutoRefresh.start();
+    }
+    function checkDeleteInput() { 
+      var btn = document.getElementById('confirmDeleteBtn');
+      if (btn.dataset.needScroll !== 'true') {
+        btn.disabled = document.getElementById('deleteConfirmInput').value !== 'delete'; 
+      }
+    }
+    
+    function handleDeleteConfirmClick() {
+      var btn = document.getElementById('confirmDeleteBtn');
+      var modal = document.querySelector('#deleteModal .modal-content');
+      if (btn.dataset.needScroll === 'true') { 
+        modal.scrollTo({ top: modal.scrollHeight, behavior: 'smooth' }); 
+        return; 
+      }
+      if (!deleteTarget || isProcessing) return;
+      isProcessing = true;
+      btn.disabled = true; btn.textContent = 'กำลังลบ...';
+      LoadingUI.showProgress();
+      LoadingUI.simulateProgress(1500);
+      var formData = new FormData();
+      formData.append('payload', JSON.stringify({ action: 'deleteProduct', code: deleteTarget.code }));
+      
+      fetch(baseUrl, { method: 'POST', body: formData })
+        .then(function(res) { return res.json(); })
+        .then(function(result) {
+          isProcessing = false;
+          btn.disabled = false; btn.textContent = 'ยืนยันลบ';
+          LoadingUI.setProgress(100);
+          setTimeout(function() { LoadingUI.hideProgress(); }, 300);
+          if (result.success) { 
+            var deletedName = deleteTarget.name;
+            var deletedCode = deleteTarget.code;
+            closeDeleteModal();
+            showSuccessModal('ลบวัสดุสำเร็จ', { name: deletedName, code: deletedCode }); 
+            CacheService.clear('products');
+            CacheService.clear('dashboard');
+            loadProducts(); 
+          } else {
+            closeDeleteModal();
+            showAlert(result.message || 'เกิดข้อผิดพลาด', 'error');
+          }
+        })
+        .catch(function(err) { 
+          isProcessing = false; 
+          btn.disabled = false; 
+          btn.textContent = 'ยืนยันลบ'; 
+          LoadingUI.hideProgress();
+          showAlert('เกิดข้อผิดพลาด: ' + err.message, 'error'); 
+        });
+    }
+    
+    function showSuccessModal(title, data) {
+      document.getElementById('successTitle').textContent = title;
+      document.getElementById('successDetails').innerHTML = '<div class="preview-item"><span class="preview-label">รหัส</span><span class="preview-value">' + data.code + '</span></div><div class="preview-item"><span class="preview-label">ชื่อวัสดุ</span><span class="preview-value">' + data.name + '</span></div>';
+      document.getElementById('successModal').classList.remove('hidden');
+      setTimeout(checkSuccessScroll, 200);
+    }
+    
+    function checkSuccessScroll() {
+      var modal = document.querySelector('#successModal .modal-content');
+      var btn = document.getElementById('successOkBtn');
+      modal.scrollTop = 0;
+      var isScrollable = modal.scrollHeight > modal.clientHeight;
+      var isAtBottom = modal.scrollHeight - modal.scrollTop - modal.clientHeight < 10;
+      if (isScrollable && !isAtBottom) { btn.textContent = 'ต่อไป'; btn.dataset.needScroll = 'true'; }
+      else { btn.textContent = 'ตกลง'; btn.dataset.needScroll = 'false'; }
+      modal.onscroll = function() { updateSuccessButton(); };
+    }
+    
+    function updateSuccessButton() {
+      var modal = document.querySelector('#successModal .modal-content');
+      var btn = document.getElementById('successOkBtn');
+      var isAtBottom = modal.scrollHeight - modal.scrollTop - modal.clientHeight < 10;
+      if (isAtBottom) { btn.textContent = 'ตกลง'; btn.dataset.needScroll = 'false'; }
+    }
+    
+    function handleSuccessOkClick() {
+      var btn = document.getElementById('successOkBtn');
+      var modal = document.querySelector('#successModal .modal-content');
+      if (btn.dataset.needScroll === 'true') { modal.scrollTo({ top: modal.scrollHeight, behavior: 'smooth' }); }
+      else { document.getElementById('successModal').classList.add('hidden'); }
+    }
+    
+    function showAlert(message, type) {
+      var container = document.getElementById('alertContainer');
+      container.innerHTML = '<div class="alert alert-' + type + '">' + message + '</div>';
+      setTimeout(function() { container.innerHTML = ''; }, 5000);
+    }
+  </script>
+</body>
+</html>

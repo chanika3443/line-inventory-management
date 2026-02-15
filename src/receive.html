@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#f5f5f7">
+  <title>รับเข้าวัสดุ</title>
+  <?!= include('base'); ?>
+</head>
+<body>
+  <!-- Authentication Overlay -->
+  <div id="authOverlay" class="auth-overlay">
+    <div class="auth-modal">
+      <div class="auth-header">
+        <div class="auth-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          </svg>
+        </div>
+        <h2>เข้าสู่ระบบ</h2>
+        <p>กรุณาเข้าสู่ระบบเพื่อรับเข้าวัสดุ</p>
+      </div>
+      
+      <form id="authForm" onsubmit="handleLogin(event)">
+        <div class="form-group">
+          <label>ชื่อผู้ใช้</label>
+          <div class="input-wrapper">
+            <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+              <circle cx="12" cy="7" r="4"/>
+            </svg>
+            <input type="text" id="username" placeholder="กรอกชื่อผู้ใช้" required autocomplete="username">
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label>รหัสผ่าน</label>
+          <div class="input-wrapper">
+            <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+            <input type="password" id="password" placeholder="กรอกรหัสผ่าน" required autocomplete="current-password">
+            <button type="button" class="toggle-password" onclick="togglePassword()" tabindex="-1">
+              <svg id="eyeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+                <line x1="1" y1="1" x2="23" y2="23"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+        
+        <div class="remember-me-wrapper">
+          <label class="toggle-switch">
+            <input type="checkbox" id="rememberMe">
+            <span class="toggle-slider"></span>
+          </label>
+          <span class="toggle-label">จดจำฉัน</span>
+        </div>
+        
+        <div id="authError" class="auth-error"></div>
+        
+        <div class="auth-buttons">
+          <button type="button" class="btn btn-outline" onclick="goToWithdraw()" id="backBtn">
+            ต้องการเบิก
+          </button>
+          <button type="submit" class="btn btn-primary" id="loginBtn">
+            <span class="btn-text">เข้าสู่ระบบ</span>
+            <div class="btn-loader"></div>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="header">
+    <h1>รับเข้าวัสดุ</h1>
+    <p class="header-subtitle">เพิ่มวัสดุเข้าคลัง</p>
+  </div>
+  
+  <div class="container">
+    <div id="alertContainer"></div>
+    
+    <div class="card">
+      <div class="card-title">รายละเอียดการรับเข้า</div>
+      <form id="receiveForm" onsubmit="showPreview(event)">
+        <div class="form-group" id="productGroup">
+          <label>เลือกวัสดุ</label>
+          <select id="productSelect" onchange="updateStockInfo(); clearFieldError('productGroup');">
+            <option value="">-- เลือกวัสดุ --</option>
+          </select>
+          <div class="field-error">กรุณาเลือกวัสดุ</div>
+        </div>
+        
+        <div id="stockInfo" class="alert alert-warning hidden">
+          คงเหลือปัจจุบัน: <span id="currentStock">0</span> <span id="stockUnit"></span>
+        </div>
+        
+        <div class="form-group" id="quantityGroup">
+          <label>จำนวนที่รับเข้า</label>
+          <input type="number" id="quantity" min="1" placeholder="ระบุจำนวน" oninput="clearFieldError('quantityGroup')">
+          <div class="field-error">กรุณาระบุจำนวนที่รับเข้า</div>
+        </div>
+        
+        <div class="form-group" id="userNameGroup">
+          <label>ชื่อผู้รับเข้า</label>
+          <input type="text" id="userName" placeholder="ระบุชื่อผู้รับเข้า" oninput="clearFieldError('userNameGroup')">
+          <div class="field-error">กรุณาระบุชื่อผู้รับเข้า</div>
+        </div>
+        
+        <button type="submit" class="btn btn-primary btn-block">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          ยืนยันการรับเข้า
+        </button>
+      </form>
+    </div>
+    
+    <!-- Preview Modal -->
+    <div id="previewModal" class="modal-overlay hidden">
+      <div class="modal-content">
+        <div class="modal-header">
+          <div class="modal-icon" style="background: var(--success-light);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="var(--success)">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="7 10 12 15 17 10"/>
+              <line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+          </div>
+          <div class="modal-title">ยืนยันการรับเข้าวัสดุ</div>
+        </div>
+        <div class="modal-body">
+          <div class="preview-item">
+            <span class="preview-label">วัสดุ</span>
+            <span class="preview-value" id="prevProductName">-</span>
+          </div>
+          <div class="preview-item">
+            <span class="preview-label">รหัส</span>
+            <span class="preview-value" id="prevProductCode">-</span>
+          </div>
+          <div class="preview-item">
+            <span class="preview-label">จำนวนที่รับเข้า</span>
+            <span class="preview-value highlight-green" id="prevQuantity">-</span>
+          </div>
+          <div class="preview-item">
+            <span class="preview-label">คงเหลือปัจจุบัน</span>
+            <span class="preview-value" id="prevCurrentStock">-</span>
+          </div>
+          <div class="preview-item">
+            <span class="preview-label">ผู้รับเข้า</span>
+            <span class="preview-value" id="prevUserName">-</span>
+          </div>
+          <div class="preview-summary">
+            <div class="preview-summary-label">คงเหลือหลังรับเข้า</div>
+            <div class="preview-summary-value highlight-green" id="prevAfterStock">-</div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline" onclick="closePreview()">ยกเลิก</button>
+          <button class="btn btn-primary" id="confirmBtn" onclick="handleConfirmClick()">ยืนยันรับเข้า</button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Success Modal -->
+    <div id="successModal" class="modal-overlay hidden">
+      <div class="modal-content">
+        <div class="modal-header">
+          <div class="modal-icon" style="background: var(--success-light);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="var(--success)" stroke-width="2.5">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+          </div>
+          <div class="modal-title">รับเข้าวัสดุสำเร็จ</div>
+        </div>
+        <div class="modal-body">
+          <div id="successDetails"></div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-primary btn-block" id="successOkBtn" onclick="handleSuccessOkClick()">ตกลง</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Navigation -->
+  <nav class="bottom-nav">
+    <div class="nav-item" onclick="navigateTo('https://liff.line.me/2008893142-t04JvNpe')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      <span>หน้าแรก</span>
+    </div>
+    <div class="nav-item" onclick="navigateTo('https://liff.line.me/2008893142-t04JvNpe#withdraw')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      <span>เบิก</span>
+    </div>
+    <div class="nav-item active" onclick="navigateTo('https://liff.line.me/2008893142-t04JvNpe#receive')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      <span>รับเข้า</span>
+    </div>
+    <div class="nav-item" onclick="navigateTo('https://liff.line.me/2008893142-t04JvNpe#return')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M3 21v-5h5"/></svg>
+      <span>คืน</span>
+    </div>
+    <div class="nav-item" onclick="navigateTo('https://liff.line.me/2008893142-t04JvNpe#dashboard')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
+      <span>อื่นๆ</span>
+    </div>
+  </nav>
+
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  
+<style>
+    /* Authentication Overlay */
+    .auth-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+      padding: 20px;
+    }
+    
+    .auth-overlay.hidden {
+      display: none;
+    }
+    
+    .auth-modal {
+      background: white;
+      border-radius: 20px;
+      padding: 32px;
+      max-width: 400px;
+      width: 100%;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      animation: authSlideIn 0.3s ease-out;
+    }
+    
+    @keyframes authSlideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-20px) scale(0.95);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+    
+    .auth-header {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+    
+    .auth-icon {
+      width: 64px;
+      height: 64px;
+      background: linear-gradient(135deg, #007aff 0%, #5856d6 100%);
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 16px;
+    }
+    
+    .auth-icon svg {
+      width: 32px;
+      height: 32px;
+      stroke: white;
+    }
+    
+    .auth-header h2 {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin: 0 0 8px 0;
+    }
+    
+    .auth-header p {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin: 0;
+    }
+    
+    /* Input with icon */
+    .input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+    
+    .input-wrapper input {
+      padding-left: 44px;
+      padding-right: 44px;
+      width: 100%;
+    }
+    
+    .input-icon {
+      position: absolute;
+      left: 14px;
+      width: 20px;
+      height: 20px;
+      stroke: var(--text-tertiary);
+      pointer-events: none;
+      z-index: 1;
+    }
+    
+    .toggle-password {
+      position: absolute;
+      right: 8px;
+      background: transparent;
+      border: none;
+      padding: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      transition: all 0.2s ease;
+      z-index: 2;
+    }
+    
+    .toggle-password:hover {
+      background: rgba(0, 0, 0, 0.05);
+    }
+    
+    .toggle-password:active {
+      transform: scale(0.95);
+      background: rgba(0, 0, 0, 0.08);
+    }
+    
+    .toggle-password svg {
+      width: 20px;
+      height: 20px;
+      stroke: var(--text-secondary);
+      transition: stroke 0.2s ease;
+    }
+    
+    .toggle-password:hover svg {
+      stroke: var(--text-primary);
+    }
+    
+    /* Remember Me Section */
+    .remember-me-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 24px;
+      padding: 4px 0;
+    }
+    
+    /* Toggle Switch */
+    .toggle-switch {
+      position: relative;
+      display: inline-block;
+      width: 51px;
+      height: 31px;
+      flex-shrink: 0;
+      cursor: pointer;
+    }
+    
+    .toggle-switch input[type="checkbox"] {
+      opacity: 0;
+      width: 0;
+      height: 0;
+      position: absolute;
+    }
+    
+    .toggle-slider {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: #e5e5ea;
+      border-radius: 31px;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      cursor: pointer;
+    }
+    
+    .toggle-slider::before {
+      content: '';
+      position: absolute;
+      height: 27px;
+      width: 27px;
+      left: 2px;
+      bottom: 2px;
+      background: white;
+      border-radius: 50%;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+    
+    .toggle-switch input:checked + .toggle-slider {
+      background: #34c759;
+    }
+    
+    .toggle-switch input:checked + .toggle-slider::before {
+      transform: translateX(20px);
+    }
+    
+    .toggle-switch input:focus + .toggle-slider {
+      box-shadow: 0 0 0 3px rgba(52, 199, 89, 0.2);
+    }
+    
+    .toggle-switch:active .toggle-slider::before {
+      width: 32px;
+    }
+    
+    .toggle-label {
+      font-size: 15px;
+      color: var(--text-primary);
+      font-weight: 500;
+      cursor: pointer;
+      user-select: none;
+    }
+    
+    .remember-me-wrapper:hover .toggle-label {
+      color: var(--accent);
+    }
+    
+    .auth-error {
+      background: var(--danger-light);
+      color: var(--danger);
+      padding: 12px 16px;
+      border-radius: 10px;
+      font-size: 14px;
+      margin-bottom: 16px;
+      display: none;
+    }
+    
+    .auth-error.show {
+      display: block;
+      animation: shake 0.3s ease;
+    }
+    
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-10px); }
+      75% { transform: translateX(10px); }
+    }
+    
+    .auth-buttons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    
+    .auth-buttons .btn {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 48px;
+      padding: 12px 24px;
+      overflow: hidden;
+    }
+    
+    /* Button text */
+    .btn-text {
+      transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+    
+    /* Button loader */
+    .btn-loader {
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      opacity: 0;
+      transform: scale(0);
+      transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+    
+    /* Loading state */
+    #loginBtn.loading {
+      pointer-events: none;
+    }
+    
+    #loginBtn.loading .btn-text {
+      opacity: 0;
+      transform: scale(0.8);
+    }
+    
+    #loginBtn.loading .btn-loader {
+      opacity: 1;
+      transform: scale(1);
+      animation: spin 0.6s linear infinite;
+    }
+    
+    @keyframes spin {
+      0% { transform: scale(1) rotate(0deg); }
+      100% { transform: scale(1) rotate(360deg); }
+    }
+    
+    #backBtn.disabled {
+      pointer-events: none;
+      opacity: 0.5;
+    }
+    
+    /* Blur content when auth is shown */
+    body.auth-required .header,
+    body.auth-required .container,
+    body.auth-required .bottom-nav {
+      filter: blur(8px);
+      pointer-events: none;
+    }
+  </style>
+  
+
+  <script>
+    var baseUrl = 'https://script.google.com/macros/s/AKfycbx485xIyUla9r78h6rxgwbr0JHlCt4skYjsXdxwPgHwjjwshVqhYI9OOVWY9fjVpYT0/exec';
+    var products = [];
+
+    // Authentication Configuration
+    const AUTH_CONFIG = {
+      username: 'khim',  // เปลี่ยนเป็น username ที่ต้องการ
+      password: 'khim1234'  // เปลี่ยนเป็น password ที่ต้องการ
+    };
+    
+    // Check authentication on page load
+    document.addEventListener('DOMContentLoaded', function() {
+      checkAuth();
+      
+      // Make toggle label clickable
+      const toggleLabel = document.querySelector('.toggle-label');
+      if (toggleLabel) {
+        toggleLabel.addEventListener('click', function() {
+          const checkbox = document.getElementById('rememberMe');
+          checkbox.checked = !checkbox.checked;
+        });
+      }
+    });
+    
+    function checkAuth() {
+      const isAuthenticated = localStorage.getItem('receiveAuth') === 'true';
+      const authOverlay = document.getElementById('authOverlay');
+      
+      if (isAuthenticated) {
+        // Already authenticated
+        authOverlay.classList.add('hidden');
+        document.body.classList.remove('auth-required');
+        loadProducts();
+      } else {
+        // Need authentication
+        authOverlay.classList.remove('hidden');
+        document.body.classList.add('auth-required');
+      }
+    }
+    
+    function handleLogin(event) {
+      event.preventDefault();
+      
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+      const rememberMe = document.getElementById('rememberMe').checked;
+      const authError = document.getElementById('authError');
+      const loginBtn = document.getElementById('loginBtn');
+      const backBtn = document.getElementById('backBtn');
+      
+      // Show loading
+      loginBtn.classList.add('loading');
+      backBtn.classList.add('disabled');
+      authError.classList.remove('show');
+      authError.textContent = '';
+      
+      // Simulate authentication delay (remove this in production if not needed)
+      setTimeout(function() {
+        // Validate credentials
+        if (username === AUTH_CONFIG.username && password === AUTH_CONFIG.password) {
+          // Success
+          if (rememberMe) {
+            localStorage.setItem('receiveAuth', 'true');
+          } else {
+            sessionStorage.setItem('receiveAuth', 'true');
+          }
+          
+          // Hide overlay and show content
+          setTimeout(function() {
+            document.getElementById('authOverlay').classList.add('hidden');
+            document.body.classList.remove('auth-required');
+            
+            // Load products
+            loadProducts();
+            
+            // Show success message
+            showAlert('เข้าสู่ระบบสำเร็จ', 'success');
+            
+            // Reset button
+            loginBtn.classList.remove('loading');
+            backBtn.classList.remove('disabled');
+          }, 300);
+        } else {
+          // Failed
+          loginBtn.classList.remove('loading');
+          backBtn.classList.remove('disabled');
+          
+          authError.textContent = '❌ ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง';
+          authError.classList.add('show');
+          
+          // Shake animation
+          setTimeout(function() {
+            authError.classList.remove('show');
+          }, 3000);
+        }
+      }, 800); // Simulate network delay
+    }
+    
+    function goToWithdraw() {
+      // Navigate to withdraw page
+      navigateTo('https://liff.line.me/2008893142-t04JvNpe#withdraw');
+    }
+    
+    function goBack() {
+      // Navigate back to home (kept for compatibility)
+      navigateTo('https://liff.line.me/2008893142-t04JvNpe');
+    }
+    
+    function togglePassword() {
+      const passwordInput = document.getElementById('password');
+      const eyeIcon = document.getElementById('eyeIcon');
+      
+      if (passwordInput.type === 'password') {
+        // แสดงรหัสผ่าน - ใช้ไอคอนตาลืม (เปิด)
+        passwordInput.type = 'text';
+        eyeIcon.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+      } else {
+        // ซ่อนรหัสผ่าน - ใช้ไอคอนตาหลับ (ปิด)
+        passwordInput.type = 'password';
+        eyeIcon.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>';
+      }
+    }
+    
+    // Logout function (optional - can be called from console or add a button)
+    function logout() {
+      localStorage.removeItem('receiveAuth');
+      sessionStorage.removeItem('receiveAuth');
+      location.reload();
+    }
+    var pendingData = null;
+    var isProcessing = false;
+    var preloadedData = <?!= preloadedData ? preloadedData : 'null' ?>;
+    
+    document.addEventListener('DOMContentLoaded', function() {
+      initLiff();
+      // Load from cache first
+      var cachedProducts = CacheService.get('products');
+      if (cachedProducts) {
+        products = cachedProducts;
+        renderProductOptions();
+      }
+      if (preloadedData) { 
+        products = preloadedData; 
+        renderProductOptions();
+        CacheService.set('products', preloadedData);
+      } else { 
+        loadProducts(); 
+      }
+      
+      // Auto refresh every 30 seconds
+      AutoRefresh.onRefresh(loadProducts);
+      AutoRefresh.start();
+    });
+    
+    function initLiff() {
+      // Auto-fill user name from localStorage
+      UserStorage.autoFill('userName');
+      
+      // Setup auto-save when user types
+      UserStorage.setupAutoSave('userName');
+      
+      // LIFF integration
+      var liffId = '<?= liffId ?>';
+      if (liffId) {
+        liff.init({ liffId: liffId }).then(function() {
+          if (liff.isLoggedIn()) { liff.getProfile().then(function(profile) { document.getElementById('userName').value = profile.displayName; }); }
+        }).catch(function(err) { console.log('LIFF init error:', err); });
+      }
+    }
+    
+    function loadProducts() {
+      if (!CacheService.get('products')) {
+        LoadingUI.show('กำลังโหลดข้อมูล...');
+      }
+      CacheService.fetchWithCache(
+        baseUrl + '?action=getProducts',
+        'products',
+        function(data, fromCache) {
+          products = data;
+          renderProductOptions();
+          LoadingUI.hide();
+        },
+        function(err) {
+          LoadingUI.hide();
+          showAlert('เกิดข้อผิดพลาดในการโหลดข้อมูล', 'error');
+        }
+      );
+    }
+    
+    function renderProductOptions() {
+      var select = document.getElementById('productSelect');
+      select.innerHTML = '<option value="">-- เลือกวัสดุ --</option>';
+      products.forEach(function(p) {
+        var option = document.createElement('option');
+        option.value = p.code;
+        option.textContent = p.code + ' - ' + p.name + ' (คงเหลือ: ' + p.quantity + ' ' + p.unit + ')';
+        option.dataset.quantity = p.quantity;
+        option.dataset.unit = p.unit;
+        option.dataset.name = p.name;
+        select.appendChild(option);
+      });
+    }
+    
+    function updateStockInfo() {
+      var select = document.getElementById('productSelect');
+      var selected = select.options[select.selectedIndex];
+      var stockInfo = document.getElementById('stockInfo');
+      if (select.value) {
+        document.getElementById('currentStock').textContent = selected.dataset.quantity;
+        document.getElementById('stockUnit').textContent = selected.dataset.unit;
+        stockInfo.classList.remove('hidden');
+      } else { stockInfo.classList.add('hidden'); }
+    }
+    
+    function showPreview(e) {
+      e.preventDefault();
+      var select = document.getElementById('productSelect');
+      var productCode = select.value;
+      var quantity = document.getElementById('quantity').value;
+      var userName = document.getElementById('userName').value.trim();
+      
+      clearAllErrors();
+      var hasError = false;
+      if (!productCode) { document.getElementById('productGroup').classList.add('has-error'); hasError = true; }
+      if (!quantity || parseInt(quantity) <= 0) { document.getElementById('quantityGroup').classList.add('has-error'); hasError = true; }
+      if (!userName) { document.getElementById('userNameGroup').classList.add('has-error'); hasError = true; }
+      if (hasError) return;
+      
+      var selected = select.options[select.selectedIndex];
+      var productName = selected.dataset.name;
+      quantity = parseInt(quantity);
+      var currentStock = parseInt(selected.dataset.quantity);
+      var unit = selected.dataset.unit;
+      
+      pendingData = { productCode: productCode, quantity: quantity, userName: userName };
+      document.getElementById('prevProductName').textContent = productName;
+      document.getElementById('prevProductCode').textContent = productCode;
+      document.getElementById('prevQuantity').textContent = '+' + quantity + ' ' + unit;
+      document.getElementById('prevCurrentStock').textContent = currentStock + ' ' + unit;
+      document.getElementById('prevUserName').textContent = userName;
+      document.getElementById('prevAfterStock').textContent = (currentStock + quantity) + ' ' + unit;
+      
+      document.getElementById('previewModal').classList.remove('hidden');
+      AutoRefresh.stop();
+      setTimeout(checkPreviewScroll, 200);
+    }
+    
+    function checkPreviewScroll() {
+      var modal = document.querySelector('#previewModal .modal-content');
+      var btn = document.getElementById('confirmBtn');
+      modal.scrollTop = 0;
+      var isScrollable = modal.scrollHeight > modal.clientHeight;
+      var isAtBottom = modal.scrollHeight - modal.scrollTop - modal.clientHeight < 10;
+      if (isScrollable && !isAtBottom) { btn.textContent = 'ต่อไป'; btn.dataset.needScroll = 'true'; }
+      else { btn.textContent = 'ยืนยันรับเข้า'; btn.dataset.needScroll = 'false'; }
+      modal.onscroll = function() { updatePreviewButton(); };
+    }
+    
+    function updatePreviewButton() {
+      var modal = document.querySelector('#previewModal .modal-content');
+      var btn = document.getElementById('confirmBtn');
+      var isAtBottom = modal.scrollHeight - modal.scrollTop - modal.clientHeight < 10;
+      if (isAtBottom) { btn.textContent = 'ยืนยันรับเข้า'; btn.dataset.needScroll = 'false'; }
+    }
+    
+    function handleConfirmClick() {
+      var btn = document.getElementById('confirmBtn');
+      var modal = document.querySelector('#previewModal .modal-content');
+      if (btn.dataset.needScroll === 'true') { modal.scrollTo({ top: modal.scrollHeight, behavior: 'smooth' }); }
+      else { confirmReceive(); }
+    }
+    
+    function closePreview() { 
+      document.getElementById('previewModal').classList.add('hidden'); 
+      pendingData = null; 
+      AutoRefresh.start();
+    }
+    
+    function confirmReceive() {
+      if (!pendingData || isProcessing) return;
+      isProcessing = true;
+      var btn = document.getElementById('confirmBtn');
+      btn.disabled = true; btn.textContent = 'กำลังดำเนินการ...';
+      LoadingUI.showProgress();
+      LoadingUI.simulateProgress(1500);
+      var formData = new FormData();
+      formData.append('payload', JSON.stringify({ action: 'receive', productCode: pendingData.productCode, quantity: pendingData.quantity, userName: pendingData.userName }));
+      
+      fetch(baseUrl, { method: 'POST', body: formData })
+        .then(function(res) { return res.json(); })
+        .then(function(result) {
+          isProcessing = false;
+          btn.disabled = false; btn.textContent = 'ยืนยันรับเข้า'; 
+          LoadingUI.setProgress(100);
+          setTimeout(function() { LoadingUI.hideProgress(); }, 300);
+          closePreview();
+          if (result.success) { 
+            showSuccessModal(result.data); 
+            document.getElementById('receiveForm').reset(); 
+            document.getElementById('stockInfo').classList.add('hidden'); 
+            CacheService.clear('products');
+            CacheService.clear('dashboard');
+            loadProducts(); 
+          }
+          else { showAlert(result.message, 'error'); }
+        })
+        .catch(function(err) { 
+          isProcessing = false; 
+          btn.disabled = false; 
+          btn.textContent = 'ยืนยันรับเข้า'; 
+          LoadingUI.hideProgress();
+          closePreview(); 
+          showAlert('เกิดข้อผิดพลาด: ' + err.message, 'error'); 
+        });
+    }
+    
+    function showSuccessModal(data) {
+      document.getElementById('successDetails').innerHTML = '<div class="preview-item"><span class="preview-label">วัสดุ</span><span class="preview-value">' + data.productName + '</span></div><div class="preview-item"><span class="preview-label">จำนวนที่รับเข้า</span><span class="preview-value highlight-green">+' + data.quantity + '</span></div><div class="preview-item"><span class="preview-label">คงเหลือก่อนรับ</span><span class="preview-value">' + data.beforeQuantity + '</span></div><div class="preview-item"><span class="preview-label">คงเหลือหลังรับ</span><span class="preview-value highlight-green">' + data.afterQuantity + '</span></div>';
+      document.getElementById('successModal').classList.remove('hidden');
+      setTimeout(checkSuccessScroll, 200);
+    }
+    
+    function checkSuccessScroll() {
+      var modal = document.querySelector('#successModal .modal-content');
+      var btn = document.getElementById('successOkBtn');
+      modal.scrollTop = 0;
+      var isScrollable = modal.scrollHeight > modal.clientHeight;
+      var isAtBottom = modal.scrollHeight - modal.scrollTop - modal.clientHeight < 10;
+      if (isScrollable && !isAtBottom) { btn.textContent = 'ต่อไป'; btn.dataset.needScroll = 'true'; }
+      else { btn.textContent = 'ตกลง'; btn.dataset.needScroll = 'false'; }
+      modal.onscroll = function() { updateSuccessButton(); };
+    }
+    
+    function updateSuccessButton() {
+      var modal = document.querySelector('#successModal .modal-content');
+      var btn = document.getElementById('successOkBtn');
+      var isAtBottom = modal.scrollHeight - modal.scrollTop - modal.clientHeight < 10;
+      if (isAtBottom) { btn.textContent = 'ตกลง'; btn.dataset.needScroll = 'false'; }
+    }
+    
+    function handleSuccessOkClick() {
+      var btn = document.getElementById('successOkBtn');
+      var modal = document.querySelector('#successModal .modal-content');
+      if (btn.dataset.needScroll === 'true') { modal.scrollTo({ top: modal.scrollHeight, behavior: 'smooth' }); }
+      else { document.getElementById('successModal').classList.add('hidden'); }
+    }
+    
+    function clearAllErrors() { document.getElementById('productGroup').classList.remove('has-error'); document.getElementById('quantityGroup').classList.remove('has-error'); document.getElementById('userNameGroup').classList.remove('has-error'); }
+    function clearFieldError(groupId) { document.getElementById(groupId).classList.remove('has-error'); }
+    function showAlert(message, type) { var container = document.getElementById('alertContainer'); container.innerHTML = '<div class="alert alert-' + type + '">' + message + '</div>'; setTimeout(function() { container.innerHTML = ''; }, 5000); }
+  </script>
+</body>
+</html>

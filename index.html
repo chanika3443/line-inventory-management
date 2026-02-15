@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#f5f5f7">
+  <base target="_top">
+  <title>ระบบคลังวัสดุ</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+    iframe {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border: 0;
+      display: block;
+    }
+    /* Loading screen */
+    #loading {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #f5f5f7;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      transition: opacity 0.3s ease;
+    }
+    #loading.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid rgba(0,122,255,0.2);
+      border-top-color: #007aff;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <!-- Loading Screen -->
+  <div id="loading">
+    <div class="spinner"></div>
+  </div>
+  
+  <!-- Main App -->
+  <iframe 
+    id="appFrame"
+    src=""
+    allow="clipboard-write"
+    sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation"
+    loading="eager">
+  </iframe>
+
+  <script>
+    // Get base URL
+    var baseUrl = 'https://script.google.com/macros/s/AKfycbx485xIyUla9r78h6rxgwbr0JHlCt4skYjsXdxwPgHwjjwshVqhYI9OOVWY9fjVpYT0/exec';
+    
+    // Parse URL to get page parameter
+    function getTargetUrl() {
+      var params = new URLSearchParams(window.location.search);
+      var hash = window.location.hash;
+      
+      // Method 1: Check LIFF state parameter first
+      var liffState = params.get('liff.state');
+      if (liffState) {
+        try {
+          var decoded = decodeURIComponent(liffState);
+          // Check if it's a hash (#products)
+          if (decoded.indexOf('#') === 0) {
+            var page = decoded.substring(1);
+            return baseUrl + '?page=' + page;
+          }
+        } catch (e) {
+          console.error('Error decoding liff.state:', e);
+        }
+      }
+      
+      // Method 2: Check hash (#products)
+      if (hash && hash.length > 1) {
+        var page = hash.substring(1); // Remove #
+        var validPages = ['products', 'withdraw', 'receive', 'reports', 'dashboard', 'logs'];
+        if (validPages.indexOf(page) !== -1) {
+          return baseUrl + '?page=' + page;
+        }
+      }
+      
+      // Method 3: Check page parameter
+      var page = params.get('page');
+      if (page) {
+        return baseUrl + '?page=' + page;
+      }
+      
+      // Default to home
+      return baseUrl;
+    }
+    
+    // Set iframe src
+    var iframe = document.getElementById('appFrame');
+    var loading = document.getElementById('loading');
+    var targetUrl = getTargetUrl();
+    iframe.src = targetUrl;
+    
+    // Hide loading when iframe loads
+    iframe.addEventListener('load', function() {
+      setTimeout(function() {
+        loading.classList.add('hidden');
+      }, 300);
+    });
+    
+    // Timeout fallback
+    setTimeout(function() {
+      loading.classList.add('hidden');
+    }, 5000);
+    
+    // Listen for hash changes
+    window.addEventListener('hashchange', function() {
+      var newUrl = getTargetUrl();
+      iframe.src = newUrl;
+      loading.classList.remove('hidden');
+    });
+  </script>
+</body>
+</html>
