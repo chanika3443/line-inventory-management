@@ -16,6 +16,18 @@ export default function Reports() {
   const [showExportMenu, setShowExportMenu] = useState(false)
   const isInitialMount = useRef(true)
 
+  // Close export menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (showExportMenu && !event.target.closest('.export-section')) {
+        setShowExportMenu(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [showExportMenu])
+
   const loadReport = useCallback(async (filterParams) => {
     setLoading(true)
     const transactions = await sheetsService.getTransactionLogs(filterParams)
