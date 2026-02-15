@@ -1,4 +1,4 @@
-import { Outlet, useLocation } from 'react-router-dom'
+import { Outlet } from 'react-router-dom'
 import { useState } from 'react'
 import BottomNav from './BottomNav'
 import UserMenu from './UserMenu'
@@ -10,7 +10,6 @@ export default function Layout() {
   const { isReady, isLoggedIn, login, loginWithManualName } = useLiff()
   const [manualName, setManualName] = useState('')
   const [showManualInput, setShowManualInput] = useState(false)
-  const location = useLocation()
 
   if (!isReady) {
     return <Loading />

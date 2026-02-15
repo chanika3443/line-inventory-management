@@ -105,8 +105,7 @@ export function LiffProvider({ children }) {
       }
     }
     
-    // Redirect to home page instead of reload
-    window.location.href = window.location.origin + window.location.pathname
+    // Stay on current page - just clear state, Layout will show login screen
   }
 
   const value = {
