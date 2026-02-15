@@ -58,8 +58,12 @@ export function login() {
  * Logout from LINE
  */
 export function logout() {
-  liff.logout()
+  if (isInitialized) {
+    liff.logout()
+  }
   userProfile = null
+  // Force reload to clear LIFF state
+  window.location.reload()
 }
 
 /**

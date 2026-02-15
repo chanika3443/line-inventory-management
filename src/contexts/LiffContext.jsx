@@ -11,7 +11,7 @@ export function LiffProvider({ children }) {
 
   useEffect(() => {
     async function init() {
-      // Try to load from localStorage first
+      // Try to load from localStorage first for immediate UI update
       const savedProfile = localStorage.getItem('liff_user_profile')
       if (savedProfile) {
         try {
@@ -21,32 +21,43 @@ export function LiffProvider({ children }) {
           setIsLoggedIn(true)
         } catch (e) {
           console.error('Failed to parse saved profile:', e)
+          localStorage.removeItem('liff_user_profile')
         }
       }
 
+      // Set ready immediately so UI can render
+      setIsReady(true)
+
+      // Initialize LIFF in background
       const success = await liffService.initializeLiff()
       
       if (success) {
         const loggedIn = liffService.isLoggedIn()
         
         if (loggedIn) {
-          // Logged in, get profile
-          setIsLoggedIn(true)
+          // Logged in, get fresh profile
           const profile = await liffService.getUserProfile()
-          setUserProfile(profile)
-          setUserName(profile?.displayName || '')
-          
-          // Save to localStorage
           if (profile) {
+            setIsLoggedIn(true)
+            setUserProfile(profile)
+            setUserName(profile.displayName || '')
+            
+            // Update localStorage with fresh data
             localStorage.setItem('liff_user_profile', JSON.stringify(profile))
+          }
+        } else {
+          // Not logged in via LIFF, clear saved data
+          if (savedProfile) {
+            setIsLoggedIn(false)
+            setUserProfile(null)
+            setUserName('')
+            localStorage.removeItem('liff_user_profile')
           }
         }
       } else {
         // LIFF failed to initialize, use fallback mode
         console.warn('LIFF not available, using manual input mode')
       }
-      
-      setIsReady(true)
     }
     
     init()
@@ -57,12 +68,14 @@ export function LiffProvider({ children }) {
   }
 
   const logout = () => {
-    liffService.logout()
+    // Clear state
     setIsLoggedIn(false)
     setUserProfile(null)
     setUserName('')
     // Clear localStorage
     localStorage.removeItem('liff_user_profile')
+    // Logout from LIFF (will reload page)
+    liffService.logout()
   }
 
   const value = {
