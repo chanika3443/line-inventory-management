@@ -170,6 +170,8 @@ export async function getTransactionLogs(filters = {}) {
     return []
   }
 }
+  }
+}
     transactions.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
     
     return transactions
