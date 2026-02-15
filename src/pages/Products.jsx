@@ -89,7 +89,12 @@ export default function Products() {
   }
 
   async function handleDelete(product) {
-    if (!confirm(`ต้องการลบ "${product.name}" ใช่หรือไม่?`)) {
+    const userInput = prompt(`ต้องการลบ "${product.name}" ใช่หรือไม่?\n\nพิมพ์ "delete" เพื่อยืนยัน:`)
+    
+    if (userInput !== 'delete') {
+      if (userInput !== null) {
+        setMessage({ type: 'error', text: 'ยกเลิกการลบ - กรุณาพิมพ์ "delete" เพื่อยืนยัน' })
+      }
       return
     }
 
