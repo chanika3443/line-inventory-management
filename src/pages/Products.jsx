@@ -147,9 +147,7 @@ export default function Products() {
       </div>
 
       <div className="product-list">
-        {filteredProducts.map((product) => {
-          console.log('Product:', product.name, 'Returnable:', product.returnable)
-          return (
+        {filteredProducts.map((product) => (
           <div key={product.code} className="product-card card">
             <div className="product-header">
               <div>
@@ -202,8 +200,7 @@ export default function Products() {
               {product.returnable ? '✓ คืนได้' : '✗ คืนไม่ได้'}
             </div>
           </div>
-          )
-        })}
+        ))}
       </div>
       </div>
 
