@@ -9,7 +9,7 @@ import './Transaction.css'
 export default function Withdraw() {
   useHeaderShrink()
   const { products, fetchProducts, withdraw, loading } = useSheets()
-  const { userName: liffUserName, setUserName } = useLiff()
+  const { userName: liffUserName } = useLiff()
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedProduct, setSelectedProduct] = useState(null)
   const [quantity, setQuantity] = useState('')

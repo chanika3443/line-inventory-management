@@ -1,11 +1,8 @@
 import { Link } from 'react-router-dom'
-import { useLiff } from '../contexts/LiffContext'
 import Icon from '../components/Icon'
 import './Home.css'
 
 export default function Home() {
-  const { userName } = useLiff()
-
   const menuItems = [
     { 
       icon: 'withdraw', 

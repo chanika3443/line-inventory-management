@@ -5,23 +5,6 @@ import './UserMenu.css'
 export default function UserMenu() {
   const { isLoggedIn, userName, userProfile, login, logout } = useLiff()
   const [showMenu, setShowMenu] = useState(false)
-  const [showManualInput, setShowManualInput] = useState(false)
-  const [manualName, setManualName] = useState('')
-
-  const handleManualLogin = () => {
-    if (manualName.trim()) {
-      const profile = {
-        displayName: manualName.trim(),
-        userId: 'manual-' + Date.now(),
-        pictureUrl: null
-      }
-      localStorage.setItem('liff_user_profile', JSON.stringify(profile))
-      // Don't reload, just close the input
-      setShowManualInput(false)
-      // Trigger a re-render by updating parent context
-      window.location.reload()
-    }
-  }
 
   if (!isLoggedIn) {
     return (

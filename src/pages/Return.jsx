@@ -9,7 +9,7 @@ import './Transaction.css'
 export default function Return() {
   useHeaderShrink()
   const { products, fetchProducts, returnProduct, loading } = useSheets()
-  const { userName: liffUserName, setUserName } = useLiff()
+  const { userName: liffUserName } = useLiff()
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedProduct, setSelectedProduct] = useState(null)
   const [quantity, setQuantity] = useState('')

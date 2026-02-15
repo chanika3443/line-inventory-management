@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import * as sheetsService from '../services/sheetsService'
 import Loading from '../components/Loading'
 import { useHeaderShrink } from '../hooks/useHeaderShrink'
@@ -20,11 +20,7 @@ export default function Logs() {
     type: ''
   })
 
-  useEffect(() => {
-    applyDateRange(dateRange)
-  }, [])
-
-  function applyDateRange(range) {
+  const applyDateRange = useCallback((range) => {
     const today = new Date()
     today.setHours(0, 0, 0, 0)
     
@@ -64,7 +60,11 @@ export default function Logs() {
     
     // Load with new dates
     loadTransactionsWithDates(startDateStr, endDateStr)
-  }
+  }, [])
+
+  useEffect(() => {
+    applyDateRange(dateRange)
+  }, [applyDateRange, dateRange])
 
   async function loadTransactionsWithDates(start, end) {
     setLoading(true)

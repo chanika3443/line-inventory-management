@@ -1,10 +1,9 @@
-import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import Icon from './Icon'
 import './BottomNav.css'
 
 export default function BottomNav() {
   const location = useLocation()
-  const navigate = useNavigate()
 
   const isActive = (path) => location.pathname === path
 
