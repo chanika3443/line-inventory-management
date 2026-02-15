@@ -214,7 +214,7 @@ export default function Products() {
                   className="input"
                   placeholder="0"
                   value={formData.quantity}
-                  onChange={(e) => setFormData({ ...formData, quantity: parseInt(e.target.value) || 0 })}
+                  onChange={(e) => setFormData({ ...formData, quantity: e.target.value === '' ? '' : parseInt(e.target.value) || 0 })}
                   min="0"
                 />
               </div>
@@ -226,7 +226,7 @@ export default function Products() {
                   className="input"
                   placeholder="เช่น 10"
                   value={formData.lowStockThreshold}
-                  onChange={(e) => setFormData({ ...formData, lowStockThreshold: parseInt(e.target.value) || 0 })}
+                  onChange={(e) => setFormData({ ...formData, lowStockThreshold: e.target.value === '' ? '' : parseInt(e.target.value) || 0 })}
                   min="0"
                 />
               </div>
