@@ -138,15 +138,11 @@ export default function Withdraw() {
       return
     }
 
-    // Check if room is required for this product
-    if (selectedProduct.requireRoom && !roomNumber.trim()) {
-      setMessage({ type: 'error', text: 'กรุณาระบุห้องผู้ป่วย' })
-      return
-    }
+    // Room number is optional now - no validation needed
 
-    // Create note with room and/or patient type (if required)
+    // Create note with room and/or patient type (if provided)
     let noteParts = []
-    if (selectedProduct.requireRoom && roomNumber.trim()) {
+    if (roomNumber.trim()) {
       noteParts.push(`ห้อง: ${roomNumber}`)
     }
     if (selectedProduct.requirePatientType) {
