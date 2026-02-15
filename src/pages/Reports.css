@@ -287,7 +287,7 @@
 .filters-card {
   padding: 12px;
   margin-bottom: 12px;
-  overflow: visible;
+  overflow: visible !important;
   position: relative;
   z-index: 1;
   transition: margin-bottom 0.2s ease;
