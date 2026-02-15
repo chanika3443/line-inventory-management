@@ -138,6 +138,26 @@ export default function Withdraw() {
 
         {!selectedProduct ? (
           <>
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
+              <button
+                onClick={() => {
+                  setIsMultiSelectMode(false)
+                  setSelectedItems([])
+                }}
+                className={`btn ${!isMultiSelectMode ? 'btn-primary' : 'btn-outline'}`}
+                style={{ flex: 1, fontSize: '14px', padding: '10px 16px' }}
+              >
+                เบิกรายการเดียว
+              </button>
+              <button
+                onClick={() => setIsMultiSelectMode(true)}
+                className={`btn ${isMultiSelectMode ? 'btn-primary' : 'btn-outline'}`}
+                style={{ flex: 1, fontSize: '14px', padding: '10px 16px' }}
+              >
+                เบิกหลายรายการ
+              </button>
+            </div>
+
             <div className="form-group">
               <input
                 type="text"
@@ -163,18 +183,26 @@ export default function Withdraw() {
                     className={`product-item ${isSelected ? 'selected' : ''}`}
                     style={{ display: 'flex', alignItems: 'center', gap: '12px' }}
                   >
-                    <input
-                      type="checkbox"
-                      checked={isSelected}
-                      onChange={(e) => {
-                        e.stopPropagation()
-                        toggleProductSelection(product)
-                      }}
-                      style={{ width: '20px', height: '20px', cursor: 'pointer', flexShrink: 0 }}
-                    />
+                    {isMultiSelectMode && (
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={(e) => {
+                          e.stopPropagation()
+                          toggleProductSelection(product)
+                        }}
+                        style={{ width: '20px', height: '20px', cursor: 'pointer', flexShrink: 0 }}
+                      />
+                    )}
                     <div 
                       style={{ flex: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}
-                      onClick={() => !isMultiSelectMode && setSelectedProduct(product)}
+                      onClick={() => {
+                        if (isMultiSelectMode) {
+                          toggleProductSelection(product)
+                        } else {
+                          setSelectedProduct(product)
+                        }
+                      }}
                     >
                       <div className="product-info">
                         <div className="product-name">{product.name}</div>
