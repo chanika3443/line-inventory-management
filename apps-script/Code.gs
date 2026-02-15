@@ -586,7 +586,7 @@ function createWeeklySummaryFlexMessage() {
         },
         {
           type: 'text',
-          text: 'จำนวนการเบิก/รับเข้าวัสดุแต่ละวัน (' + trends.dateRange + ')',
+          text: 'จำนวนการเบิก/คืน/รับเข้าวัสดุแต่ละวัน (' + trends.dateRange + ')',
           size: 'xxs',
           color: '#86868b',
           margin: 'xs'
