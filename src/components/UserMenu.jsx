@@ -3,7 +3,7 @@ import { useLiff } from '../contexts/LiffContext'
 import './UserMenu.css'
 
 export default function UserMenu() {
-  const { isLoggedIn, userName, userProfile, login, logout } = useLiff()
+  const { isLoggedIn, userName, userProfile, login, logout, setManualProfile } = useLiff()
   const [showMenu, setShowMenu] = useState(false)
   const [showManualInput, setShowManualInput] = useState(false)
   const [manualName, setManualName] = useState('')
@@ -15,8 +15,9 @@ export default function UserMenu() {
         userId: 'manual-' + Date.now(),
         pictureUrl: null
       }
-      localStorage.setItem('liff_user_profile', JSON.stringify(profile))
-      window.location.reload()
+      setManualProfile(profile)
+      setShowManualInput(false)
+      setManualName('')
     }
   }
 
