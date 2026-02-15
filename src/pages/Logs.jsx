@@ -11,7 +11,7 @@ export default function Logs() {
   const [showFilters, setShowFilters] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage] = useState(20)
-  const [dateRange, setDateRange] = useState('today') // today, yesterday, 7days, 14days, 30days
+  const [dateRange, setDateRange] = useState('30days') // Default to 30 days
   const [filters, setFilters] = useState({
     startDate: '',
     endDate: '',
