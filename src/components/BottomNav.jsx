@@ -19,14 +19,14 @@ export default function BottomNav() {
         <span>เบิก</span>
       </Link>
 
-      <Link to="/receive" className={`nav-item ${isActive('/receive') ? 'active' : ''}`}>
-        <Icon name="receive" size={24} />
-        <span>รับเข้า</span>
-      </Link>
-
       <Link to="/return" className={`nav-item ${isActive('/return') ? 'active' : ''}`}>
         <Icon name="return" size={24} />
         <span>คืน</span>
+      </Link>
+
+      <Link to="/receive" className={`nav-item ${isActive('/receive') ? 'active' : ''}`}>
+        <Icon name="receive" size={24} />
+        <span>รับเข้า</span>
       </Link>
 
       <Link to="/dashboard" className={`nav-item ${isActive('/dashboard') || isActive('/reports') || isActive('/logs') || isActive('/products') ? 'active' : ''}`}>
