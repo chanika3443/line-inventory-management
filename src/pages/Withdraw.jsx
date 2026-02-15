@@ -254,23 +254,72 @@ export default function Withdraw() {
                             คงเหลือ: {item.product.quantity} {item.product.unit}
                           </div>
                         </div>
-                        <input
-                          type="number"
-                          value={item.quantity}
-                          onChange={(e) => updateItemQuantity(item.product.code, e.target.value)}
-                          min="1"
-                          max={item.product.quantity}
-                          style={{
-                            width: '80px',
-                            padding: '8px 12px',
-                            border: '1.5px solid var(--border-strong)',
-                            borderRadius: 'var(--radius-md)',
-                            fontSize: '14px',
-                            textAlign: 'center',
-                            background: 'var(--bg-primary)'
-                          }}
-                          onClick={(e) => e.stopPropagation()}
-                        />
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              const newQty = Math.max(1, item.quantity - 1)
+                              updateItemQuantity(item.product.code, newQty)
+                            }}
+                            style={{
+                              width: '32px',
+                              height: '32px',
+                              border: '1.5px solid var(--border-strong)',
+                              borderRadius: 'var(--radius-sm)',
+                              background: 'var(--bg-primary)',
+                              color: 'var(--text-primary)',
+                              fontSize: '18px',
+                              fontWeight: '600',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center'
+                            }}
+                          >
+                            −
+                          </button>
+                          <input
+                            type="number"
+                            value={item.quantity}
+                            onChange={(e) => updateItemQuantity(item.product.code, e.target.value)}
+                            min="1"
+                            max={item.product.quantity}
+                            style={{
+                              width: '60px',
+                              padding: '8px',
+                              border: '1.5px solid var(--border-strong)',
+                              borderRadius: 'var(--radius-md)',
+                              fontSize: '14px',
+                              fontWeight: '600',
+                              textAlign: 'center',
+                              background: 'var(--bg-primary)'
+                            }}
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              const newQty = Math.min(item.product.quantity, item.quantity + 1)
+                              updateItemQuantity(item.product.code, newQty)
+                            }}
+                            style={{
+                              width: '32px',
+                              height: '32px',
+                              border: '1.5px solid var(--border-strong)',
+                              borderRadius: 'var(--radius-sm)',
+                              background: 'var(--bg-primary)',
+                              color: 'var(--text-primary)',
+                              fontSize: '18px',
+                              fontWeight: '600',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center'
+                            }}
+                          >
+                            +
+                          </button>
+                        </div>
                         <button
                           onClick={(e) => {
                             e.stopPropagation()
