@@ -26,9 +26,6 @@ export function LiffProvider({ children }) {
         return
       }
       
-      // Set ready immediately so UI can render
-      setIsReady(true)
-
       // Initialize LIFF first
       const success = await liffService.initializeLiff()
       
@@ -47,6 +44,10 @@ export function LiffProvider({ children }) {
             // Update localStorage with fresh data
             localStorage.setItem('login_mode', 'line')
             localStorage.setItem('liff_user_profile', JSON.stringify(profile))
+          } else {
+            // Failed to get profile, not logged in
+            setLoginMode(null)
+            setIsLoggedIn(false)
           }
         } else {
           // Not logged in via LIFF
@@ -60,6 +61,9 @@ export function LiffProvider({ children }) {
         console.warn('LIFF not available')
         setLoginMode(null)
       }
+      
+      // Set ready after everything is done
+      setIsReady(true)
     }
     
     init()

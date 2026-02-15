@@ -62,24 +62,25 @@ export function login() {
 export function logout() {
   console.log('liffService.logout called')
   
-  // Clear localStorage
-  localStorage.removeItem('liff_user_profile')
+  // Clear localStorage first
+  localStorage.clear()
   
   // Clear profile
   userProfile = null
   
-  // Logout from LIFF if initialized
+  // Logout from LIFF if initialized and logged in
   if (isInitialized && liff.isLoggedIn()) {
     console.log('Calling liff.logout()')
-    // Call LIFF logout which will clear the session
-    liff.logout()
-    // Then reload to clear state
-    window.location.href = window.location.origin + window.location.pathname
-  } else {
-    // Not logged in via LIFF, just reload
-    console.log('Not logged in via LIFF, reloading page')
-    window.location.reload()
+    try {
+      // LIFF logout - this clears the access token
+      liff.logout()
+    } catch (error) {
+      console.error('LIFF logout error:', error)
+    }
   }
+  
+  // Don't reload or redirect - let React handle the state change
+  console.log('Logout complete - state cleared')
 }
 
 /**
