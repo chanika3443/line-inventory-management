@@ -1,26 +1,31 @@
 .login-btn {
   position: fixed;
-  top: 16px;
-  right: 20px;
+  top: 12px;
+  right: 16px;
   z-index: 1000;
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 10px 16px;
+  gap: 6px;
+  padding: 6px 10px;
   background: linear-gradient(180deg, #06c755 0%, #00b900 100%);
   color: white;
   border: none;
   border-radius: var(--radius-full);
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 600;
   cursor: pointer;
-  box-shadow: 0 2px 8px rgba(6, 199, 85, 0.3);
+  box-shadow: 0 2px 6px rgba(6, 199, 85, 0.25);
   transition: all 0.2s;
+}
+
+.login-btn svg {
+  width: 16px;
+  height: 16px;
 }
 
 .login-btn:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(6, 199, 85, 0.4);
+  box-shadow: 0 3px 8px rgba(6, 199, 85, 0.35);
 }
 
 .login-btn:active {
@@ -29,16 +34,16 @@
 
 .user-menu {
   position: fixed;
-  top: 16px;
-  right: 20px;
+  top: 12px;
+  right: 16px;
   z-index: 1000;
 }
 
 .user-avatar {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 6px 12px 6px 6px;
+  gap: 6px;
+  padding: 4px 8px 4px 4px;
   background: var(--bg-elevated);
   border: 1px solid var(--border);
   border-radius: var(--radius-full);
@@ -57,30 +62,30 @@
 }
 
 .user-avatar img {
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   object-fit: cover;
 }
 
 .avatar-placeholder {
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   background: linear-gradient(135deg, var(--accent) 0%, #5856d6 100%);
   color: white;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 600;
 }
 
 .user-name {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--text-primary);
-  max-width: 120px;
+  max-width: 80px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -94,9 +99,9 @@
 
 .user-dropdown {
   position: absolute;
-  top: 48px;
+  top: 40px;
   right: 0;
-  width: 280px;
+  width: 240px;
   background: var(--bg-elevated);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
@@ -117,30 +122,30 @@
 }
 
 .dropdown-header {
-  padding: 20px;
+  padding: 16px;
   display: flex;
-  gap: 12px;
+  gap: 10px;
   align-items: center;
   border-bottom: 1px solid var(--border);
 }
 
 .dropdown-avatar img {
-  width: 48px;
-  height: 48px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   object-fit: cover;
 }
 
 .avatar-placeholder-large {
-  width: 48px;
-  height: 48px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   background: linear-gradient(135deg, var(--accent) 0%, #5856d6 100%);
   color: white;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 600;
 }
 
@@ -150,7 +155,7 @@
 }
 
 .dropdown-name {
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 600;
   color: var(--text-primary);
   overflow: hidden;
@@ -159,7 +164,7 @@
 }
 
 .dropdown-status {
-  font-size: 13px;
+  font-size: 12px;
   color: var(--text-secondary);
   margin-top: 2px;
   overflow: hidden;
@@ -172,15 +177,20 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 14px;
+  gap: 6px;
+  padding: 12px;
   background: transparent;
   border: none;
   color: var(--danger);
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
   transition: background 0.2s;
+}
+
+.logout-btn svg {
+  width: 16px;
+  height: 16px;
 }
 
 .logout-btn:hover {
