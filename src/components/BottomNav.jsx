@@ -29,9 +29,9 @@ export default function BottomNav() {
         <span>รับเข้า</span>
       </Link>
 
-      <Link to="/dashboard" className={`nav-item ${isActive('/dashboard') || isActive('/reports') || isActive('/logs') || isActive('/products') ? 'active' : ''}`}>
-        <Icon name="dashboard" size={24} />
-        <span>อื่นๆ</span>
+      <Link to="/logs" className={`nav-item ${isActive('/logs') ? 'active' : ''}`}>
+        <Icon name="logs" size={24} />
+        <span>ประวัติ</span>
       </Link>
     </nav>
   )

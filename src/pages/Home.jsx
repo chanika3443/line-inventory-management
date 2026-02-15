@@ -61,13 +61,35 @@ export default function Home() {
 
         <div className="card-title">เมนูด่วน</div>
         <div className="quick-actions">
+          <Link to="/dashboard" className="quick-action">
+            <div className="quick-action-icon" style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
+              <Icon name="dashboard" size={22} color="white" />
+            </div>
+            <div className="quick-action-text">
+              <div className="quick-action-title">ภาพรวม</div>
+              <div className="quick-action-desc">ดูสถานะคลังวัสดุ</div>
+            </div>
+            <Icon name="arrowRight" size={20} color="var(--color-text-tertiary)" />
+          </Link>
+
           <Link to="/reports" className="quick-action">
-            <div className="quick-action-icon">
+            <div className="quick-action-icon" style={{ background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)' }}>
               <Icon name="reports" size={22} color="white" />
             </div>
             <div className="quick-action-text">
               <div className="quick-action-title">รายงาน</div>
               <div className="quick-action-desc">ดูรายงานและสถิติ</div>
+            </div>
+            <Icon name="arrowRight" size={20} color="var(--color-text-tertiary)" />
+          </Link>
+
+          <Link to="/products" className="quick-action">
+            <div className="quick-action-icon" style={{ background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)' }}>
+              <Icon name="products" size={22} color="white" />
+            </div>
+            <div className="quick-action-text">
+              <div className="quick-action-title">จัดการสินค้า</div>
+              <div className="quick-action-desc">เพิ่ม แก้ไข ลบสินค้า</div>
             </div>
             <Icon name="arrowRight" size={20} color="var(--color-text-tertiary)" />
           </Link>
