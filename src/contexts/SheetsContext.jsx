@@ -97,11 +97,11 @@ export function SheetsProvider({ children }) {
   }, [fetchProducts])
 
   // Withdraw
-  const withdraw = useCallback(async (productCode, quantity, userName) => {
+  const withdraw = useCallback(async (productCode, quantity, userName, note = '') => {
     setLoading(true)
     setError(null)
     try {
-      const result = await appsScriptService.withdraw(productCode, quantity, userName)
+      const result = await appsScriptService.withdraw(productCode, quantity, userName, note)
       if (result.success) {
         await fetchProducts() // Refresh products
       }

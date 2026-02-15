@@ -41,7 +41,7 @@ function doPost(e) {
         result = deleteProduct(data.code);
         break;
       case 'withdraw':
-        result = withdraw(data.productCode, data.quantity, data.userName);
+        result = withdraw(data.productCode, data.quantity, data.userName, data.note || '');
         break;
       case 'receive':
         result = receive(data.productCode, data.quantity, data.userName);
@@ -224,7 +224,7 @@ function deleteProduct(code) {
 /**
  * Withdraw product
  */
-function withdraw(productCode, quantity, userName) {
+function withdraw(productCode, quantity, userName, note) {
   try {
     const product = getProduct(productCode);
     if (!product) {
@@ -243,8 +243,8 @@ function withdraw(productCode, quantity, userName) {
     sheet.getRange(row, 4).setValue(newQuantity);
     sheet.getRange(row, 9).setValue(new Date());
     
-    // Add transaction log
-    addTransaction('เบิก', productCode, product.name, quantity, product.quantity, newQuantity, userName);
+    // Add transaction log with note
+    addTransaction('เบิก', productCode, product.name, quantity, product.quantity, newQuantity, userName, note || 'เบิกวัสดุ');
     
     return { 
       success: true, 

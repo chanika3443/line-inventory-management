@@ -94,12 +94,13 @@ export async function deleteProduct(code, userName) {
 /**
  * Withdraw product
  */
-export async function withdraw(productCode, quantity, userName) {
+export async function withdraw(productCode, quantity, userName, note = '') {
   return await callAppsScript({
     action: 'withdraw',
     productCode,
     quantity: parseInt(quantity),
-    userName
+    userName,
+    note
   })
 }
 
