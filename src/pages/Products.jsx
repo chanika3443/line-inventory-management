@@ -19,7 +19,8 @@ export default function Products() {
     lowStockThreshold: '',
     category: '',
     returnable: false,
-    requireRoomInfo: false
+    requireRoom: false,
+    requirePatientType: false
   })
   const [message, setMessage] = useState(null)
 
@@ -41,7 +42,8 @@ export default function Products() {
       lowStockThreshold: '',
       category: '',
       returnable: false,
-      requireRoomInfo: false
+      requireRoom: false,
+      requirePatientType: false
     })
     setShowModal(true)
   }
@@ -55,7 +57,8 @@ export default function Products() {
       lowStockThreshold: product.lowStockThreshold,
       category: product.category,
       returnable: product.returnable,
-      requireRoomInfo: product.requireRoomInfo || false
+      requireRoom: product.requireRoom || false,
+      requirePatientType: product.requirePatientType || false
     })
     setShowModal(true)
   }
@@ -287,10 +290,21 @@ export default function Products() {
                 <label className="checkbox-label">
                   <input
                     type="checkbox"
-                    checked={formData.requireRoomInfo}
-                    onChange={(e) => setFormData({ ...formData, requireRoomInfo: e.target.checked })}
+                    checked={formData.requireRoom}
+                    onChange={(e) => setFormData({ ...formData, requireRoom: e.target.checked })}
                   />
-                  <span>ต้องระบุห้องผู้ป่วยและประเภทเมื่อเบิก</span>
+                  <span>ต้องระบุห้องผู้ป่วยเมื่อเบิก</span>
+                </label>
+              </div>
+
+              <div className="input-group">
+                <label className="checkbox-label">
+                  <input
+                    type="checkbox"
+                    checked={formData.requirePatientType}
+                    onChange={(e) => setFormData({ ...formData, requirePatientType: e.target.checked })}
+                  />
+                  <span>ต้องระบุประเภทผู้ป่วยเมื่อเบิก</span>
                 </label>
               </div>
 
