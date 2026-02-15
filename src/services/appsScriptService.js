@@ -4,6 +4,7 @@
  */
 
 import { config } from '../config'
+import { getDeviceInfoString } from '../utils/deviceInfo'
 
 const APPS_SCRIPT_URL = config.appsScript.url
 
@@ -24,13 +25,19 @@ async function callAppsScript(data) {
   try {
     console.log('Calling Apps Script:', APPS_SCRIPT_URL, data)
     
+    // Add device info to all requests
+    const dataWithDevice = {
+      ...data,
+      deviceInfo: getDeviceInfoString()
+    }
+    
     const response = await fetch(APPS_SCRIPT_URL, {
       method: 'POST',
       redirect: 'follow',
       headers: {
         'Content-Type': 'text/plain;charset=utf-8'
       },
-      body: JSON.stringify(data)
+      body: JSON.stringify(dataWithDevice)
     })
     
     console.log('Apps Script response status:', response.status)

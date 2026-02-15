@@ -28,29 +28,30 @@ function doPost(e) {
   try {
     const data = JSON.parse(e.postData.contents);
     const action = data.action;
+    const deviceInfo = data.deviceInfo || '';
     
     let result;
     switch (action) {
       case 'addProduct':
-        result = addProduct(data.product);
+        result = addProduct(data.product, deviceInfo);
         break;
       case 'updateProduct':
-        result = updateProduct(data.code, data.updates);
+        result = updateProduct(data.code, data.updates, deviceInfo);
         break;
       case 'deleteProduct':
-        result = deleteProduct(data.code);
+        result = deleteProduct(data.code, deviceInfo);
         break;
       case 'withdraw':
-        result = withdraw(data.productCode, data.quantity, data.userName, data.note || '');
+        result = withdraw(data.productCode, data.quantity, data.userName, data.note || '', deviceInfo);
         break;
       case 'receive':
-        result = receive(data.productCode, data.quantity, data.userName);
+        result = receive(data.productCode, data.quantity, data.userName, deviceInfo);
         break;
       case 'return':
-        result = returnProduct(data.productCode, data.quantity, data.userName, data.note);
+        result = returnProduct(data.productCode, data.quantity, data.userName, data.note, deviceInfo);
         break;
       case 'batchWithdraw':
-        result = batchWithdraw(data.items, data.userName);
+        result = batchWithdraw(data.items, data.userName, deviceInfo);
         break;
       default:
         result = { success: false, message: 'Unknown action: ' + action };
@@ -124,14 +125,14 @@ function getProduct(code) {
 /**
  * Add audit log entry
  */
-function addAuditLog(action, details, userName, ipAddress = '') {
+function addAuditLog(action, details, userName, deviceInfo = '') {
   try {
     const sheet = getSpreadsheet().getSheetByName('AuditLog');
     if (!sheet) {
       // Create AuditLog sheet if it doesn't exist
       const newSheet = getSpreadsheet().insertSheet('AuditLog');
-      newSheet.appendRow(['Timestamp', 'Action', 'Details', 'UserName', 'IP Address']);
-      return addAuditLog(action, details, userName, ipAddress);
+      newSheet.appendRow(['Timestamp', 'Action', 'Details', 'UserName', 'Device Info']);
+      return addAuditLog(action, details, userName, deviceInfo);
     }
     
     const timestamp = new Date();
@@ -140,7 +141,7 @@ function addAuditLog(action, details, userName, ipAddress = '') {
       action,
       details,
       userName,
-      ipAddress
+      deviceInfo
     ]);
   } catch (error) {
     // Silently fail - don't break the main operation if audit log fails
@@ -173,7 +174,7 @@ function addTransaction(type, productCode, productName, quantity, beforeQty, aft
 /**
  * Add new product
  */
-function addProduct(product) {
+function addProduct(product, deviceInfo = '') {
   try {
     const sheet = getSheet(SHEETS.PRODUCTS);
     
@@ -201,7 +202,8 @@ function addProduct(product) {
     addAuditLog(
       'ADD_PRODUCT',
       `เพิ่มวัสดุ: ${product.code} - ${product.name}`,
-      product.userName || 'System'
+      product.userName || 'System',
+      deviceInfo
     );
     
     return { success: true, message: 'เพิ่มสินค้าสำเร็จ' };
@@ -213,7 +215,7 @@ function addProduct(product) {
 /**
  * Update product
  */
-function updateProduct(code, updates) {
+function updateProduct(code, updates, deviceInfo = '') {
   try {
     const row = findProductRow(code);
     if (row === -1) {
@@ -269,7 +271,8 @@ function updateProduct(code, updates) {
       addAuditLog(
         'UPDATE_PRODUCT',
         `แก้ไขวัสดุ ${code}: ${changes.join(', ')}`,
-        updates.userName || 'System'
+        updates.userName || 'System',
+        deviceInfo
       );
     }
     
@@ -282,7 +285,7 @@ function updateProduct(code, updates) {
 /**
  * Delete product
  */
-function deleteProduct(code) {
+function deleteProduct(code, deviceInfo = '') {
   try {
     const row = findProductRow(code);
     if (row === -1) {
@@ -299,7 +302,8 @@ function deleteProduct(code) {
     addAuditLog(
       'DELETE_PRODUCT',
       `ลบวัสดุ: ${code} - ${product.name}`,
-      'System'
+      'System',
+      deviceInfo
     );
     
     return { success: true, message: 'ลบสินค้าสำเร็จ' };
@@ -311,7 +315,7 @@ function deleteProduct(code) {
 /**
  * Withdraw product
  */
-function withdraw(productCode, quantity, userName, note) {
+function withdraw(productCode, quantity, userName, note, deviceInfo = '') {
   try {
     const product = getProduct(productCode);
     if (!product) {
@@ -337,7 +341,8 @@ function withdraw(productCode, quantity, userName, note) {
     addAuditLog(
       'WITHDRAW',
       `เบิก: ${product.name} (${productCode}) จำนวน ${quantity} ${product.unit} | ${note || 'เบิกวัสดุ'}`,
-      userName
+      userName,
+      deviceInfo
     );
     
     return { 
@@ -353,7 +358,7 @@ function withdraw(productCode, quantity, userName, note) {
 /**
  * Receive product
  */
-function receive(productCode, quantity, userName) {
+function receive(productCode, quantity, userName, deviceInfo = '') {
   try {
     const product = getProduct(productCode);
     if (!product) {
@@ -375,7 +380,8 @@ function receive(productCode, quantity, userName) {
     addAuditLog(
       'RECEIVE',
       `รับเข้า: ${product.name} (${productCode}) จำนวน ${quantity} ${product.unit}`,
-      userName
+      userName,
+      deviceInfo
     );
     
     return { 
@@ -391,7 +397,7 @@ function receive(productCode, quantity, userName) {
 /**
  * Return product
  */
-function returnProduct(productCode, quantity, userName, note) {
+function returnProduct(productCode, quantity, userName, note, deviceInfo = '') {
   try {
     const product = getProduct(productCode);
     if (!product) {
@@ -417,7 +423,8 @@ function returnProduct(productCode, quantity, userName, note) {
     addAuditLog(
       'RETURN',
       `คืน: ${product.name} (${productCode}) จำนวน ${quantity} ${product.unit} | ${note}`,
-      userName
+      userName,
+      deviceInfo
     );
     
     return { 
