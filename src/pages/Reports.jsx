@@ -33,6 +33,8 @@ export default function Reports() {
   async function loadReport(filterParams = filters) {
     setLoading(true)
     const transactions = await sheetsService.getTransactionLogs(filterParams)
+    
+    console.log('Transactions loaded:', transactions.length, transactions.slice(0, 3))
 
     // Calculate summary
     let totalWithdrawals = 0
@@ -52,7 +54,7 @@ export default function Reports() {
 
     const netChange = totalReceipts + totalReturns - totalWithdrawals
 
-    setReport({
+    const reportData = {
       transactions,
       summary: {
         totalWithdrawals,
@@ -61,7 +63,10 @@ export default function Reports() {
         netChange,
         transactionCount: transactions.length
       }
-    })
+    }
+    
+    console.log('Report data:', reportData)
+    setReport(reportData)
     setLoading(false)
   }
 
