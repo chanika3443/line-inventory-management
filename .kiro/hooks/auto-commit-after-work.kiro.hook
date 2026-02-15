@@ -1,0 +1,13 @@
+{
+  "enabled": true,
+  "name": "Auto Commit After Work",
+  "description": "Automatically commits code changes after agent finishes working",
+  "version": "1",
+  "when": {
+    "type": "agentStop"
+  },
+  "then": {
+    "type": "runCommand",
+    "command": "git add -A && git commit -m \"Auto-commit: Changes made by Kiro agent\""
+  }
+}

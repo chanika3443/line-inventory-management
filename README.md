@@ -1,200 +1,195 @@
-# LINE Inventory Management System (React Version)
+# LINE Inventory Management - React Version
 
-ระบบจัดการคลังวัสดุผ่าน LINE LIFF ด้วย React + GitHub Pages
+ระบบจัดการคลังวัสดุผ่าน LINE LIFF (React + GitHub Pages)
 
-## 🚀 Features
+## 🎯 Features
 
-- ✅ รับเข้าวัสดุ
-- ✅ เบิกวัสดุ
-- ✅ คืนวัสดุ
-- ✅ จัดการวัสดุ (เพิ่ม/แก้ไข/ลบ)
-- ✅ ดูประวัติการทำรายการ
-- ✅ รายงานและสถิติ
-- ✅ Dashboard ภาพรวม
-- ✅ แจ้งเตือนวัสดุใกล้หมด
+- ✅ เบิกวัสดุ (Withdraw)
+- ✅ รับเข้าวัสดุ (Receive)
+- ✅ คืนวัสดุ (Return)
+- ✅ จัดการวัสดุ (Products Management)
+- ✅ ภาพรวมคลัง (Dashboard)
+- ✅ รายงาน (Reports)
+- ✅ ประวัติการทำรายการ (Transaction Logs)
+- ✅ แจ้งเตือนสต็อกต่ำ (Low Stock Alert)
+
+## 🏗️ Architecture
+
+### Hybrid Architecture
+- **Read Operations**: Google Sheets API (เร็ว, ไม่ต้อง auth)
+- **Write Operations**: Apps Script API (ปลอดภัย, มี auth)
+- **Database**: Google Sheets
+- **Frontend**: React + Vite
+- **Hosting**: GitHub Pages
+- **Authentication**: LINE LIFF
+
+```
+React App (GitHub Pages)
+    ↓
+    ├─→ Google Sheets API (Read)
+    └─→ Apps Script API (Write)
+            ↓
+        Google Sheets (Database)
+```
 
 ## 📋 Prerequisites
 
-- Node.js 18+ 
-- Google Account (สำหรับ Google Sheets API)
-- LINE Developers Account (สำหรับ LIFF)
-- GitHub Account (สำหรับ deployment)
+1. Google Account
+2. LINE Developer Account
+3. GitHub Account
+4. Node.js 18+ และ npm
 
-## 🛠️ Setup Instructions
+## 🚀 Setup
 
 ### 1. Clone Repository
 
-\`\`\`bash
+```bash
 git clone https://github.com/chanika3443/line-inventory-management.git
 cd line-inventory-management/react-inventory
-\`\`\`
+```
 
 ### 2. Install Dependencies
 
-\`\`\`bash
+```bash
 npm install
-\`\`\`
+```
 
-### 3. Setup Google Sheets API
+### 3. Setup Environment Variables
 
-1. ไปที่ [Google Cloud Console](https://console.cloud.google.com/)
-2. สร้าง Project ใหม่หรือเลือก Project ที่มีอยู่
-3. เปิดใช้งาน **Google Sheets API**
-4. สร้าง API Key:
-   - ไปที่ Credentials → Create Credentials → API Key
-   - จำกัดการใช้งาน API Key (Restrict Key):
-     - Application restrictions: HTTP referrers
-     - Website restrictions: เพิ่ม `https://chanika3443.github.io/*`
-     - API restrictions: เลือก Google Sheets API
-5. คัดลอก API Key
+สร้างไฟล์ `.env`:
 
-### 4. Setup Google Sheets
-
-1. เปิด Google Sheet ที่มีอยู่: `13231Zdy1BQbX0BDmCVGIAgsKRJx_7UdDvxVBNO8MUM8`
-2. ตั้งค่าการแชร์:
-   - คลิก Share → Anyone with the link → Viewer
-   - หรือใช้คำสั่ง: File → Share → Publish to web → Entire Document → Publish
-3. ตรวจสอบว่ามี Sheets ดังนี้:
-   - `Products` (รายการวัสดุ)
-   - `Transactions` (ประวัติการทำรายการ)
-   - `Settings` (การตั้งค่า)
-
-### 5. Configure Environment Variables
-
-สร้างไฟล์ \`.env\` จาก \`.env.example\`:
-
-\`\`\`bash
+```bash
 cp .env.example .env
-\`\`\`
+```
 
-แก้ไขไฟล์ \`.env\`:
+แก้ไขไฟล์ `.env`:
 
-\`\`\`env
-VITE_LIFF_ID=2008893142-t04JvNpe
-VITE_SPREADSHEET_ID=13231Zdy1BQbX0BDmCVGIAgsKRJx_7UdDvxVBNO8MUM8
+```env
+VITE_LIFF_ID=your_liff_id_here
+VITE_SPREADSHEET_ID=your_spreadsheet_id_here
 VITE_GOOGLE_API_KEY=your_google_api_key_here
-\`\`\`
+```
 
-### 6. Run Development Server
+### 4. Setup Google API Key
 
-\`\`\`bash
+ดูวิธีสร้าง Google API Key ได้ที่:
+- [docs/GOOGLE-API-KEY-SETUP.md](./docs/GOOGLE-API-KEY-SETUP.md)
+
+### 5. Setup Apps Script URL
+
+1. เปิดไฟล์ `src/config/index.js`
+2. แก้ไข `appsScript.url` ให้เป็น URL ของ Apps Script Web App ของคุณ
+
+```javascript
+appsScript: {
+  url: 'https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec'
+}
+```
+
+### 6. Update Apps Script (เพิ่ม CORS Headers)
+
+เปิดไฟล์ `src/Code.gs` ใน Apps Script และเพิ่ม CORS headers:
+
+```javascript
+function doPost(e) {
+  const output = ContentService.createTextOutput()
+  output.setMimeType(ContentService.MimeType.JSON)
+  
+  // Enable CORS
+  output.setHeader('Access-Control-Allow-Origin', 'https://chanika3443.github.io')
+  output.setHeader('Access-Control-Allow-Methods', 'POST, GET, OPTIONS')
+  output.setHeader('Access-Control-Allow-Headers', 'Content-Type')
+  
+  // ... rest of your code
+}
+
+function doOptions(e) {
+  return ContentService
+    .createTextOutput()
+    .setMimeType(ContentService.MimeType.JSON)
+    .setHeader('Access-Control-Allow-Origin', 'https://chanika3443.github.io')
+    .setHeader('Access-Control-Allow-Methods', 'POST, GET, OPTIONS')
+    .setHeader('Access-Control-Allow-Headers', 'Content-Type')
+}
+```
+
+### 7. Run Development Server
+
+```bash
 npm run dev
-\`\`\`
+```
 
-เปิดเบราว์เซอร์ที่ http://localhost:3000
+เปิด http://localhost:5173
 
-## 🚢 Deployment to GitHub Pages
+## 📦 Deployment
 
-### Option 1: Manual Deployment
+### 1. Setup GitHub Secrets
 
-\`\`\`bash
-npm run deploy
-\`\`\`
+ไปที่ GitHub Repository Settings → Secrets and variables → Actions
 
-### Option 2: Automatic Deployment (GitHub Actions)
+เพิ่ม secrets:
+- `VITE_LIFF_ID`
+- `VITE_SPREADSHEET_ID`
+- `VITE_GOOGLE_API_KEY`
 
-1. ไปที่ GitHub Repository Settings
-2. เลือก Secrets and variables → Actions
-3. เพิ่ม Repository secrets:
-   - \`VITE_LIFF_ID\`: 2008893142-t04JvNpe
-   - \`VITE_SPREADSHEET_ID\`: 13231Zdy1BQbX0BDmCVGIAgsKRJx_7UdDvxVBNO8MUM8
-   - \`VITE_GOOGLE_API_KEY\`: your_google_api_key
-4. Push code ไปที่ main branch
-5. GitHub Actions จะ build และ deploy อัตโนมัติ
+### 2. Push to GitHub
 
-### Enable GitHub Pages
+```bash
+git add .
+git commit -m "Add React inventory app"
+git push origin main
+```
+
+### 3. Enable GitHub Pages
 
 1. ไปที่ Repository Settings → Pages
-2. Source: Deploy from a branch
-3. Branch: gh-pages / (root)
-4. Save
+2. Source: GitHub Actions
+3. รอ deployment เสร็จ (~2-3 นาที)
 
-เว็บไซต์จะพร้อมใช้งานที่: https://chanika3443.github.io/line-inventory-management/
+### 4. Access Your App
 
-## 📱 LINE LIFF Configuration
+https://chanika3443.github.io/line-inventory-management/
 
-1. ไปที่ [LINE Developers Console](https://developers.line.biz/)
-2. เลือก Provider และ Channel ของคุณ
-3. ไปที่ LIFF tab
-4. แก้ไข LIFF app:
-   - Endpoint URL: \`https://chanika3443.github.io/line-inventory-management/\`
-   - Scope: profile, openid
-   - Module mode: OFF
+## 📚 Documentation
 
-## 🏗️ Project Structure
+- [Architecture Overview](./docs/ARCHITECTURE.md)
+- [Google API Key Setup](./docs/GOOGLE-API-KEY-SETUP.md)
 
-\`\`\`
-react-inventory/
-├── .github/
-│   └── workflows/
-│       └── deploy.yml          # GitHub Actions workflow
-├── public/                     # Static assets
-├── src/
-│   ├── components/            # React components
-│   │   ├── Layout.jsx
-│   │   ├── BottomNav.jsx
-│   │   └── ...
-│   ├── contexts/              # React contexts
-│   │   ├── LiffContext.jsx
-│   │   └── SheetsContext.jsx
-│   ├── pages/                 # Page components
-│   │   ├── Home.jsx
-│   │   ├── Withdraw.jsx
-│   │   ├── Receive.jsx
-│   │   ├── Return.jsx
-│   │   └── ...
-│   ├── services/              # API services
-│   │   ├── sheetsService.js
-│   │   └── liffService.js
-│   ├── utils/                 # Utility functions
-│   ├── styles/                # CSS files
-│   ├── config/                # Configuration
-│   ├── App.jsx
-│   └── main.jsx
-├── .env.example
-├── .gitignore
-├── index.html
-├── package.json
-├── vite.config.js
-└── README.md
-\`\`\`
+## 🛠️ Tech Stack
 
-## 🔧 Available Scripts
+- **Frontend**: React 18, Vite
+- **Routing**: React Router v6
+- **Styling**: CSS (iOS-inspired)
+- **API**: Google Sheets API, Apps Script
+- **Authentication**: LINE LIFF
+- **Deployment**: GitHub Pages + GitHub Actions
 
-- \`npm run dev\` - Start development server
-- \`npm run build\` - Build for production
-- \`npm run preview\` - Preview production build
-- \`npm run deploy\` - Deploy to GitHub Pages
+## 📱 Browser Support
 
-## 📝 Notes
+- Chrome (recommended)
+- Safari
+- LINE In-App Browser
 
-### ข้อแตกต่างจาก Google Apps Script Version
+## 🔒 Security
 
-1. **ไม่ต้อง Deploy Apps Script**: ใช้ Google Sheets API โดยตรง
-2. **Faster**: React SPA โหลดเร็วกว่า
-3. **Better UX**: Client-side routing ไม่ต้อง reload หน้า
-4. **Modern Stack**: React + Vite
-5. **Free Hosting**: GitHub Pages ฟรี
-
-### Limitations
-
-- Google Sheets API มี quota limit (อ่าน: 100 requests/100 seconds/user)
-- ต้องตั้งค่า CORS ใน Google Sheets
-- ไม่สามารถใช้ Apps Script triggers (เช่น onEdit)
+- API Key restricted to specific domains
+- Apps Script handles authentication
+- No sensitive data in frontend code
+- Environment variables via GitHub Secrets
 
 ## 🐛 Troubleshooting
 
-### API Key ไม่ทำงาน
+### API Key Error
 - ตรวจสอบว่า API Key ถูก restrict ให้ใช้กับ domain ที่ถูกต้อง
 - ตรวจสอบว่าเปิดใช้งาน Google Sheets API แล้ว
 
 ### CORS Error
-- ตรวจสอบว่า Google Sheet ถูกแชร์เป็น public
-- ใช้ Google Sheets API แทนการเรียก URL โดยตรง
+- ตรวจสอบว่าเพิ่ม CORS headers ใน Apps Script แล้ว
+- ตรวจสอบว่า domain ตรงกับที่ตั้งค่าไว้
 
-### LIFF ไม่ทำงาน
+### LIFF Error
+- ตรวจสอบ LIFF ID ว่าถูกต้อง
 - ตรวจสอบ Endpoint URL ใน LINE Developers Console
-- ตรวจสอบว่า LIFF ID ถูกต้อง
 
 ## 📄 License
 
@@ -203,3 +198,9 @@ MIT
 ## 👤 Author
 
 Chanika
+
+## 🙏 Acknowledgments
+
+- LINE LIFF SDK
+- Google Sheets API
+- React Team
