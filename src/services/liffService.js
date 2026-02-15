@@ -72,10 +72,10 @@ export function logout() {
     liff.logout()
   }
   
-  // Always redirect to home
-  console.log('Redirecting to home')
+  // Reload current page
+  console.log('Reloading page')
   setTimeout(() => {
-    window.location.href = '/'
+    window.location.reload()
   }, 100)
 }
 

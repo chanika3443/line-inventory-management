@@ -80,13 +80,13 @@ export function LiffProvider({ children }) {
     setUserProfile(null)
     setUserName('')
     
-    // Try to logout from LIFF, but don't wait
+    // Logout from LIFF (will reload page)
     try {
       liffService.logout()
     } catch (error) {
       console.error('Logout error:', error)
       // Force reload anyway
-      window.location.href = '/'
+      window.location.reload()
     }
   }
 
