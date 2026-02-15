@@ -12,6 +12,16 @@ const SHEETS = {
 };
 
 /**
+ * Handle GET requests (for testing)
+ */
+function doGet(e) {
+  return ContentService.createTextOutput(JSON.stringify({
+    success: true,
+    message: 'Apps Script is running. Use POST for operations.'
+  })).setMimeType(ContentService.MimeType.JSON);
+}
+
+/**
  * Handle POST requests from frontend
  */
 function doPost(e) {
