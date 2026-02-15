@@ -247,7 +247,7 @@ function withdraw(productCode, quantity, userName, note) {
     
     // Update quantity
     sheet.getRange(row, 4).setValue(newQuantity);
-    sheet.getRange(row, 9).setValue(new Date());
+    sheet.getRange(row, 11).setValue(new Date());
     
     // Add transaction log with note
     addTransaction('เบิก', productCode, product.name, quantity, product.quantity, newQuantity, userName, note || 'เบิกวัสดุ');
