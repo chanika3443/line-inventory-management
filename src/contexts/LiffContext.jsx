@@ -112,6 +112,9 @@ export function LiffProvider({ children }) {
     setUserProfile(null)
     setUserName('Guest01')
     setLoginMode(null)
+    
+    // Force re-render to show login screen (not manual input form)
+    // This is handled by Layout component checking isLoggedIn
   }
 
   const value = {

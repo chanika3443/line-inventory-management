@@ -11,6 +11,12 @@ export default function Layout() {
   const [manualName, setManualName] = useState('')
   const [showManualInput, setShowManualInput] = useState(false)
 
+  // Reset to login screen when logged out
+  if (!isLoggedIn && showManualInput) {
+    setShowManualInput(false)
+    setManualName('')
+  }
+
   if (!isReady) {
     return <Loading />
   }
