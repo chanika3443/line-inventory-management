@@ -18,7 +18,8 @@ export default function Products() {
     quantity: '',
     lowStockThreshold: '',
     category: '',
-    returnable: false
+    returnable: false,
+    requireRoomInfo: false
   })
   const [message, setMessage] = useState(null)
 
@@ -39,7 +40,8 @@ export default function Products() {
       quantity: '',
       lowStockThreshold: '',
       category: '',
-      returnable: false
+      returnable: false,
+      requireRoomInfo: false
     })
     setShowModal(true)
   }
@@ -52,7 +54,8 @@ export default function Products() {
       quantity: product.quantity,
       lowStockThreshold: product.lowStockThreshold,
       category: product.category,
-      returnable: product.returnable
+      returnable: product.returnable,
+      requireRoomInfo: product.requireRoomInfo || false
     })
     setShowModal(true)
   }
@@ -277,6 +280,17 @@ export default function Products() {
                     onChange={(e) => setFormData({ ...formData, returnable: e.target.checked })}
                   />
                   <span>สามารถคืนได้</span>
+                </label>
+              </div>
+
+              <div className="input-group">
+                <label className="checkbox-label">
+                  <input
+                    type="checkbox"
+                    checked={formData.requireRoomInfo}
+                    onChange={(e) => setFormData({ ...formData, requireRoomInfo: e.target.checked })}
+                  />
+                  <span>ต้องระบุห้องผู้ป่วยและประเภทเมื่อเบิก</span>
                 </label>
               </div>
 

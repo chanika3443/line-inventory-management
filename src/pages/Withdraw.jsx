@@ -108,13 +108,18 @@ export default function Withdraw() {
       return
     }
 
-    if (!roomNumber.trim()) {
-      setMessage({ type: 'error', text: 'กรุณาระบุห้องผู้ป่วย' })
-      return
+    // Check if room info is required for this product
+    if (selectedProduct.requireRoomInfo) {
+      if (!roomNumber.trim()) {
+        setMessage({ type: 'error', text: 'กรุณาระบุห้องผู้ป่วย' })
+        return
+      }
     }
 
-    // Create note with room and patient type
-    const note = `ห้อง: ${roomNumber}, ประเภท: ${patientType}`
+    // Create note with room and patient type (if provided)
+    const note = selectedProduct.requireRoomInfo && roomNumber.trim() 
+      ? `ห้อง: ${roomNumber}, ประเภท: ${patientType}`
+      : ''
     
     const result = await withdraw(selectedProduct.code, quantity, userName, note)
     
@@ -476,67 +481,71 @@ export default function Withdraw() {
                 )}
               </div>
 
-              <div className="form-group">
-                <label>ห้องผู้ป่วย</label>
-                <input
-                  type="text"
-                  className="input"
-                  value={roomNumber}
-                  onChange={(e) => setRoomNumber(e.target.value)}
-                  placeholder="เช่น 101, 102, 103"
-                  required
-                />
-              </div>
+              {selectedProduct.requireRoomInfo && (
+                <>
+                  <div className="form-group">
+                    <label>ห้องผู้ป่วย *</label>
+                    <input
+                      type="text"
+                      className="input"
+                      value={roomNumber}
+                      onChange={(e) => setRoomNumber(e.target.value)}
+                      placeholder="เช่น 101, 102, 103"
+                      required
+                    />
+                  </div>
 
-              <div className="form-group">
-                <label>ประเภท</label>
-                <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
-                  <label style={{ 
-                    flex: 1, 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    gap: '8px',
-                    padding: '12px 16px',
-                    border: `2px solid ${patientType === 'ดึก' ? 'var(--accent)' : 'var(--border)'}`,
-                    borderRadius: 'var(--radius-md)',
-                    background: patientType === 'ดึก' ? 'var(--accent-light)' : 'var(--bg-secondary)',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s'
-                  }}>
-                    <input
-                      type="radio"
-                      name="patientType"
-                      value="ดึก"
-                      checked={patientType === 'ดึก'}
-                      onChange={(e) => setPatientType(e.target.value)}
-                      style={{ width: '18px', height: '18px', cursor: 'pointer' }}
-                    />
-                    <span style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-primary)' }}>ดึก</span>
-                  </label>
-                  <label style={{ 
-                    flex: 1, 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    gap: '8px',
-                    padding: '12px 16px',
-                    border: `2px solid ${patientType === 'รับใหม่' ? 'var(--accent)' : 'var(--border)'}`,
-                    borderRadius: 'var(--radius-md)',
-                    background: patientType === 'รับใหม่' ? 'var(--accent-light)' : 'var(--bg-secondary)',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s'
-                  }}>
-                    <input
-                      type="radio"
-                      name="patientType"
-                      value="รับใหม่"
-                      checked={patientType === 'รับใหม่'}
-                      onChange={(e) => setPatientType(e.target.value)}
-                      style={{ width: '18px', height: '18px', cursor: 'pointer' }}
-                    />
-                    <span style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-primary)' }}>รับใหม่</span>
-                  </label>
-                </div>
-              </div>
+                  <div className="form-group">
+                    <label>ประเภท</label>
+                    <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
+                      <label style={{ 
+                        flex: 1, 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        gap: '8px',
+                        padding: '12px 16px',
+                        border: `2px solid ${patientType === 'ดึก' ? 'var(--accent)' : 'var(--border)'}`,
+                        borderRadius: 'var(--radius-md)',
+                        background: patientType === 'ดึก' ? 'var(--accent-light)' : 'var(--bg-secondary)',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s'
+                      }}>
+                        <input
+                          type="radio"
+                          name="patientType"
+                          value="ดึก"
+                          checked={patientType === 'ดึก'}
+                          onChange={(e) => setPatientType(e.target.value)}
+                          style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                        />
+                        <span style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-primary)' }}>ดึก</span>
+                      </label>
+                      <label style={{ 
+                        flex: 1, 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        gap: '8px',
+                        padding: '12px 16px',
+                        border: `2px solid ${patientType === 'รับใหม่' ? 'var(--accent)' : 'var(--border)'}`,
+                        borderRadius: 'var(--radius-md)',
+                        background: patientType === 'รับใหม่' ? 'var(--accent-light)' : 'var(--bg-secondary)',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s'
+                      }}>
+                        <input
+                          type="radio"
+                          name="patientType"
+                          value="รับใหม่"
+                          checked={patientType === 'รับใหม่'}
+                          onChange={(e) => setPatientType(e.target.value)}
+                          style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                        />
+                        <span style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-primary)' }}>รับใหม่</span>
+                      </label>
+                    </div>
+                  </div>
+                </>
+              )}
 
               <button type="submit" className="btn btn-primary btn-block" disabled={loading}>
                 <Icon name="withdraw" size={20} color="white" />
