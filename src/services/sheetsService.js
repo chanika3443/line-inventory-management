@@ -117,19 +117,32 @@ export async function getLowStockProducts() {
 export async function getTransactionLogs(filters = {}) {
   try {
     const rows = await fetchSheetData('Transactions!A2:J')
+    console.log('Raw rows from Sheets:', rows.length, rows.slice(0, 2))
+    
     let transactions = rows.map(rowToTransaction)
+    console.log('Parsed transactions:', transactions.length, transactions.slice(0, 2))
     
     // Apply filters
     if (filters.startDate) {
       const startDate = new Date(filters.startDate)
       startDate.setHours(0, 0, 0, 0)
-      transactions = transactions.filter(t => new Date(t.timestamp) >= startDate)
+      console.log('Filtering by startDate:', startDate, 'Before:', transactions.length)
+      transactions = transactions.filter(t => {
+        const txDate = new Date(t.timestamp)
+        return txDate >= startDate
+      })
+      console.log('After startDate filter:', transactions.length)
     }
     
     if (filters.endDate) {
       const endDate = new Date(filters.endDate)
       endDate.setHours(23, 59, 59, 999)
-      transactions = transactions.filter(t => new Date(t.timestamp) <= endDate)
+      console.log('Filtering by endDate:', endDate, 'Before:', transactions.length)
+      transactions = transactions.filter(t => {
+        const txDate = new Date(t.timestamp)
+        return txDate <= endDate
+      })
+      console.log('After endDate filter:', transactions.length)
     }
     
     if (filters.type) {
@@ -148,6 +161,15 @@ export async function getTransactionLogs(filters = {}) {
     }
     
     // Sort by timestamp descending
+    transactions.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+    
+    console.log('Final transactions:', transactions.length)
+    return transactions
+  } catch (error) {
+    console.error('Error getting transaction logs:', error)
+    return []
+  }
+}
     transactions.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
     
     return transactions
