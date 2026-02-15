@@ -104,7 +104,7 @@ function getProduct(code) {
   if (row === -1) return null;
   
   const sheet = getSheet(SHEETS.PRODUCTS);
-  const data = sheet.getRange(row, 1, 1, 9).getValues()[0];
+  const data = sheet.getRange(row, 1, 1, 11).getValues()[0];
   
   return {
     code: data[0],
@@ -114,8 +114,10 @@ function getProduct(code) {
     lowStockThreshold: data[4],
     category: data[5],
     returnable: data[6],
-    createdAt: data[7],
-    updatedAt: data[8]
+    requireRoom: data[7],
+    requirePatientType: data[8],
+    createdAt: data[9],
+    updatedAt: data[10]
   };
 }
 
@@ -162,6 +164,8 @@ function addProduct(product) {
       product.lowStockThreshold || 10,
       product.category || '',
       product.returnable || false,
+      product.requireRoom || false,
+      product.requirePatientType || false,
       timestamp,
       timestamp
     ]);
@@ -192,9 +196,11 @@ function updateProduct(code, updates) {
     if (updates.lowStockThreshold !== undefined) sheet.getRange(row, 5).setValue(updates.lowStockThreshold);
     if (updates.category !== undefined) sheet.getRange(row, 6).setValue(updates.category);
     if (updates.returnable !== undefined) sheet.getRange(row, 7).setValue(updates.returnable);
+    if (updates.requireRoom !== undefined) sheet.getRange(row, 8).setValue(updates.requireRoom);
+    if (updates.requirePatientType !== undefined) sheet.getRange(row, 9).setValue(updates.requirePatientType);
     
     // Update timestamp
-    sheet.getRange(row, 9).setValue(timestamp);
+    sheet.getRange(row, 11).setValue(timestamp);
     
     return { success: true, message: 'แก้ไขสินค้าสำเร็จ' };
   } catch (error) {
@@ -272,7 +278,7 @@ function receive(productCode, quantity, userName) {
     
     // Update quantity
     sheet.getRange(row, 4).setValue(newQuantity);
-    sheet.getRange(row, 9).setValue(new Date());
+    sheet.getRange(row, 11).setValue(new Date());
     
     // Add transaction log
     addTransaction('รับเข้า', productCode, product.name, quantity, product.quantity, newQuantity, userName);
@@ -307,7 +313,7 @@ function returnProduct(productCode, quantity, userName, note) {
     
     // Update quantity
     sheet.getRange(row, 4).setValue(newQuantity);
-    sheet.getRange(row, 9).setValue(new Date());
+    sheet.getRange(row, 11).setValue(new Date());
     
     // Add transaction log
     addTransaction('คืน', productCode, product.name, quantity, product.quantity, newQuantity, userName, note);

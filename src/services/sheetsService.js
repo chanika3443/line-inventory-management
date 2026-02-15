@@ -44,8 +44,10 @@ function rowToProduct(row) {
     lowStockThreshold: parseInt(row[4]) || 0,
     category: row[5] || '',
     returnable: row[6] === 'TRUE' || row[6] === true,
-    createdAt: row[7] || '',
-    updatedAt: row[8] || ''
+    requireRoom: row[7] === 'TRUE' || row[7] === true,
+    requirePatientType: row[8] === 'TRUE' || row[8] === true,
+    createdAt: row[9] || '',
+    updatedAt: row[10] || ''
   }
 }
 
@@ -88,7 +90,7 @@ function rowToTransaction(row) {
  */
 export async function getAllProducts() {
   try {
-    const rows = await fetchSheetData('Products!A2:I')
+    const rows = await fetchSheetData('Products!A2:K')
     return rows.map(rowToProduct)
   } catch (error) {
     console.error('Error getting products:', error)
