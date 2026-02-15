@@ -40,11 +40,12 @@ export default function Reports() {
     let totalReturns = 0
 
     transactions.forEach(t => {
-      if (t.type === 'WITHDRAW') {
+      const type = t.type.toLowerCase()
+      if (type === 'เบิก' || type === 'withdraw') {
         totalWithdrawals += t.quantity
-      } else if (t.type === 'RECEIVE') {
+      } else if (type === 'รับเข้า' || type === 'receive') {
         totalReceipts += t.quantity
-      } else if (t.type === 'RETURN') {
+      } else if (type === 'คืน' || type === 'return') {
         totalReturns += t.quantity
       }
     })
@@ -149,22 +150,29 @@ export default function Reports() {
             <div className="report-details card">
               <h3>รายละเอียด</h3>
               <div className="report-list">
-                {report.transactions.slice(0, 10).map((transaction) => (
-                  <div key={transaction.id} className="report-item">
-                    <div className="report-item-header">
-                      <span className="report-item-name">{transaction.productName}</span>
-                      <span className={`report-item-quantity ${
-                        transaction.type === 'WITHDRAW' ? 'text-danger' : 'text-success'
-                      }`}>
-                        {transaction.type === 'WITHDRAW' ? '-' : '+'}{transaction.quantity}
-                      </span>
+                {report.transactions.slice(0, 10).map((transaction) => {
+                  const type = transaction.type.toLowerCase()
+                  const isWithdraw = type === 'เบิก' || type === 'withdraw'
+                  const isReturn = type === 'คืน' || type === 'return'
+                  const typeLabel = isWithdraw ? 'เบิก' : isReturn ? 'คืน' : 'รับเข้า'
+                  
+                  return (
+                    <div key={transaction.id} className="report-item">
+                      <div className="report-item-header">
+                        <span className="report-item-name">{transaction.productName}</span>
+                        <span className={`report-item-quantity ${
+                          isWithdraw ? 'text-danger' : 'text-success'
+                        }`}>
+                          {isWithdraw ? '-' : '+'}{transaction.quantity}
+                        </span>
+                      </div>
+                      <div className="report-item-meta">
+                        <span>{typeLabel}</span>
+                        <span>{new Date(transaction.timestamp).toLocaleDateString('th-TH')}</span>
+                      </div>
                     </div>
-                    <div className="report-item-meta">
-                      <span>{transaction.type === 'WITHDRAW' ? 'เบิก' : transaction.type === 'RETURN' ? 'คืน' : 'รับเข้า'}</span>
-                      <span>{new Date(transaction.timestamp).toLocaleDateString('th-TH')}</span>
-                    </div>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
               {report.transactions.length > 10 && (
                 <div className="text-center text-muted mt-md">
