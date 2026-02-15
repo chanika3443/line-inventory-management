@@ -11,10 +11,14 @@ export default function Withdraw() {
   const { products, fetchProducts, withdraw, loading } = useSheets()
   const { userName: liffUserName, setUserName } = useLiff()
   const [searchQuery, setSearchQuery] = useState('')
-  const [cart, setCart] = useState([]) // Cart for multiple items
-  const [showCart, setShowCart] = useState(false)
+  const [selectedProduct, setSelectedProduct] = useState(null)
+  const [quantity, setQuantity] = useState('')
   const [userName, setLocalUserName] = useState(liffUserName || '')
   const [message, setMessage] = useState(null)
+  
+  // Multi-select mode
+  const [selectedItems, setSelectedItems] = useState([]) // [{ product, quantity }]
+  const [isMultiSelectMode, setIsMultiSelectMode] = useState(false)
 
   useEffect(() => {
     fetchProducts()
@@ -32,30 +36,26 @@ export default function Withdraw() {
     p.name.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
-  const addToCart = (product) => {
-    const existingItem = cart.find(item => item.code === product.code)
-    if (existingItem) {
-      setMessage({ type: 'error', text: 'รายการนี้อยู่ในตะกร้าแล้ว' })
-      return
+  const toggleProductSelection = (product) => {
+    const isSelected = selectedItems.some(item => item.product.code === product.code)
+    if (isSelected) {
+      setSelectedItems(selectedItems.filter(item => item.product.code !== product.code))
+    } else {
+      setSelectedItems([...selectedItems, { product, quantity: 1 }])
     }
-    setCart([...cart, { ...product, withdrawQuantity: 1 }])
-    setMessage({ type: 'success', text: `เพิ่ม ${product.name} ลงตะกร้าแล้ว` })
+    setIsMultiSelectMode(true)
   }
 
-  const removeFromCart = (code) => {
-    setCart(cart.filter(item => item.code !== code))
-  }
-
-  const updateCartQuantity = (code, quantity) => {
-    setCart(cart.map(item => 
-      item.code === code ? { ...item, withdrawQuantity: parseInt(quantity) || 1 } : item
+  const updateItemQuantity = (productCode, newQuantity) => {
+    setSelectedItems(selectedItems.map(item => 
+      item.product.code === productCode 
+        ? { ...item, quantity: parseInt(newQuantity) || 1 }
+        : item
     ))
   }
 
-  const handleWithdrawAll = async (e) => {
-    e.preventDefault()
-    
-    if (cart.length === 0) {
+  const handleMultiWithdraw = async () => {
+    if (selectedItems.length === 0) {
       setMessage({ type: 'error', text: 'กรุณาเลือกวัสดุที่ต้องการเบิก' })
       return
     }
@@ -65,36 +65,56 @@ export default function Withdraw() {
       return
     }
 
-    // Validate quantities
-    for (const item of cart) {
-      if (item.withdrawQuantity > item.quantity) {
-        setMessage({ type: 'error', text: `${item.name} มีไม่เพียงพอ (คงเหลือ ${item.quantity})` })
-        return
-      }
-    }
-
-    // Withdraw all items
+    // Withdraw each item
     let successCount = 0
-    let failedItems = []
+    let failCount = 0
 
-    for (const item of cart) {
-      const result = await withdraw(item.code, item.withdrawQuantity, userName)
+    for (const item of selectedItems) {
+      const result = await withdraw(item.product.code, item.quantity, userName)
       if (result.success) {
         successCount++
       } else {
-        failedItems.push(item.name)
+        failCount++
       }
     }
 
-    if (successCount === cart.length) {
+    if (failCount === 0) {
       setMessage({ type: 'success', text: `เบิกสำเร็จ ${successCount} รายการ` })
-      setCart([])
-      setShowCart(false)
+      setSelectedItems([])
+      setIsMultiSelectMode(false)
       setSearchQuery('')
-    } else if (successCount > 0) {
-      setMessage({ type: 'error', text: `เบิกสำเร็จ ${successCount} รายการ, ล้มเหลว: ${failedItems.join(', ')}` })
     } else {
-      setMessage({ type: 'error', text: 'เบิกล้มเหลวทั้งหมด' })
+      setMessage({ type: 'error', text: `เบิกสำเร็จ ${successCount} รายการ, ล้มเหลว ${failCount} รายการ` })
+    }
+  }
+
+  const cancelMultiSelect = () => {
+    setSelectedItems([])
+    setIsMultiSelectMode(false)
+  }
+
+  const handleWithdraw = async (e) => {
+    e.preventDefault()
+    
+    if (!selectedProduct || !quantity) {
+      setMessage({ type: 'error', text: 'กรุณาเลือกวัสดุและระบุจำนวน' })
+      return
+    }
+
+    if (!userName.trim()) {
+      setMessage({ type: 'error', text: 'กรุณาระบุชื่อผู้เบิก' })
+      return
+    }
+
+    const result = await withdraw(selectedProduct.code, quantity, userName)
+    
+    if (result.success) {
+      setMessage({ type: 'success', text: result.message })
+      setSelectedProduct(null)
+      setQuantity('')
+      setSearchQuery('')
+    } else {
+      setMessage({ type: 'error', text: result.message })
     }
   }
 
@@ -116,44 +136,7 @@ export default function Withdraw() {
           </div>
         )}
 
-        {/* Cart Button */}
-        {cart.length > 0 && (
-          <div style={{ position: 'fixed', bottom: '90px', right: '20px', zIndex: 1000 }}>
-            <button
-              onClick={() => setShowCart(true)}
-              className="btn btn-primary"
-              style={{ 
-                borderRadius: '50%', 
-                width: '60px', 
-                height: '60px', 
-                padding: '0',
-                boxShadow: '0 4px 12px rgba(0,122,255,0.4)',
-                position: 'relative'
-              }}
-            >
-              🛒
-              <span style={{
-                position: 'absolute',
-                top: '-5px',
-                right: '-5px',
-                background: 'var(--danger)',
-                color: 'white',
-                borderRadius: '50%',
-                width: '24px',
-                height: '24px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '12px',
-                fontWeight: 'bold'
-              }}>
-                {cart.length}
-              </span>
-            </button>
-          </div>
-        )}
-
-        {!showCart ? (
+        {!selectedProduct ? (
           <>
             <div className="form-group">
               <input
@@ -165,84 +148,67 @@ export default function Withdraw() {
               />
             </div>
 
-            <div className="product-list">
-              {filteredProducts.map((product) => (
-                <div
-                  key={product.code}
-                  className="product-item"
-                  onClick={() => addToCart(product)}
-                >
-                  <div className="product-info">
-                    <div className="product-name">{product.name}</div>
-                    <div className="product-code">{product.code}</div>
-                  </div>
-                  <div className="product-quantity">
-                    {product.quantity} {product.unit}
-                    {product.quantity <= product.lowStockThreshold && (
-                      <span className="badge badge-warning ml-sm">ใกล้หมด</span>
-                    )}
-                    {cart.find(item => item.code === product.code) && (
-                      <span className="badge badge-success ml-sm">✓</span>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </>
-        ) : (
-        ) : (
-          <div className="card">
-            <div className="card-title">ตะกร้าเบิกวัสดุ ({cart.length} รายการ)</div>
-            <form onSubmit={handleWithdrawAll}>
-              {cart.length === 0 ? (
-                <div className="empty-state">
-                  <p>ไม่มีรายการในตะกร้า</p>
-                </div>
-              ) : (
-                <>
-                  {cart.map((item) => (
-                    <div key={item.code} style={{ 
-                      padding: '12px', 
-                      borderBottom: '1px solid var(--border)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '12px'
-                    }}>
-                      <div style={{ flex: 1 }}>
-                        <div style={{ fontWeight: 600, fontSize: '15px' }}>{item.name}</div>
-                        <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
-                          {item.code} • คงเหลือ: {item.quantity} {item.unit}
-                        </div>
-                      </div>
-                      <input
-                        type="number"
-                        className="input"
-                        value={item.withdrawQuantity}
-                        onChange={(e) => updateCartQuantity(item.code, e.target.value)}
-                        min="1"
-                        max={item.quantity}
-                        style={{ width: '80px', padding: '8px' }}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => removeFromCart(item.code)}
-                        style={{
-                          background: 'var(--danger-light)',
-                          color: 'var(--danger)',
-                          border: 'none',
-                          borderRadius: '8px',
-                          padding: '8px 12px',
-                          cursor: 'pointer',
-                          fontSize: '18px'
-                        }}
-                      >
-                        🗑️
-                      </button>
-                    </div>
-                  ))}
+            {isMultiSelectMode && selectedItems.length > 0 && (
+              <div className="alert" style={{ background: 'var(--accent-light)', color: 'var(--accent)', marginBottom: '16px' }}>
+                เลือกแล้ว {selectedItems.length} รายการ
+              </div>
+            )}
 
-                  <div className="form-group" style={{ marginTop: '16px' }}>
-                    <label>ชื่อผู้เบิก</label>
+            <div className="product-list">
+              {filteredProducts.map((product) => {
+                const isSelected = selectedItems.some(item => item.product.code === product.code)
+                return (
+                  <div
+                    key={product.code}
+                    className={`product-item ${isSelected ? 'selected' : ''}`}
+                    style={{ display: 'flex', alignItems: 'center', gap: '12px' }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={isSelected}
+                      onChange={(e) => {
+                        e.stopPropagation()
+                        toggleProductSelection(product)
+                      }}
+                      style={{ width: '20px', height: '20px', cursor: 'pointer', flexShrink: 0 }}
+                    />
+                    <div 
+                      style={{ flex: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}
+                      onClick={() => !isMultiSelectMode && setSelectedProduct(product)}
+                    >
+                      <div className="product-info">
+                        <div className="product-name">{product.name}</div>
+                        <div className="product-code">{product.code}</div>
+                      </div>
+                      <div className="product-quantity">
+                        {product.quantity} {product.unit}
+                        {product.quantity <= product.lowStockThreshold && (
+                          <span className="badge badge-warning ml-sm">ใกล้หมด</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+
+            {isMultiSelectMode && selectedItems.length > 0 && (
+              <div className="multi-select-footer" style={{ 
+                position: 'fixed', 
+                bottom: '80px', 
+                left: '0', 
+                right: '0', 
+                background: 'var(--bg-elevated)', 
+                padding: '16px 20px',
+                boxShadow: '0 -2px 10px rgba(0,0,0,0.1)',
+                borderTop: '1px solid var(--border)',
+                zIndex: 50
+              }}>
+                <div style={{ maxWidth: '500px', margin: '0 auto' }}>
+                  <div className="form-group" style={{ marginBottom: '12px' }}>
+                    <label style={{ fontSize: '14px', fontWeight: '600', marginBottom: '8px', display: 'block' }}>
+                      ชื่อผู้เบิก
+                    </label>
                     <input
                       type="text"
                       className="input"
@@ -252,26 +218,87 @@ export default function Withdraw() {
                       disabled={!!liffUserName}
                       required
                     />
-                    {!liffUserName && (
-                      <small style={{ color: 'var(--text-secondary)', fontSize: '13px', marginTop: '4px', display: 'block' }}>
-                        ไม่สามารถดึงชื่อจาก LINE ได้ กรุณากรอกชื่อ
-                      </small>
-                    )}
                   </div>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <button 
+                      onClick={handleMultiWithdraw} 
+                      className="btn btn-primary" 
+                      style={{ flex: 1 }}
+                      disabled={loading}
+                    >
+                      <Icon name="withdraw" size={20} color="white" />
+                      {loading ? 'กำลังบันทึก...' : `เบิก ${selectedItems.length} รายการ`}
+                    </button>
+                    <button 
+                      onClick={cancelMultiSelect} 
+                      className="btn btn-secondary"
+                      style={{ minWidth: '80px' }}
+                    >
+                      ยกเลิก
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </>
+        ) : (
+          <div className="card">
+            <div className="card-title">รายละเอียดการเบิก</div>
+            <form onSubmit={handleWithdraw}>
+              <div className="selected-product">
+                <div className="product-name">{selectedProduct.name}</div>
+                <div className="product-code">{selectedProduct.code}</div>
+              </div>
 
-                  <button type="submit" className="btn btn-primary btn-block" disabled={loading}>
-                    <Icon name="withdraw" size={20} color="white" />
-                    {loading ? 'กำลังบันทึก...' : `ยืนยันเบิก ${cart.length} รายการ`}
-                  </button>
-                </>
-              )}
-              
+              <div className="alert alert-warning">
+                คงเหลือ: {selectedProduct.quantity} {selectedProduct.unit}
+              </div>
+
+              <div className="form-group">
+                <label>จำนวนที่ต้องการเบิก</label>
+                <input
+                  type="number"
+                  className="input"
+                  value={quantity}
+                  onChange={(e) => setQuantity(e.target.value)}
+                  min="1"
+                  max={selectedProduct.quantity}
+                  placeholder="ระบุจำนวน"
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label>ชื่อผู้เบิก</label>
+                <input
+                  type="text"
+                  className="input"
+                  value={userName}
+                  onChange={(e) => setLocalUserName(e.target.value)}
+                  placeholder={liffUserName ? "ดึงจาก LINE แล้ว" : "กรุณากรอกชื่อของคุณ"}
+                  disabled={!!liffUserName}
+                  required
+                />
+                {!liffUserName && (
+                  <small style={{ color: 'var(--text-secondary)', fontSize: '13px', marginTop: '4px', display: 'block' }}>
+                    ไม่สามารถดึงชื่อจาก LINE ได้ กรุณากรอกชื่อ
+                  </small>
+                )}
+              </div>
+
+              <button type="submit" className="btn btn-primary btn-block" disabled={loading}>
+                <Icon name="withdraw" size={20} color="white" />
+                {loading ? 'กำลังบันทึก...' : 'ยืนยันการเบิก'}
+              </button>
               <button
                 type="button"
                 className="btn btn-outline btn-block mt-2"
-                onClick={() => setShowCart(false)}
+                onClick={() => {
+                  setSelectedProduct(null)
+                  setQuantity('')
+                }}
               >
-                กลับไปเลือกวัสดุ
+                ยกเลิก
               </button>
             </form>
           </div>
