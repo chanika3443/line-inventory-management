@@ -92,8 +92,6 @@ export default function Logs() {
     document.addEventListener('visibilitychange', handleVisibilityChange)
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
   }, [dateRange, applyDateRange])
-    }
-  }, [applyDateRange, dateRange])
 
   async function loadTransactions() {
     setLoading(true)

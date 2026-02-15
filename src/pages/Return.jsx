@@ -21,6 +21,18 @@ export default function Return() {
     fetchProducts()
   }, [fetchProducts])
 
+  // Refresh products when page becomes visible
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        fetchProducts()
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
+  }, [fetchProducts])
+
   useEffect(() => {
     if (liffUserName) {
       setLocalUserName(liffUserName)

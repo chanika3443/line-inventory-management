@@ -44,6 +44,18 @@ export default function Withdraw() {
     fetchProducts()
   }, [fetchProducts])
 
+  // Refresh products when page becomes visible
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        fetchProducts()
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
+  }, [fetchProducts])
+
   useEffect(() => {
     // Update local userName when LIFF userName changes
     if (liffUserName) {
