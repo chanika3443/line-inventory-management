@@ -9,7 +9,7 @@ import './Products.css'
 export default function Products() {
   useHeaderShrink()
   const { products, fetchProducts, addProduct, updateProduct, deleteProduct, loading } = useSheets()
-  const { userName } = useLiff()
+  const { userName, loginMode } = useLiff()
   const [searchQuery, setSearchQuery] = useState('')
   const [showModal, setShowModal] = useState(false)
   const [editingProduct, setEditingProduct] = useState(null)
@@ -39,7 +39,9 @@ export default function Products() {
     loadAllowedUsers()
   }, [])
 
-  const hasAccess = allowedUsers.includes(userName)
+  // Check access: must login with LINE AND name must be in allowed list
+  const isLineLogin = loginMode === 'line'
+  const hasAccess = isLineLogin && allowedUsers.includes(userName)
 
   useEffect(() => {
     fetchProducts()
@@ -161,12 +163,25 @@ export default function Products() {
             <div className="access-denied-icon">🔒</div>
             <h2 className="access-denied-title">ไม่มีสิทธิ์เข้าถึง</h2>
             <p className="access-denied-message">
-              คุณไม่มีสิทธิ์ในการจัดการวัสดุ
-              <br />
-              กรุณาติดต่อผู้ดูแลระบบ
+              {!isLineLogin ? (
+                <>
+                  หน้านี้ต้อง Login with LINE เท่านั้น
+                  <br />
+                  กรุณา Logout และ Login ด้วย LINE อีกครั้ง
+                </>
+              ) : (
+                <>
+                  คุณไม่มีสิทธิ์ในการจัดการวัสดุ
+                  <br />
+                  กรุณาติดต่อผู้ดูแลระบบ
+                </>
+              )}
             </p>
             <div className="access-denied-info">
               <p className="access-denied-user">ผู้ใช้: {userName}</p>
+              <p className="access-denied-user" style={{ fontSize: '13px', color: '#86868b', marginTop: '4px' }}>
+                Login mode: {isLineLogin ? 'LINE' : 'ชื่อเล่น'}
+              </p>
             </div>
           </div>
         </div>
