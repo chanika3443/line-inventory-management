@@ -6,32 +6,32 @@
 
 .reports-page .header {
   background: var(--color-bg-primary);
-  padding: 24px;
+  padding: 16px 20px;
   border-bottom: 1px solid var(--color-border);
 }
 
 .reports-page h1 {
-  font-size: 28px;
+  font-size: 22px;
   font-weight: 700;
-  margin-bottom: 4px;
+  margin-bottom: 2px;
 }
 
 .reports-page .header-subtitle {
-  font-size: 14px;
+  font-size: 12px;
   color: var(--color-text-secondary);
 }
 
 .summary-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: var(--spacing-md);
-  margin-bottom: var(--spacing-lg);
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-bottom: 12px;
 }
 
 .summary-card {
   background: var(--color-bg-primary);
-  border-radius: var(--radius-lg);
-  padding: var(--spacing-lg);
+  border-radius: var(--radius-md);
+  padding: 10px;
   text-align: center;
   box-shadow: var(--shadow-sm);
 }
@@ -39,69 +39,71 @@
 .summary-card.summary-net {
   grid-column: 1 / -1;
   background: var(--color-bg-secondary);
+  padding: 12px;
 }
 
 .summary-value {
-  font-size: 32px;
+  font-size: 20px;
   font-weight: 700;
-  margin-bottom: var(--spacing-xs);
+  margin-bottom: 2px;
 }
 
 .summary-label {
-  font-size: 14px;
+  font-size: 11px;
   color: var(--color-text-secondary);
 }
 
 .report-details h3 {
-  font-size: 18px;
+  font-size: 15px;
   font-weight: 600;
-  margin-bottom: var(--spacing-md);
+  margin-bottom: 10px;
 }
 
 .report-list {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-md);
+  gap: 8px;
 }
 
 .report-item {
-  padding-bottom: var(--spacing-md);
+  padding: 10px;
   border-bottom: 1px solid var(--color-border);
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-sm);
 }
 
 .report-item:last-child {
-  border-bottom: none;
-  padding-bottom: 0;
+  border-bottom: 1px solid var(--color-border);
 }
 
 .report-item-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: var(--spacing-xs);
+  margin-bottom: 4px;
 }
 
 .report-item-name {
   font-weight: 600;
-  font-size: 15px;
+  font-size: 13px;
 }
 
 .report-item-quantity {
   font-weight: 700;
-  font-size: 16px;
+  font-size: 14px;
 }
 
 .report-item-meta {
   display: flex;
   justify-content: space-between;
-  font-size: 13px;
+  font-size: 11px;
   color: var(--color-text-secondary);
 }
 
 .export-buttons {
   display: flex;
-  gap: 10px;
-  margin-bottom: var(--spacing-lg);
+  gap: 8px;
+  margin-bottom: 12px;
 }
 
 .btn-export {
@@ -109,9 +111,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  padding: 10px 16px;
-  font-size: 14px;
+  gap: 4px;
+  padding: 8px 12px;
+  font-size: 12px;
   font-weight: 600;
   border-radius: var(--radius-md);
   border: none;
@@ -121,7 +123,7 @@
 }
 
 .export-icon {
-  font-size: 16px;
+  font-size: 14px;
 }
 
 .btn-pdf {
@@ -156,4 +158,35 @@
 
 .btn-export:active {
   transform: translateY(0);
+}
+
+.transaction-count {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.filters-card {
+  padding: 12px;
+  margin-bottom: 12px;
+}
+
+.filters-card .input-group {
+  margin-bottom: 10px;
+}
+
+.filters-card .input-label {
+  font-size: 12px;
+  margin-bottom: 4px;
+}
+
+.filters-card .input {
+  font-size: 13px;
+  padding: 8px;
+}
+
+.filters-card .btn {
+  padding: 10px;
+  font-size: 13px;
 }

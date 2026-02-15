@@ -269,7 +269,7 @@ export default function Reports() {
         <p className="header-subtitle">สรุปการเคลื่อนไหววัสดุ</p>
       </div>
 
-      <div className="container" style={{ paddingTop: '16px' }}>
+      <div className="container" style={{ paddingTop: '12px' }}>
         <div className="filters-card card">
         <div className="input-group">
           <label className="input-label">วันที่เริ่มต้น</label>
@@ -350,7 +350,7 @@ export default function Reports() {
             <div className="report-details card">
               <h3>รายละเอียด</h3>
               <div className="report-list">
-                {report.transactions.slice(0, 10).map((transaction) => {
+                {report.transactions.map((transaction) => {
                   const type = transaction.type.toUpperCase()
                   const isWithdraw = type === 'WITHDRAW' || type === 'เบิก'
                   const isReturn = type === 'RETURN' || type === 'คืน'
@@ -387,11 +387,6 @@ export default function Reports() {
                   )
                 })}
               </div>
-              {report.transactions.length > 10 && (
-                <div className="text-center text-muted mt-md">
-                  และอีก {report.transactions.length - 10} รายการ
-                </div>
-              )}
             </div>
           )}
         </>
