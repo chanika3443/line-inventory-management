@@ -105,8 +105,8 @@ export function LiffProvider({ children }) {
       }
     }
     
-    // Force reload to clear all cache and fetch fresh data
-    window.location.reload()
+    // Redirect to home page instead of reload
+    window.location.href = window.location.origin + window.location.pathname
   }
 
   const value = {
