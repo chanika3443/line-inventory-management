@@ -71,14 +71,14 @@ export function logout() {
   // Logout from LIFF if initialized
   if (isInitialized && liff.isLoggedIn()) {
     console.log('Calling liff.logout()')
-    liff.logout()
-  }
-  
-  // Reload current page
-  console.log('Reloading page')
-  setTimeout(() => {
+    // Use window.location.href to force logout and redirect
+    const logoutUrl = `https://access.line.me/oauth2/v2.1/logout?post_logout_redirect_uri=${encodeURIComponent(window.location.origin + window.location.pathname)}&client_id=${config.liff.id}`
+    window.location.href = logoutUrl
+  } else {
+    // Not logged in via LIFF, just reload
+    console.log('Not logged in via LIFF, reloading page')
     window.location.reload()
-  }, 100)
+  }
 }
 
 /**
