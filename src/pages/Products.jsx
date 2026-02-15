@@ -184,17 +184,21 @@ export default function Products() {
                   <span className="detail-value">{product.category}</span>
                 </div>
               )}
-              <div className="detail-row">
-                <span>คืนได้:</span>
-                <span className="detail-value">
-                  {product.returnable ? (
-                    <span className="badge badge-success">ใช่</span>
-                  ) : (
-                    <span className="badge badge-secondary">ไม่ได้</span>
-                  )}
-                </span>
-              </div>
             </div>
+            {!product.returnable && (
+              <div style={{ 
+                marginTop: '10px', 
+                padding: '8px 12px', 
+                background: 'var(--bg-secondary)', 
+                borderRadius: 'var(--radius-md)',
+                textAlign: 'center',
+                fontSize: '12px',
+                color: 'var(--text-tertiary)',
+                opacity: '0.7'
+              }}>
+                คืนไม่ได้
+              </div>
+            )}
           </div>
         ))}
       </div>
