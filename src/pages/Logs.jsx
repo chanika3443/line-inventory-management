@@ -209,7 +209,6 @@ export default function Logs() {
         }}>
           {[
             { value: 'today', label: 'วันนี้' },
-            { value: '3days', label: '3 วัน' },
             { value: '7days', label: '7 วัน' },
             { value: '14days', label: '14 วัน' },
             { value: '30days', label: '1 เดือน' }
@@ -219,8 +218,8 @@ export default function Logs() {
               onClick={() => applyDateRange(range.value)}
               className={`btn ${dateRange === range.value ? 'btn-primary' : 'btn-outline'}`}
               style={{ 
-                fontSize: '13px', 
-                padding: '10px 20px',
+                fontSize: '12px', 
+                padding: '8px 16px',
                 whiteSpace: 'nowrap',
                 flex: '0 0 auto',
                 fontWeight: '600',
