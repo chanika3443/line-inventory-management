@@ -31,10 +31,8 @@ export default function Logs() {
     endDate.setHours(23, 59, 59, 999)
     
     switch(range) {
-      case 'yesterday':
-        startDate.setDate(today.getDate() - 1)
-        endDate = new Date(startDate)
-        endDate.setHours(23, 59, 59, 999)
+      case '3days':
+        startDate.setDate(today.getDate() - 2)
         break
       case '7days':
         startDate.setDate(today.getDate() - 6)
@@ -52,23 +50,26 @@ export default function Logs() {
     }
     
     setDateRange(range)
-    setFilters({
-      ...filters,
-      startDate: startDate.toISOString().split('T')[0],
-      endDate: endDate.toISOString().split('T')[0]
-    })
+    const startDateStr = startDate.toISOString().split('T')[0]
+    const endDateStr = endDate.toISOString().split('T')[0]
+    
+    setFilters(prev => ({
+      ...prev,
+      startDate: startDateStr,
+      endDate: endDateStr
+    }))
     setCurrentPage(1)
     
     // Load with new dates
-    loadTransactionsWithDates(startDate.toISOString().split('T')[0], endDate.toISOString().split('T')[0])
+    loadTransactionsWithDates(startDateStr, endDateStr)
   }
 
   async function loadTransactionsWithDates(start, end) {
     setLoading(true)
     const data = await sheetsService.getTransactionLogs({
-      ...filters,
       startDate: start,
-      endDate: end
+      endDate: end,
+      type: filters.type
     })
     setTransactions(data)
     setLoading(false)
@@ -77,6 +78,7 @@ export default function Logs() {
   async function loadTransactions() {
     setLoading(true)
     const data = await sheetsService.getTransactionLogs(filters)
+    console.log('Loaded transactions:', data.length, data.slice(0, 3))
     setTransactions(data)
     setLoading(false)
   }
@@ -161,7 +163,7 @@ export default function Logs() {
         }}>
           {[
             { value: 'today', label: 'วันนี้' },
-            { value: 'yesterday', label: 'เมื่อวาน' },
+            { value: '3days', label: '3 วัน' },
             { value: '7days', label: '7 วัน' },
             { value: '14days', label: '14 วัน' },
             { value: '30days', label: '1 เดือน' }
