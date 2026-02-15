@@ -102,21 +102,22 @@ export default function Products() {
 
       <div className="container" style={{ paddingTop: '16px' }}>
         <div className="page-header">
-        <button onClick={handleAdd} className="btn btn-primary">
+        <button onClick={handleAdd} className="btn btn-primary" style={{ fontSize: '13px', padding: '10px 16px' }}>
           + เพิ่มวัสดุ
         </button>
       </div>
 
       {message && (
-        <div className={message.type === 'success' ? 'success-message' : 'error-message'}>
+        <div className={message.type === 'success' ? 'success-message' : 'error-message'} style={{ fontSize: '13px', padding: '10px', marginBottom: '10px' }}>
           {message.text}
         </div>
       )}
 
-      <div className="input-group">
+      <div className="input-group" style={{ marginBottom: '12px' }}>
         <input
           type="text"
           className="input"
+          style={{ fontSize: '14px', padding: '10px 12px' }}
           placeholder="ค้นหาวัสดุ..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
@@ -128,8 +129,8 @@ export default function Products() {
           <div key={product.code} className="product-card card">
             <div className="product-header">
               <div>
-                <div className="product-name">{product.name}</div>
-                <div className="product-code">{product.code}</div>
+                <div className="product-name" style={{ fontSize: '15px', fontWeight: '600', marginBottom: '2px' }}>{product.name}</div>
+                <div className="product-code" style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>{product.code}</div>
               </div>
               <div className="product-actions">
                 <button onClick={() => handleEdit(product)} className="btn-icon">
@@ -144,16 +145,16 @@ export default function Products() {
             <div className="product-details">
               <div className="detail-row">
                 <span>คงเหลือ:</span>
-                <span className="detail-value">
+                <span className="detail-value" style={{ fontWeight: '600' }}>
                   {product.quantity} {product.unit}
                   {product.quantity <= product.lowStockThreshold && (
-                    <span className="badge badge-warning ml-sm">ใกล้หมด</span>
+                    <span className="badge badge-warning ml-sm" style={{ fontSize: '11px', padding: '2px 8px' }}>ใกล้หมด</span>
                   )}
                 </span>
               </div>
               <div className="detail-row">
                 <span>เกณฑ์:</span>
-                <span className="detail-value">{product.lowStockThreshold}</span>
+                <span className="detail-value" style={{ fontWeight: '600' }}>{product.lowStockThreshold}</span>
               </div>
               {product.category && (
                 <div className="detail-row">
