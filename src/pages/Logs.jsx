@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import * as sheetsService from '../services/sheetsService'
 import Loading from '../components/Loading'
 import { useHeaderShrink } from '../hooks/useHeaderShrink'
@@ -19,6 +19,7 @@ export default function Logs() {
     endDate: '',
     type: ''
   })
+  const isInitialMount = useRef(true)
 
   const loadTransactionsWithDates = useCallback(async (start, end) => {
     setLoading(true)
@@ -74,7 +75,10 @@ export default function Logs() {
   }, [loadTransactionsWithDates])
 
   useEffect(() => {
-    applyDateRange(dateRange)
+    if (isInitialMount.current) {
+      isInitialMount.current = false
+      applyDateRange(dateRange)
+    }
   }, [applyDateRange, dateRange])
 
   async function loadTransactions() {
