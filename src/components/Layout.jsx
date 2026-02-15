@@ -29,35 +29,52 @@ export default function Layout() {
       }}>
         <div style={{
           background: 'white',
-          borderRadius: '20px',
-          padding: '40px 30px',
-          maxWidth: '400px',
+          borderRadius: '24px',
+          padding: '48px 32px',
+          maxWidth: '420px',
           width: '100%',
           boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
           textAlign: 'center'
         }}>
+          {/* App Icon */}
           <div style={{
-            width: '80px',
-            height: '80px',
+            width: '100px',
+            height: '100px',
             background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-            borderRadius: '20px',
+            borderRadius: '24px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            margin: '0 auto 20px'
+            margin: '0 auto 24px',
+            boxShadow: '0 8px 24px rgba(102, 126, 234, 0.4)'
           }}>
-            <Icon name="products" size={40} color="white" />
+            <Icon name="products" size={50} color="white" />
           </div>
           
-          <h1 style={{ fontSize: '24px', marginBottom: '8px', color: '#1d1d1f' }}>
+          {/* App Name */}
+          <h1 style={{ 
+            fontSize: '32px', 
+            fontWeight: '700',
+            marginBottom: '8px', 
+            color: '#1d1d1f',
+            letterSpacing: '-0.5px'
+          }}>
             คลังวัสดุ
           </h1>
-          <p style={{ color: '#86868b', marginBottom: '30px', fontSize: '14px' }}>
+          
+          {/* Description */}
+          <p style={{ 
+            color: '#86868b', 
+            marginBottom: '40px', 
+            fontSize: '16px',
+            lineHeight: '1.5'
+          }}>
             จัดการสต็อกผู้ป่วยใน
           </p>
 
           {!showManualInput ? (
             <>
+              {/* LINE Login Button */}
               <button
                 onClick={login}
                 style={{
@@ -66,19 +83,24 @@ export default function Layout() {
                   background: '#06c755',
                   color: 'white',
                   border: 'none',
-                  borderRadius: '8px',
+                  borderRadius: '12px',
                   fontSize: '18px',
                   fontWeight: '700',
                   cursor: 'pointer',
-                  marginBottom: '12px',
+                  marginBottom: '16px',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   gap: '12px',
                   height: '56px',
                   overflow: 'hidden',
-                  position: 'relative'
+                  position: 'relative',
+                  transition: 'transform 0.2s, box-shadow 0.2s',
+                  boxShadow: '0 4px 12px rgba(6, 199, 85, 0.3)'
                 }}
+                onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.98)'}
+                onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
               >
                 <div style={{
                   width: '56px',
@@ -97,18 +119,26 @@ export default function Layout() {
                 <span style={{ marginLeft: '40px' }}>Login with LINE</span>
               </button>
 
+              {/* Manual Login Button */}
               <button
                 onClick={() => setShowManualInput(true)}
                 style={{
                   width: '100%',
-                  padding: '14px',
-                  background: 'transparent',
+                  padding: '16px',
+                  background: 'white',
                   color: '#667eea',
                   border: '2px solid #667eea',
                   borderRadius: '12px',
-                  fontSize: '16px',
+                  fontSize: '17px',
                   fontWeight: '600',
-                  cursor: 'pointer'
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = '#f5f5f7'
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'white'
                 }}
               >
                 กรอกชื่อเอง
