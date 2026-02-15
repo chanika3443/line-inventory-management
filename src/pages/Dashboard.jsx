@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import * as sheetsService from '../services/sheetsService'
 import Icon from '../components/Icon'
@@ -11,14 +11,15 @@ export default function Dashboard() {
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    async function loadData() {
-      const dashboardData = await sheetsService.getDashboardData()
-      setData(dashboardData)
-      setLoading(false)
-    }
-    loadData()
+  const loadData = useCallback(async () => {
+    const dashboardData = await sheetsService.getDashboardData()
+    setData(dashboardData)
+    setLoading(false)
   }, [])
+
+  useEffect(() => {
+    loadData()
+  }, [loadData])
 
   if (loading) {
     return <Loading />

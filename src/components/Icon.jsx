@@ -1,5 +1,7 @@
+import { memo } from 'react'
+
 // SVG Icons Component
-export default function Icon({ name, size = 24, color = 'currentColor', strokeWidth = 1.5 }) {
+function Icon({ name, size = 24, color = 'currentColor', strokeWidth = 1.5 }) {
   const icons = {
     home: (
       <svg viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={strokeWidth}>
@@ -71,3 +73,5 @@ export default function Icon({ name, size = 24, color = 'currentColor', strokeWi
     </span>
   )
 }
+
+export default memo(Icon)

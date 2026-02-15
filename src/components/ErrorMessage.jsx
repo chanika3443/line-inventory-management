@@ -1,4 +1,6 @@
-export default function ErrorMessage({ message, onRetry }) {
+import { memo } from 'react'
+
+function ErrorMessage({ message, onRetry }) {
   if (!message) return null
 
   return (
@@ -12,3 +14,5 @@ export default function ErrorMessage({ message, onRetry }) {
     </div>
   )
 }
+
+export default memo(ErrorMessage)
