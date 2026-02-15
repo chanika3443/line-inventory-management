@@ -290,14 +290,14 @@ export default function Reports() {
             {showExportMenu && (
               <div className="export-menu">
                 <button onClick={() => handleExport('excel')} className="export-menu-item">
-                  <span className="export-menu-icon">📊</span>
+                  <span className="export-menu-icon">📗</span>
                   <div className="export-menu-text">
                     <div className="export-menu-title">Excel</div>
                     <div className="export-menu-subtitle">ไฟล์ .xlsx</div>
                   </div>
                 </button>
                 <button onClick={() => handleExport('csv')} className="export-menu-item">
-                  <span className="export-menu-icon">📋</span>
+                  <span className="export-menu-icon">📄</span>
                   <div className="export-menu-text">
                     <div className="export-menu-title">CSV</div>
                     <div className="export-menu-subtitle">ไฟล์ .csv</div>
