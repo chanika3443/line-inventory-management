@@ -87,7 +87,7 @@ export default function Layout() {
                   fontSize: '18px',
                   fontWeight: '700',
                   cursor: 'pointer',
-                  marginBottom: '16px',
+                  marginBottom: '24px',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -119,29 +119,32 @@ export default function Layout() {
                 <span style={{ marginLeft: '40px' }}>Login with LINE</span>
               </button>
 
-              {/* Manual Login Button */}
+              {/* Manual Login Link */}
               <button
                 onClick={() => setShowManualInput(true)}
                 style={{
-                  width: '100%',
-                  padding: '16px',
-                  background: 'white',
-                  color: '#667eea',
-                  border: '2px solid #667eea',
-                  borderRadius: '12px',
-                  fontSize: '17px',
-                  fontWeight: '600',
+                  background: 'transparent',
+                  border: 'none',
+                  color: '#86868b',
+                  fontSize: '15px',
                   cursor: 'pointer',
-                  transition: 'all 0.2s'
+                  padding: '8px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '4px',
+                  margin: '0 auto',
+                  transition: 'color 0.2s'
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.background = '#f5f5f7'
+                  e.currentTarget.style.color = '#667eea'
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.background = 'white'
+                  e.currentTarget.style.color = '#86868b'
                 }}
               >
-                ลงชื่อเข้าใช้ด้วยชื่อเล่น
+                <span>ลงชื่อเข้าใช้ด้วยชื่อเล่น</span>
+                <span style={{ fontSize: '18px' }}>→</span>
               </button>
             </>
           ) : (
