@@ -16,8 +16,9 @@ export function LiffProvider({ children }) {
       const savedMode = localStorage.getItem('login_mode')
       const savedManualName = localStorage.getItem('manual_user_name')
       
-      if (savedMode === 'manual' && savedManualName) {
-        // User previously chose manual mode
+      // Treat Guest01 as not logged in
+      if (savedMode === 'manual' && savedManualName && savedManualName !== 'Guest01') {
+        // User previously chose manual mode with valid name
         setLoginMode('manual')
         setUserName(savedManualName)
         setIsLoggedIn(true)
@@ -48,18 +49,21 @@ export function LiffProvider({ children }) {
             // Failed to get profile, not logged in
             setLoginMode(null)
             setIsLoggedIn(false)
+            setUserName('Guest01')
           }
         } else {
           // Not logged in via LIFF
           setLoginMode(null)
           setIsLoggedIn(false)
           setUserProfile(null)
-          setUserName('')
+          setUserName('Guest01')
         }
       } else {
         // LIFF failed to initialize (not in LINE app)
         console.warn('LIFF not available')
         setLoginMode(null)
+        setIsLoggedIn(false)
+        setUserName('Guest01')
       }
       
       // Set ready after everything is done
@@ -91,25 +95,23 @@ export function LiffProvider({ children }) {
   const logout = () => {
     console.log('Logout called')
     
-    // Clear all localStorage
-    localStorage.clear()
-    
-    // Clear state
-    setIsLoggedIn(false)
-    setUserProfile(null)
-    setUserName('')
-    setLoginMode(null)
-    
-    // Logout from LIFF if in LINE mode
+    // Logout from LIFF first if in LINE mode
     if (loginMode === 'line') {
       try {
         liffService.logout()
       } catch (error) {
-        console.error('Logout error:', error)
+        console.error('LIFF logout error:', error)
       }
     }
     
-    // Stay on current page - just clear state, Layout will show login screen
+    // Clear all localStorage
+    localStorage.clear()
+    
+    // Set to Guest01 temporarily (will be treated as not logged in)
+    setIsLoggedIn(false)
+    setUserProfile(null)
+    setUserName('Guest01')
+    setLoginMode(null)
   }
 
   const value = {
