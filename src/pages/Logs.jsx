@@ -267,7 +267,6 @@ export default function Logs() {
                   <th style={{ padding: '12px 8px', textAlign: 'left', fontWeight: '600', color: 'var(--text-primary)' }}>วัสดุ</th>
                   <th style={{ padding: '12px 8px', textAlign: 'center', fontWeight: '600', color: 'var(--text-primary)' }}>จำนวน</th>
                   <th style={{ padding: '12px 8px', textAlign: 'left', fontWeight: '600', color: 'var(--text-primary)' }}>ผู้ทำรายการ</th>
-                  <th style={{ padding: '12px 8px', textAlign: 'left', fontWeight: '600', color: 'var(--text-primary)' }}>หมายเหตุ</th>
                   <th style={{ padding: '12px 8px', textAlign: 'left', fontWeight: '600', color: 'var(--text-primary)' }}>เวลา</th>
                 </tr>
               </thead>
@@ -282,13 +281,8 @@ export default function Logs() {
                         {getTypeLabel(transaction.type)}
                       </span>
                     </td>
-                    <td style={{ padding: '10px 8px' }}>
-                      <div style={{ fontWeight: '600', color: 'var(--text-primary)', marginBottom: '2px' }}>
-                        {transaction.productName}
-                      </div>
-                      <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>
-                        {transaction.productCode}
-                      </div>
+                    <td style={{ padding: '10px 8px', fontWeight: '600', color: 'var(--text-primary)' }}>
+                      {transaction.productName}
                     </td>
                     <td style={{ padding: '10px 8px', textAlign: 'center' }}>
                       <div style={{ fontWeight: '700', color: 'var(--accent)', fontSize: '15px' }}>
@@ -300,9 +294,6 @@ export default function Logs() {
                     </td>
                     <td style={{ padding: '10px 8px', color: 'var(--text-primary)' }}>
                       {transaction.userName}
-                    </td>
-                    <td style={{ padding: '10px 8px', color: 'var(--text-secondary)', fontSize: '12px', maxWidth: '150px' }}>
-                      {transaction.note || '-'}
                     </td>
                     <td style={{ padding: '10px 8px', color: 'var(--text-tertiary)', fontSize: '11px', whiteSpace: 'nowrap' }}>
                       {formatDate(transaction.timestamp)}
