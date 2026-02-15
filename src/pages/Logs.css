@@ -88,36 +88,31 @@
 }
 
 .badge-danger {
-  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+  background: #ff6b6b;
   color: white;
   font-weight: 600;
-  box-shadow: 0 2px 8px rgba(238, 90, 111, 0.3);
 }
 
 .badge-delete {
-  background: linear-gradient(135deg, #c92a2a 0%, #a61e4d 100%);
+  background: #c92a2a;
   color: white;
   font-weight: 600;
-  box-shadow: 0 2px 8px rgba(166, 30, 77, 0.3);
 }
 
 .badge-success {
-  background: linear-gradient(135deg, #51cf66 0%, #37b24d 100%);
+  background: #51cf66;
   color: white;
   font-weight: 600;
-  box-shadow: 0 2px 8px rgba(55, 178, 77, 0.3);
 }
 
 .badge-warning {
-  background: linear-gradient(135deg, #ffd43b 0%, #fab005 100%);
+  background: #ffd43b;
   color: #333;
   font-weight: 600;
-  box-shadow: 0 2px 8px rgba(250, 176, 5, 0.3);
 }
 
 .badge-info {
-  background: linear-gradient(135deg, #74c0fc 0%, #4dabf7 100%);
+  background: #74c0fc;
   color: white;
   font-weight: 600;
-  box-shadow: 0 2px 8px rgba(77, 171, 247, 0.3);
 }
