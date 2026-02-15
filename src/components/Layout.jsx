@@ -1,5 +1,5 @@
 import { Outlet } from 'react-router-dom'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import BottomNav from './BottomNav'
 import UserMenu from './UserMenu'
 import { useLiff } from '../contexts/LiffContext'
@@ -12,10 +12,12 @@ export default function Layout() {
   const [showManualInput, setShowManualInput] = useState(false)
 
   // Reset to login screen when logged out
-  if (!isLoggedIn && showManualInput) {
-    setShowManualInput(false)
-    setManualName('')
-  }
+  useEffect(() => {
+    if (!isLoggedIn) {
+      setShowManualInput(false)
+      setManualName('')
+    }
+  }, [isLoggedIn])
 
   if (!isReady) {
     return <Loading />
