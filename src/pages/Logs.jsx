@@ -9,6 +9,9 @@ export default function Logs() {
   const [transactions, setTransactions] = useState([])
   const [loading, setLoading] = useState(true)
   const [showFilters, setShowFilters] = useState(false)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [itemsPerPage] = useState(20)
+  const [dateRange, setDateRange] = useState('today') // today, yesterday, 7days, 14days, 30days
   const [filters, setFilters] = useState({
     startDate: '',
     endDate: '',
@@ -16,8 +19,60 @@ export default function Logs() {
   })
 
   useEffect(() => {
-    loadTransactions()
+    applyDateRange(dateRange)
   }, [])
+
+  function applyDateRange(range) {
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    
+    let startDate = new Date(today)
+    let endDate = new Date()
+    endDate.setHours(23, 59, 59, 999)
+    
+    switch(range) {
+      case 'yesterday':
+        startDate.setDate(today.getDate() - 1)
+        endDate = new Date(startDate)
+        endDate.setHours(23, 59, 59, 999)
+        break
+      case '7days':
+        startDate.setDate(today.getDate() - 6)
+        break
+      case '14days':
+        startDate.setDate(today.getDate() - 13)
+        break
+      case '30days':
+        startDate.setDate(today.getDate() - 29)
+        break
+      case 'today':
+      default:
+        // Already set to today
+        break
+    }
+    
+    setDateRange(range)
+    setFilters({
+      ...filters,
+      startDate: startDate.toISOString().split('T')[0],
+      endDate: endDate.toISOString().split('T')[0]
+    })
+    setCurrentPage(1)
+    
+    // Load with new dates
+    loadTransactionsWithDates(startDate.toISOString().split('T')[0], endDate.toISOString().split('T')[0])
+  }
+
+  async function loadTransactionsWithDates(start, end) {
+    setLoading(true)
+    const data = await sheetsService.getTransactionLogs({
+      ...filters,
+      startDate: start,
+      endDate: end
+    })
+    setTransactions(data)
+    setLoading(false)
+  }
 
   async function loadTransactions() {
     setLoading(true)
@@ -31,8 +86,15 @@ export default function Logs() {
   }
 
   function handleApplyFilters() {
+    setCurrentPage(1)
     loadTransactions()
   }
+
+  // Pagination
+  const indexOfLastItem = currentPage * itemsPerPage
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage
+  const currentTransactions = transactions.slice(indexOfFirstItem, indexOfLastItem)
+  const totalPages = Math.ceil(transactions.length / itemsPerPage)
 
   function getTypeLabel(type) {
     const typeUpper = type.toUpperCase()
@@ -89,15 +151,46 @@ export default function Logs() {
       </div>
 
       <div className="container" style={{ paddingTop: 0 }}>
+        {/* Date Range Buttons */}
+        <div style={{ 
+          display: 'flex', 
+          gap: '6px', 
+          marginBottom: '12px',
+          overflowX: 'auto',
+          paddingBottom: '4px'
+        }}>
+          {[
+            { value: 'today', label: 'วันนี้' },
+            { value: 'yesterday', label: 'เมื่อวาน' },
+            { value: '7days', label: '7 วัน' },
+            { value: '14days', label: '14 วัน' },
+            { value: '30days', label: '1 เดือน' }
+          ].map(range => (
+            <button
+              key={range.value}
+              onClick={() => applyDateRange(range.value)}
+              className={`btn ${dateRange === range.value ? 'btn-primary' : 'btn-outline'}`}
+              style={{ 
+                fontSize: '13px', 
+                padding: '8px 16px',
+                whiteSpace: 'nowrap',
+                flex: '0 0 auto'
+              }}
+            >
+              {range.label}
+            </button>
+          ))}
+        </div>
+
         <button 
           onClick={() => setShowFilters(!showFilters)}
           className="btn btn-outline btn-block"
-          style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+          style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontSize: '13px', padding: '10px' }}
         >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
           </svg>
-          {showFilters ? 'ซ่อนตัวกรอง' : 'ค้นหา / กรอง'}
+          {showFilters ? 'ซ่อนตัวกรอง' : 'ค้นหาเพิ่มเติม'}
         </button>
 
         {showFilters && (
@@ -145,8 +238,8 @@ export default function Logs() {
           </div>
         )}
 
-      <div className="transaction-count">
-        พบ {transactions.length} รายการ
+      <div className="transaction-count" style={{ marginBottom: '12px', fontSize: '14px' }}>
+        พบ {transactions.length} รายการ {totalPages > 1 && `(หน้า ${currentPage}/${totalPages})`}
       </div>
 
       {transactions.length === 0 ? (
@@ -155,76 +248,128 @@ export default function Logs() {
           <p>ไม่พบประวัติการทำรายการ</p>
         </div>
       ) : (
-        <div className="transaction-list">
-          {transactions.map((transaction) => (
-            <div key={transaction.id} className="transaction-item card">
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: '16px', fontWeight: '600', color: 'var(--text-primary)', marginBottom: '4px' }}>
-                    {transaction.productName}
-                  </div>
-                  <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
-                    {transaction.productCode}
-                  </div>
-                </div>
-                <span className={`badge ${getTypeBadgeClass(transaction.type)}`}>
-                  {getTypeLabel(transaction.type)}
-                </span>
-              </div>
+        <>
+          {/* Table */}
+          <div style={{ overflowX: 'auto', marginBottom: '16px' }}>
+            <table style={{ 
+              width: '100%', 
+              fontSize: '13px',
+              borderCollapse: 'collapse',
+              background: 'var(--bg-elevated)',
+              borderRadius: 'var(--radius-md)',
+              overflow: 'hidden'
+            }}>
+              <thead>
+                <tr style={{ background: 'var(--bg-secondary)', borderBottom: '2px solid var(--border)' }}>
+                  <th style={{ padding: '12px 8px', textAlign: 'left', fontWeight: '600', color: 'var(--text-primary)' }}>ประเภท</th>
+                  <th style={{ padding: '12px 8px', textAlign: 'left', fontWeight: '600', color: 'var(--text-primary)' }}>วัสดุ</th>
+                  <th style={{ padding: '12px 8px', textAlign: 'center', fontWeight: '600', color: 'var(--text-primary)' }}>จำนวน</th>
+                  <th style={{ padding: '12px 8px', textAlign: 'left', fontWeight: '600', color: 'var(--text-primary)' }}>ผู้ทำรายการ</th>
+                  <th style={{ padding: '12px 8px', textAlign: 'left', fontWeight: '600', color: 'var(--text-primary)' }}>หมายเหตุ</th>
+                  <th style={{ padding: '12px 8px', textAlign: 'left', fontWeight: '600', color: 'var(--text-primary)' }}>เวลา</th>
+                </tr>
+              </thead>
+              <tbody>
+                {currentTransactions.map((transaction, index) => (
+                  <tr key={transaction.id} style={{ 
+                    borderBottom: '1px solid var(--border)',
+                    background: index % 2 === 0 ? 'var(--bg-elevated)' : 'var(--bg-primary)'
+                  }}>
+                    <td style={{ padding: '10px 8px' }}>
+                      <span className={`badge ${getTypeBadgeClass(transaction.type)}`} style={{ fontSize: '11px', padding: '4px 8px' }}>
+                        {getTypeLabel(transaction.type)}
+                      </span>
+                    </td>
+                    <td style={{ padding: '10px 8px' }}>
+                      <div style={{ fontWeight: '600', color: 'var(--text-primary)', marginBottom: '2px' }}>
+                        {transaction.productName}
+                      </div>
+                      <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>
+                        {transaction.productCode}
+                      </div>
+                    </td>
+                    <td style={{ padding: '10px 8px', textAlign: 'center' }}>
+                      <div style={{ fontWeight: '700', color: 'var(--accent)', fontSize: '15px' }}>
+                        {transaction.quantity}
+                      </div>
+                      <div style={{ fontSize: '10px', color: 'var(--text-tertiary)' }}>
+                        {transaction.beforeQuantity}→{transaction.afterQuantity}
+                      </div>
+                    </td>
+                    <td style={{ padding: '10px 8px', color: 'var(--text-primary)' }}>
+                      {transaction.userName}
+                    </td>
+                    <td style={{ padding: '10px 8px', color: 'var(--text-secondary)', fontSize: '12px', maxWidth: '150px' }}>
+                      {transaction.note || '-'}
+                    </td>
+                    <td style={{ padding: '10px 8px', color: 'var(--text-tertiary)', fontSize: '11px', whiteSpace: 'nowrap' }}>
+                      {formatDate(transaction.timestamp)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
 
-              <div style={{ 
-                display: 'grid', 
-                gridTemplateColumns: 'repeat(3, 1fr)', 
-                gap: '12px',
-                padding: '12px',
-                background: 'var(--bg-secondary)',
-                borderRadius: 'var(--radius-md)',
-                marginBottom: '12px'
-              }}>
-                <div style={{ textAlign: 'center' }}>
-                  <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginBottom: '4px' }}>จำนวน</div>
-                  <div style={{ fontSize: '18px', fontWeight: '700', color: 'var(--accent)' }}>
-                    {transaction.quantity}
-                  </div>
-                </div>
-                <div style={{ textAlign: 'center' }}>
-                  <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginBottom: '4px' }}>ก่อน</div>
-                  <div style={{ fontSize: '18px', fontWeight: '700', color: 'var(--text-primary)' }}>
-                    {transaction.beforeQuantity}
-                  </div>
-                </div>
-                <div style={{ textAlign: 'center' }}>
-                  <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginBottom: '4px' }}>หลัง</div>
-                  <div style={{ fontSize: '18px', fontWeight: '700', color: 'var(--text-primary)' }}>
-                    {transaction.afterQuantity}
-                  </div>
-                </div>
-              </div>
-
-              <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '4px' }}>
-                👤 {transaction.userName}
-              </div>
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div style={{ 
+              display: 'flex', 
+              justifyContent: 'center', 
+              alignItems: 'center',
+              gap: '8px',
+              marginTop: '16px'
+            }}>
+              <button
+                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                disabled={currentPage === 1}
+                className="btn btn-outline"
+                style={{ padding: '8px 12px', fontSize: '13px' }}
+              >
+                ← ก่อนหน้า
+              </button>
               
-              {transaction.note && (
-                <div style={{ 
-                  fontSize: '13px', 
-                  color: 'var(--text-secondary)', 
-                  marginBottom: '8px',
-                  padding: '8px',
-                  background: 'var(--bg-secondary)',
-                  borderRadius: 'var(--radius-sm)',
-                  borderLeft: '3px solid var(--accent)'
-                }}>
-                  📝 {transaction.note}
-                </div>
-              )}
-
-              <div style={{ fontSize: '12px', color: 'var(--text-tertiary)', marginTop: '8px' }}>
-                🕐 {formatDate(transaction.timestamp)}
+              <div style={{ display: 'flex', gap: '4px' }}>
+                {[...Array(totalPages)].map((_, i) => {
+                  const page = i + 1
+                  // Show first, last, current, and adjacent pages
+                  if (
+                    page === 1 || 
+                    page === totalPages || 
+                    (page >= currentPage - 1 && page <= currentPage + 1)
+                  ) {
+                    return (
+                      <button
+                        key={page}
+                        onClick={() => setCurrentPage(page)}
+                        className={`btn ${currentPage === page ? 'btn-primary' : 'btn-outline'}`}
+                        style={{ 
+                          padding: '8px 12px', 
+                          fontSize: '13px',
+                          minWidth: '40px'
+                        }}
+                      >
+                        {page}
+                      </button>
+                    )
+                  } else if (page === currentPage - 2 || page === currentPage + 2) {
+                    return <span key={page} style={{ padding: '8px 4px', color: 'var(--text-tertiary)' }}>...</span>
+                  }
+                  return null
+                })}
               </div>
+
+              <button
+                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                disabled={currentPage === totalPages}
+                className="btn btn-outline"
+                style={{ padding: '8px 12px', fontSize: '13px' }}
+              >
+                ถัดไป →
+              </button>
             </div>
-          ))}
-        </div>
+          )}
+        </>
       )}
       </div>
     </div>
