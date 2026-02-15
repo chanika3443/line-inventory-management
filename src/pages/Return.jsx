@@ -101,50 +101,16 @@ export default function Return() {
                 {filteredProducts.map((product) => (
                   <div
                     key={product.code}
-                    className="product-card card"
+                    className="product-item"
                     onClick={() => setSelectedProduct(product)}
-                    style={{ cursor: 'pointer' }}
                   >
-                    <div className="product-header">
-                      <div>
-                        <div className="product-name" style={{ fontSize: '15px', fontWeight: '600', marginBottom: '2px' }}>{product.name}</div>
-                        <div className="product-code" style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>{product.code}</div>
-                      </div>
+                    <div className="product-info">
+                      <div className="product-name">{product.name}</div>
+                      <div className="product-code">{product.code}</div>
                     </div>
-
-                    <div className="product-details">
-                      <div className="detail-row">
-                        <span>คงเหลือ:</span>
-                        <span className="detail-value" style={{ fontWeight: '600' }}>
-                          {product.quantity} {product.unit}
-                          {product.quantity <= product.lowStockThreshold && (
-                            <span className="badge badge-warning ml-sm" style={{ fontSize: '11px', padding: '2px 8px' }}>ใกล้หมด</span>
-                          )}
-                        </span>
-                      </div>
-                      <div className="detail-row">
-                        <span>เกณฑ์:</span>
-                        <span className="detail-value" style={{ fontWeight: '600' }}>{product.lowStockThreshold}</span>
-                      </div>
-                      {product.category && (
-                        <div className="detail-row">
-                          <span>หมวดหมู่:</span>
-                          <span className="detail-value">{product.category}</span>
-                        </div>
-                      )}
-                    </div>
-                    <div style={{ 
-                      marginTop: '10px', 
-                      padding: '8px 12px', 
-                      background: 'rgba(81, 207, 102, 0.1)', 
-                      borderRadius: 'var(--radius-md)',
-                      textAlign: 'center',
-                      fontSize: '12px',
-                      color: '#51cf66',
-                      fontWeight: '600',
-                      border: '1px solid #51cf66'
-                    }}>
-                      ✓ คืนได้
+                    <div className="product-quantity">
+                      {product.quantity} {product.unit}
+                      <span className="badge badge-success ml-sm">คืนได้</span>
                     </div>
                   </div>
                 ))}
