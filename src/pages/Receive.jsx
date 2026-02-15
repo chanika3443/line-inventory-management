@@ -119,15 +119,58 @@ export default function Receive() {
 
               <div className="form-group">
                 <label>จำนวนที่รับเข้า</label>
-                <input
-                  type="number"
-                  className="input"
-                  value={quantity}
-                  onChange={(e) => setQuantity(e.target.value)}
-                  min="1"
-                  placeholder="ระบุจำนวน"
-                  required
-                />
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <button
+                    type="button"
+                    onClick={() => setQuantity(Math.max(1, parseInt(quantity || 1) - 1).toString())}
+                    style={{
+                      width: '40px',
+                      height: '48px',
+                      border: '1.5px solid var(--border-strong)',
+                      borderRadius: 'var(--radius-md)',
+                      background: 'var(--bg-primary)',
+                      color: 'var(--text-primary)',
+                      fontSize: '20px',
+                      fontWeight: '600',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}
+                  >
+                    −
+                  </button>
+                  <input
+                    type="number"
+                    className="input"
+                    value={quantity}
+                    onChange={(e) => setQuantity(e.target.value)}
+                    min="1"
+                    placeholder="ระบุจำนวน"
+                    required
+                    style={{ flex: 1, textAlign: 'center', fontSize: '16px', fontWeight: '600' }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setQuantity((parseInt(quantity || 0) + 1).toString())}
+                    style={{
+                      width: '40px',
+                      height: '48px',
+                      border: '1.5px solid var(--border-strong)',
+                      borderRadius: 'var(--radius-md)',
+                      background: 'var(--bg-primary)',
+                      color: 'var(--text-primary)',
+                      fontSize: '20px',
+                      fontWeight: '600',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}
+                  >
+                    +
+                  </button>
+                </div>
               </div>
 
               <div className="form-group">
