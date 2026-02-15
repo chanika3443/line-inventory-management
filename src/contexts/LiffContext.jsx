@@ -15,13 +15,19 @@ export function LiffProvider({ children }) {
       
       if (success) {
         const loggedIn = liffService.isLoggedIn()
-        setIsLoggedIn(loggedIn)
         
-        if (loggedIn) {
-          const profile = await liffService.getUserProfile()
-          setUserProfile(profile)
-          setUserName(profile?.displayName || '')
+        if (!loggedIn) {
+          // Not logged in, redirect to LINE login
+          console.log('Not logged in, redirecting to LINE login...')
+          liffService.login()
+          return // Don't set isReady yet
         }
+        
+        // Logged in, get profile
+        setIsLoggedIn(true)
+        const profile = await liffService.getUserProfile()
+        setUserProfile(profile)
+        setUserName(profile?.displayName || '')
       } else {
         // LIFF failed to initialize, use fallback mode
         console.warn('LIFF not available, using manual input mode')
