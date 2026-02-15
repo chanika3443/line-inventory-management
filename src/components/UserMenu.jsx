@@ -3,7 +3,7 @@ import { useLiff } from '../contexts/LiffContext'
 import './UserMenu.css'
 
 export default function UserMenu() {
-  const { isLoggedIn, userName, userProfile, login, logout, setManualProfile } = useLiff()
+  const { isLoggedIn, userName, userProfile, login, logout } = useLiff()
   const [showMenu, setShowMenu] = useState(false)
   const [showManualInput, setShowManualInput] = useState(false)
   const [manualName, setManualName] = useState('')
@@ -15,52 +15,24 @@ export default function UserMenu() {
         userId: 'manual-' + Date.now(),
         pictureUrl: null
       }
-      setManualProfile(profile)
+      localStorage.setItem('liff_user_profile', JSON.stringify(profile))
+      // Don't reload, just close the input
       setShowManualInput(false)
-      setManualName('')
+      // Trigger a re-render by updating parent context
+      window.location.reload()
     }
   }
 
   if (!isLoggedIn) {
-    if (showManualInput) {
-      return (
-        <div className="manual-login">
-          <input
-            type="text"
-            placeholder="ชื่อของคุณ"
-            value={manualName}
-            onChange={(e) => setManualName(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && handleManualLogin()}
-            className="manual-input"
-            autoFocus
-          />
-          <button onClick={handleManualLogin} className="manual-ok-btn">
-            ✓
-          </button>
-          <button onClick={() => setShowManualInput(false)} className="manual-cancel-btn">
-            ✕
-          </button>
-        </div>
-      )
-    }
-
     return (
-      <div className="login-buttons">
-        <button onClick={login} className="login-btn" title="Login with LINE (ใช้ได้เฉพาะใน LINE app)">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
-            <polyline points="10 17 15 12 10 7"/>
-            <line x1="15" y1="12" x2="3" y2="12"/>
-          </svg>
-          Login LINE
-        </button>
-        <button onClick={() => setShowManualInput(true)} className="manual-btn" title="กรอกชื่อเอง">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-            <circle cx="12" cy="7" r="4"/>
-          </svg>
-        </button>
-      </div>
+      <button onClick={login} className="login-btn" title="Login with LINE (ใช้ได้เฉพาะใน LINE app)">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
+          <polyline points="10 17 15 12 10 7"/>
+          <line x1="15" y1="12" x2="3" y2="12"/>
+        </svg>
+        Login LINE
+      </button>
     )
   }
 

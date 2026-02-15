@@ -9,14 +9,6 @@ export function LiffProvider({ children }) {
   const [userProfile, setUserProfile] = useState(null)
   const [userName, setUserName] = useState('')
 
-  // Function to manually set profile (for manual login)
-  const setManualProfile = (profile) => {
-    setUserProfile(profile)
-    setUserName(profile.displayName || '')
-    setIsLoggedIn(true)
-    localStorage.setItem('liff_user_profile', JSON.stringify(profile))
-  }
-
   useEffect(() => {
     async function init() {
       // Try to load from localStorage first for immediate UI update
@@ -104,7 +96,6 @@ export function LiffProvider({ children }) {
     userProfile,
     userName,
     setUserName, // Allow manual name input
-    setManualProfile, // Allow manual profile setting
     login,
     logout,
     isInClient: liffService.isInClient(),

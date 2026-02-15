@@ -51,7 +51,9 @@ export function isLoggedIn() {
  * Login with LINE
  */
 export function login() {
-  liff.login()
+  // Save current page to return after login
+  const currentPath = window.location.pathname + window.location.search
+  liff.login({ redirectUri: window.location.origin + currentPath })
 }
 
 /**
