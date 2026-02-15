@@ -72,6 +72,21 @@
   font-size: 13px;
 }
 
+.product-details .detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.product-details .detail-row span:first-child {
+  color: var(--text-secondary);
+}
+
+.product-details .detail-value {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
 .checkbox-label {
   display: flex;
   align-items: center;
