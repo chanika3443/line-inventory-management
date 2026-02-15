@@ -254,31 +254,34 @@ export default function Logs() {
         </button>
 
         {showFilters && (
-          <div className="filters-card card" style={{ marginBottom: '16px' }}>
-            <div className="input-group">
-              <label className="input-label">วันที่เริ่มต้น</label>
+          <div className="filters-card card" style={{ marginBottom: '12px', padding: '14px' }}>
+            <div className="input-group" style={{ marginBottom: '8px' }}>
+              <label className="input-label" style={{ fontSize: '11px', marginBottom: '4px', fontWeight: '600' }}>วันที่เริ่มต้น</label>
               <input
                 type="date"
                 className="input"
+                style={{ fontSize: '13px', padding: '8px 10px', height: '38px' }}
                 value={filters.startDate}
                 onChange={(e) => handleFilterChange('startDate', e.target.value)}
               />
             </div>
 
-            <div className="input-group">
-              <label className="input-label">วันที่สิ้นสุด</label>
+            <div className="input-group" style={{ marginBottom: '8px' }}>
+              <label className="input-label" style={{ fontSize: '11px', marginBottom: '4px', fontWeight: '600' }}>วันที่สิ้นสุด</label>
               <input
                 type="date"
                 className="input"
+                style={{ fontSize: '13px', padding: '8px 10px', height: '38px' }}
                 value={filters.endDate}
                 onChange={(e) => handleFilterChange('endDate', e.target.value)}
               />
             </div>
 
-            <div className="input-group">
-              <label className="input-label">ประเภท</label>
+            <div className="input-group" style={{ marginBottom: '10px' }}>
+              <label className="input-label" style={{ fontSize: '11px', marginBottom: '4px', fontWeight: '600' }}>ประเภท</label>
               <select
                 className="select"
+                style={{ fontSize: '13px', padding: '8px 10px', height: '38px' }}
                 value={filters.type}
                 onChange={(e) => handleFilterChange('type', e.target.value)}
               >
@@ -292,7 +295,7 @@ export default function Logs() {
               </select>
             </div>
 
-            <button onClick={handleApplyFilters} className="btn btn-primary btn-block">
+            <button onClick={handleApplyFilters} className="btn btn-primary btn-block" style={{ fontSize: '13px', padding: '10px', fontWeight: '600' }}>
               ค้นหา
             </button>
           </div>
