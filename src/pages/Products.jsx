@@ -185,20 +185,19 @@ export default function Products() {
                 </div>
               )}
             </div>
-            {!product.returnable && (
-              <div style={{ 
-                marginTop: '10px', 
-                padding: '8px 12px', 
-                background: 'var(--bg-secondary)', 
-                borderRadius: 'var(--radius-md)',
-                textAlign: 'center',
-                fontSize: '12px',
-                color: 'var(--text-tertiary)',
-                opacity: '0.7'
-              }}>
-                คืนไม่ได้
-              </div>
-            )}
+            <div style={{ 
+              marginTop: '10px', 
+              padding: '8px 12px', 
+              background: product.returnable ? 'rgba(81, 207, 102, 0.1)' : 'var(--bg-secondary)', 
+              borderRadius: 'var(--radius-md)',
+              textAlign: 'center',
+              fontSize: '12px',
+              color: product.returnable ? '#51cf66' : 'var(--text-tertiary)',
+              opacity: product.returnable ? '1' : '0.7',
+              fontWeight: product.returnable ? '600' : '400'
+            }}>
+              {product.returnable ? 'คืนได้' : 'คืนไม่ได้'}
+            </div>
           </div>
         ))}
       </div>
