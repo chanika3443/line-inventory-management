@@ -13,6 +13,7 @@ export default function Reports() {
     startDate: '',
     endDate: ''
   })
+  const [showExportMenu, setShowExportMenu] = useState(false)
   const isInitialMount = useRef(true)
 
   const loadReport = useCallback(async (filterParams) => {
@@ -80,6 +81,15 @@ export default function Reports() {
 
   function handleApplyFilters() {
     loadReport(filters)
+  }
+
+  const handleExport = (format) => {
+    if (format === 'excel') {
+      exportToExcel()
+    } else if (format === 'csv') {
+      exportToCSV()
+    }
+    setShowExportMenu(false)
   }
 
   const exportToExcel = useCallback(() => {
@@ -254,27 +264,41 @@ export default function Reports() {
         <button onClick={handleApplyFilters} className="btn btn-primary btn-block">
           สร้างรายงาน
         </button>
+
+        {report && (
+          <div className="export-section">
+            <button 
+              onClick={() => setShowExportMenu(!showExportMenu)} 
+              className="btn btn-export-main btn-block"
+            >
+              <span>📥</span>
+              Export รายงาน
+            </button>
+            
+            {showExportMenu && (
+              <div className="export-menu">
+                <button onClick={() => handleExport('excel')} className="export-menu-item">
+                  <span className="export-menu-icon">📊</span>
+                  <div className="export-menu-text">
+                    <div className="export-menu-title">Excel</div>
+                    <div className="export-menu-subtitle">ไฟล์ .xlsx</div>
+                  </div>
+                </button>
+                <button onClick={() => handleExport('csv')} className="export-menu-item">
+                  <span className="export-menu-icon">📋</span>
+                  <div className="export-menu-text">
+                    <div className="export-menu-title">CSV</div>
+                    <div className="export-menu-subtitle">ไฟล์ .csv</div>
+                  </div>
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {report && (
         <>
-          <div className="export-buttons">
-            <button onClick={exportToExcel} className="btn btn-export btn-excel">
-              <span className="export-icon">📊</span>
-              <span className="export-text">
-                <span className="export-title">Excel</span>
-                <span className="export-subtitle">ไฟล์ .xlsx</span>
-              </span>
-            </button>
-            <button onClick={exportToCSV} className="btn btn-export btn-csv">
-              <span className="export-icon">📋</span>
-              <span className="export-text">
-                <span className="export-title">CSV</span>
-                <span className="export-subtitle">ไฟล์ .csv</span>
-              </span>
-            </button>
-          </div>
-
           <div className="summary-grid">
             <div className="summary-card">
               <div className="summary-value text-danger">{report.summary.totalWithdrawals}</div>

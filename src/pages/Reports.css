@@ -177,73 +177,103 @@
   justify-content: center;
 }
 
-.btn-export {
-  flex: 0 0 auto;
+.export-section {
+  position: relative;
+  margin-top: 12px;
+}
+
+.btn-export-main {
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  padding: 16px 24px;
-  min-width: 120px;
+  gap: 8px;
+  padding: 12px;
   font-size: 14px;
   font-weight: 600;
-  border-radius: 16px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
   border: none;
+  border-radius: var(--radius-md);
   cursor: pointer;
   transition: all 0.2s ease;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
 }
 
-.btn-export:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+.btn-export-main:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
 }
 
-.btn-export:active {
-  transform: translateY(-1px);
+.btn-export-main span {
+  font-size: 18px;
 }
 
-.export-icon {
-  font-size: 32px;
+.export-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  background: white;
+  border-radius: var(--radius-md);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  z-index: 10;
+  animation: slideDown 0.2s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.export-menu-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  background: white;
+  border: none;
+  border-bottom: 1px solid var(--color-border);
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.export-menu-item:last-child {
+  border-bottom: none;
+}
+
+.export-menu-item:hover {
+  background: var(--color-bg-secondary);
+}
+
+.export-menu-icon {
+  font-size: 24px;
   flex-shrink: 0;
 }
 
-.export-text {
+.export-menu-text {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
   gap: 2px;
 }
 
-.export-title {
-  font-size: 15px;
-  font-weight: 700;
-  line-height: 1;
+.export-menu-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-primary);
 }
 
-.export-subtitle {
+.export-menu-subtitle {
   font-size: 11px;
-  opacity: 0.85;
-  font-weight: 400;
-}
-
-.btn-excel {
-  background: linear-gradient(135deg, #1d6f42 0%, #21a366 100%);
-  color: white;
-}
-
-.btn-excel:hover {
-  box-shadow: 0 6px 20px rgba(33, 163, 102, 0.4);
-}
-
-.btn-csv {
-  background: linear-gradient(135deg, #1e5a9e 0%, #2b7cd3 100%);
-  color: white;
-}
-
-.btn-csv:hover {
-  box-shadow: 0 6px 20px rgba(43, 124, 211, 0.4);
+  color: var(--color-text-secondary);
 }
 
 .transaction-count {
