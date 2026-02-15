@@ -141,7 +141,7 @@ export default function Layout() {
                   e.currentTarget.style.background = 'white'
                 }}
               >
-                กรอกชื่อเอง
+                ลงชื่อเข้าใช้ด้วยชื่อเล่น
               </button>
             </>
           ) : (
