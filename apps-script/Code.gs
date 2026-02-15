@@ -122,6 +122,33 @@ function getProduct(code) {
 }
 
 /**
+ * Add audit log entry
+ */
+function addAuditLog(action, details, userName, ipAddress = '') {
+  try {
+    const sheet = getSpreadsheet().getSheetByName('AuditLog');
+    if (!sheet) {
+      // Create AuditLog sheet if it doesn't exist
+      const newSheet = getSpreadsheet().insertSheet('AuditLog');
+      newSheet.appendRow(['Timestamp', 'Action', 'Details', 'UserName', 'IP Address']);
+      return addAuditLog(action, details, userName, ipAddress);
+    }
+    
+    const timestamp = new Date();
+    sheet.appendRow([
+      timestamp,
+      action,
+      details,
+      userName,
+      ipAddress
+    ]);
+  } catch (error) {
+    // Silently fail - don't break the main operation if audit log fails
+    console.error('Audit log error:', error);
+  }
+}
+
+/**
  * Add transaction log
  */
 function addTransaction(type, productCode, productName, quantity, beforeQty, afterQty, userName, note = '') {
@@ -170,6 +197,13 @@ function addProduct(product) {
       timestamp
     ]);
     
+    // Add audit log
+    addAuditLog(
+      'ADD_PRODUCT',
+      `เพิ่มวัสดุ: ${product.code} - ${product.name}`,
+      product.userName || 'System'
+    );
+    
     return { success: true, message: 'เพิ่มสินค้าสำเร็จ' };
   } catch (error) {
     return { success: false, message: error.toString() };
@@ -189,18 +223,55 @@ function updateProduct(code, updates) {
     const sheet = getSheet(SHEETS.PRODUCTS);
     const timestamp = new Date();
     
+    // Get old product data for audit log
+    const oldProduct = getProduct(code);
+    let changes = [];
+    
     // Update fields
-    if (updates.name !== undefined) sheet.getRange(row, 2).setValue(updates.name);
-    if (updates.unit !== undefined) sheet.getRange(row, 3).setValue(updates.unit);
-    if (updates.quantity !== undefined) sheet.getRange(row, 4).setValue(updates.quantity);
-    if (updates.lowStockThreshold !== undefined) sheet.getRange(row, 5).setValue(updates.lowStockThreshold);
-    if (updates.category !== undefined) sheet.getRange(row, 6).setValue(updates.category);
-    if (updates.returnable !== undefined) sheet.getRange(row, 7).setValue(updates.returnable);
-    if (updates.requireRoom !== undefined) sheet.getRange(row, 8).setValue(updates.requireRoom);
-    if (updates.requirePatientType !== undefined) sheet.getRange(row, 9).setValue(updates.requirePatientType);
+    if (updates.name !== undefined && updates.name !== oldProduct.name) {
+      sheet.getRange(row, 2).setValue(updates.name);
+      changes.push(`ชื่อ: ${oldProduct.name} → ${updates.name}`);
+    }
+    if (updates.unit !== undefined && updates.unit !== oldProduct.unit) {
+      sheet.getRange(row, 3).setValue(updates.unit);
+      changes.push(`หน่วย: ${oldProduct.unit} → ${updates.unit}`);
+    }
+    if (updates.quantity !== undefined && updates.quantity !== oldProduct.quantity) {
+      sheet.getRange(row, 4).setValue(updates.quantity);
+      changes.push(`จำนวน: ${oldProduct.quantity} → ${updates.quantity}`);
+    }
+    if (updates.lowStockThreshold !== undefined && updates.lowStockThreshold !== oldProduct.lowStockThreshold) {
+      sheet.getRange(row, 5).setValue(updates.lowStockThreshold);
+      changes.push(`เกณฑ์: ${oldProduct.lowStockThreshold} → ${updates.lowStockThreshold}`);
+    }
+    if (updates.category !== undefined && updates.category !== oldProduct.category) {
+      sheet.getRange(row, 6).setValue(updates.category);
+      changes.push(`หมวดหมู่: ${oldProduct.category} → ${updates.category}`);
+    }
+    if (updates.returnable !== undefined && updates.returnable !== oldProduct.returnable) {
+      sheet.getRange(row, 7).setValue(updates.returnable);
+      changes.push(`คืนได้: ${oldProduct.returnable} → ${updates.returnable}`);
+    }
+    if (updates.requireRoom !== undefined && updates.requireRoom !== oldProduct.requireRoom) {
+      sheet.getRange(row, 8).setValue(updates.requireRoom);
+      changes.push(`ต้องระบุห้อง: ${oldProduct.requireRoom} → ${updates.requireRoom}`);
+    }
+    if (updates.requirePatientType !== undefined && updates.requirePatientType !== oldProduct.requirePatientType) {
+      sheet.getRange(row, 9).setValue(updates.requirePatientType);
+      changes.push(`ต้องระบุประเภทผู้ป่วย: ${oldProduct.requirePatientType} → ${updates.requirePatientType}`);
+    }
     
     // Update timestamp
     sheet.getRange(row, 11).setValue(timestamp);
+    
+    // Add audit log
+    if (changes.length > 0) {
+      addAuditLog(
+        'UPDATE_PRODUCT',
+        `แก้ไขวัสดุ ${code}: ${changes.join(', ')}`,
+        updates.userName || 'System'
+      );
+    }
     
     return { success: true, message: 'แก้ไขสินค้าสำเร็จ' };
   } catch (error) {
@@ -218,8 +289,18 @@ function deleteProduct(code) {
       return { success: false, message: 'ไม่พบสินค้า' };
     }
     
+    // Get product data before deletion for audit log
+    const product = getProduct(code);
+    
     const sheet = getSheet(SHEETS.PRODUCTS);
     sheet.deleteRow(row);
+    
+    // Add audit log
+    addAuditLog(
+      'DELETE_PRODUCT',
+      `ลบวัสดุ: ${code} - ${product.name}`,
+      'System'
+    );
     
     return { success: true, message: 'ลบสินค้าสำเร็จ' };
   } catch (error) {
@@ -252,6 +333,13 @@ function withdraw(productCode, quantity, userName, note) {
     // Add transaction log with note
     addTransaction('เบิก', productCode, product.name, quantity, product.quantity, newQuantity, userName, note || 'เบิกวัสดุ');
     
+    // Add audit log
+    addAuditLog(
+      'WITHDRAW',
+      `เบิก: ${product.name} (${productCode}) จำนวน ${quantity} ${product.unit} | ${note || 'เบิกวัสดุ'}`,
+      userName
+    );
+    
     return { 
       success: true, 
       message: 'เบิกสินค้าสำเร็จ',
@@ -282,6 +370,13 @@ function receive(productCode, quantity, userName) {
     
     // Add transaction log
     addTransaction('รับเข้า', productCode, product.name, quantity, product.quantity, newQuantity, userName);
+    
+    // Add audit log
+    addAuditLog(
+      'RECEIVE',
+      `รับเข้า: ${product.name} (${productCode}) จำนวน ${quantity} ${product.unit}`,
+      userName
+    );
     
     return { 
       success: true, 
@@ -317,6 +412,13 @@ function returnProduct(productCode, quantity, userName, note) {
     
     // Add transaction log
     addTransaction('คืน', productCode, product.name, quantity, product.quantity, newQuantity, userName, note);
+    
+    // Add audit log
+    addAuditLog(
+      'RETURN',
+      `คืน: ${product.name} (${productCode}) จำนวน ${quantity} ${product.unit} | ${note}`,
+      userName
+    );
     
     return { 
       success: true, 
