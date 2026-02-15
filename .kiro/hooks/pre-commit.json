@@ -1,0 +1,12 @@
+{
+  "name": "Pre-commit Check",
+  "version": "1.0.0",
+  "description": "Run checks before committing code",
+  "when": {
+    "type": "userTriggered"
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Before committing, please check:\n1. Run 'npm run build' to ensure code compiles\n2. Check for console.log statements\n3. Verify no sensitive data (API keys, tokens) in code\n4. Ensure .env is in .gitignore\n5. Update README if needed\n\nPlease confirm all checks pass or fix any issues found."
+  }
+}
