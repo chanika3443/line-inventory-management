@@ -2,8 +2,6 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import * as sheetsService from '../services/sheetsService'
 import Loading from '../components/Loading'
 import { useHeaderShrink } from '../hooks/useHeaderShrink'
-import jsPDF from 'jspdf'
-import autoTable from 'jspdf-autotable'
 import * as XLSX from 'xlsx'
 import './Reports.css'
 
@@ -83,79 +81,6 @@ export default function Reports() {
   function handleApplyFilters() {
     loadReport(filters)
   }
-
-  const exportToPDF = useCallback(() => {
-    if (!report) return
-
-    const doc = new jsPDF()
-    
-    // Add Thai font support (using default font for now)
-    doc.setFont('helvetica')
-    
-    // Title
-    doc.setFontSize(18)
-    doc.text('รายงานการเคลื่อนไหววัสดุ', 14, 20)
-    
-    // Date range
-    doc.setFontSize(10)
-    doc.text(`ช่วงเวลา: ${filters.startDate} ถึง ${filters.endDate}`, 14, 28)
-    
-    // Summary section
-    doc.setFontSize(12)
-    doc.text('สรุป', 14, 38)
-    
-    const summaryData = [
-      ['เบิกออก', report.summary.totalWithdrawals.toString()],
-      ['รับเข้า', report.summary.totalReceipts.toString()],
-      ['คืน', report.summary.totalReturns.toString()],
-      ['สุทธิ', report.summary.netChange.toString()],
-      ['รายการทั้งหมด', report.summary.transactionCount.toString()]
-    ]
-    
-    autoTable(doc, {
-      startY: 42,
-      head: [['รายการ', 'จำนวน']],
-      body: summaryData,
-      theme: 'grid',
-      headStyles: { fillColor: [66, 139, 202] }
-    })
-    
-    // Transaction details
-    if (report.transactions.length > 0) {
-      doc.setFontSize(12)
-      doc.text('รายละเอียด', 14, doc.lastAutoTable.finalY + 10)
-      
-      const transactionData = report.transactions.map(t => {
-        const type = t.type.toUpperCase()
-        let typeLabel = t.type
-        if (type === 'WITHDRAW' || type === 'เบิก') typeLabel = 'เบิก'
-        else if (type === 'RETURN' || type === 'คืน') typeLabel = 'คืน'
-        else if (type === 'RECEIVE' || type === 'รับเข้า') typeLabel = 'รับเข้า'
-        else if (type === 'CREATE') typeLabel = 'สร้าง'
-        else if (type === 'EDIT') typeLabel = 'แก้ไข'
-        else if (type === 'DELETE') typeLabel = 'ลบ'
-        
-        return [
-          t.productName,
-          typeLabel,
-          t.quantity.toString(),
-          new Date(t.timestamp).toLocaleDateString('th-TH')
-        ]
-      })
-      
-      autoTable(doc, {
-        startY: doc.lastAutoTable.finalY + 14,
-        head: [['วัสดุ', 'ประเภท', 'จำนวน', 'วันที่']],
-        body: transactionData,
-        theme: 'striped',
-        headStyles: { fillColor: [66, 139, 202] }
-      })
-    }
-    
-    // Save PDF
-    const filename = `รายงาน_${filters.startDate}_${filters.endDate}.pdf`
-    doc.save(filename)
-  }, [report, filters])
 
   const exportToExcel = useCallback(() => {
     if (!report) return
@@ -299,10 +224,6 @@ export default function Reports() {
       {report && (
         <>
           <div className="export-buttons">
-            <button onClick={exportToPDF} className="btn btn-export btn-pdf">
-              <span className="export-icon">📄</span>
-              PDF
-            </button>
             <button onClick={exportToExcel} className="btn btn-export btn-excel">
               <span className="export-icon">📊</span>
               Excel
