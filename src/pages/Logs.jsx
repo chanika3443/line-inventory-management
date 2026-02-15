@@ -201,10 +201,11 @@ export default function Logs() {
         {/* Date Range Buttons */}
         <div style={{ 
           display: 'flex', 
-          gap: '6px', 
-          marginBottom: '12px',
+          gap: '8px', 
+          marginBottom: '16px',
           overflowX: 'auto',
-          paddingBottom: '4px'
+          paddingBottom: '4px',
+          WebkitOverflowScrolling: 'touch'
         }}>
           {[
             { value: 'today', label: 'วันนี้' },
@@ -219,9 +220,12 @@ export default function Logs() {
               className={`btn ${dateRange === range.value ? 'btn-primary' : 'btn-outline'}`}
               style={{ 
                 fontSize: '13px', 
-                padding: '8px 16px',
+                padding: '10px 20px',
                 whiteSpace: 'nowrap',
-                flex: '0 0 auto'
+                flex: '0 0 auto',
+                fontWeight: '600',
+                borderRadius: 'var(--radius-full)',
+                transition: 'all 0.2s'
               }}
             >
               {range.label}
@@ -232,9 +236,19 @@ export default function Logs() {
         <button 
           onClick={() => setShowFilters(!showFilters)}
           className="btn btn-outline btn-block"
-          style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontSize: '13px', padding: '10px' }}
+          style={{ 
+            marginBottom: '16px', 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center', 
+            gap: '8px', 
+            fontSize: '14px', 
+            padding: '12px',
+            fontWeight: '600',
+            borderRadius: 'var(--radius-lg)'
+          }}
         >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
           </svg>
           {showFilters ? 'ซ่อนตัวกรอง' : 'ค้นหาเพิ่มเติม'}
@@ -285,7 +299,22 @@ export default function Logs() {
           </div>
         )}
 
-      <div className="transaction-count" style={{ marginBottom: '12px', fontSize: '14px' }}>
+      <div className="transaction-count" style={{ 
+        marginBottom: '16px', 
+        fontSize: '14px',
+        fontWeight: '600',
+        color: 'var(--text-secondary)',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '8px'
+      }}>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+          <line x1="16" y1="13" x2="8" y2="13"/>
+          <line x1="16" y1="17" x2="8" y2="17"/>
+          <polyline points="10 9 9 9 8 9"/>
+        </svg>
         พบ {transactions.length} รายการ {totalPages > 1 && `(หน้า ${currentPage}/${totalPages})`}
       </div>
 
@@ -448,18 +477,30 @@ export default function Logs() {
               justifyContent: 'center', 
               alignItems: 'center',
               gap: '8px',
-              marginTop: '16px'
+              marginTop: '20px',
+              paddingTop: '16px',
+              borderTop: '1px solid var(--border)'
             }}>
               <button
                 onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                 disabled={currentPage === 1}
                 className="btn btn-outline"
-                style={{ padding: '8px 12px', fontSize: '13px' }}
+                style={{ 
+                  padding: '10px 16px', 
+                  fontSize: '13px',
+                  fontWeight: '600',
+                  borderRadius: 'var(--radius-lg)',
+                  minWidth: '100px'
+                }}
               >
                 ← ก่อนหน้า
               </button>
               
-              <div style={{ display: 'flex', gap: '4px' }}>
+              <div style={{ 
+                display: 'flex', 
+                gap: '6px',
+                alignItems: 'center'
+              }}>
                 {[...Array(totalPages)].map((_, i) => {
                   const page = i + 1
                   // Show first, last, current, and adjacent pages
@@ -474,16 +515,18 @@ export default function Logs() {
                         onClick={() => setCurrentPage(page)}
                         className={`btn ${currentPage === page ? 'btn-primary' : 'btn-outline'}`}
                         style={{ 
-                          padding: '8px 12px', 
+                          padding: '10px 14px', 
                           fontSize: '13px',
-                          minWidth: '40px'
+                          fontWeight: '600',
+                          minWidth: '44px',
+                          borderRadius: 'var(--radius-md)'
                         }}
                       >
                         {page}
                       </button>
                     )
                   } else if (page === currentPage - 2 || page === currentPage + 2) {
-                    return <span key={page} style={{ padding: '8px 4px', color: 'var(--text-tertiary)' }}>...</span>
+                    return <span key={page} style={{ padding: '0 4px', color: 'var(--text-tertiary)', fontSize: '18px' }}>...</span>
                   }
                   return null
                 })}
@@ -493,7 +536,13 @@ export default function Logs() {
                 onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                 disabled={currentPage === totalPages}
                 className="btn btn-outline"
-                style={{ padding: '8px 12px', fontSize: '13px' }}
+                style={{ 
+                  padding: '10px 16px', 
+                  fontSize: '13px',
+                  fontWeight: '600',
+                  borderRadius: 'var(--radius-lg)',
+                  minWidth: '100px'
+                }}
               >
                 ถัดไป →
               </button>
