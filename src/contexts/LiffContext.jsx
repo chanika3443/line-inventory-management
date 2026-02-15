@@ -7,7 +7,7 @@ export function LiffProvider({ children }) {
   const [isReady, setIsReady] = useState(false)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [userProfile, setUserProfile] = useState(null)
-  const [userName, setUserName] = useState('Guest')
+  const [userName, setUserName] = useState('')
 
   useEffect(() => {
     async function init() {
@@ -41,7 +41,7 @@ export function LiffProvider({ children }) {
     liffService.logout()
     setIsLoggedIn(false)
     setUserProfile(null)
-    setUserName('Guest')
+    setUserName('')
   }
 
   const value = {
