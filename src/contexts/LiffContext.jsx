@@ -68,6 +68,8 @@ export function LiffProvider({ children }) {
   }
 
   const logout = () => {
+    console.log('Logout called')
+    
     // Clear localStorage first
     localStorage.removeItem('liff_user_profile')
     
@@ -76,8 +78,14 @@ export function LiffProvider({ children }) {
     setUserProfile(null)
     setUserName('')
     
-    // Logout from LIFF (will reload page)
-    liffService.logout()
+    // Try to logout from LIFF, but don't wait
+    try {
+      liffService.logout()
+    } catch (error) {
+      console.error('Logout error:', error)
+      // Force reload anyway
+      window.location.href = '/'
+    }
   }
 
   const value = {
