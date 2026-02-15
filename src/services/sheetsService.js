@@ -213,3 +213,18 @@ export async function getDashboardData() {
     }
   }
 }
+
+/**
+ * Get allowed users for product management
+ * Reads from "AllowedUsers" sheet with columns: Name
+ */
+export async function getAllowedUsers() {
+  try {
+    const rows = await fetchSheetData('AllowedUsers!A2:A')
+    return rows.map(row => row[0]).filter(name => name && name.trim())
+  } catch (error) {
+    console.error('Error getting allowed users:', error)
+    // Return empty array if sheet doesn't exist or error occurs
+    return []
+  }
+}

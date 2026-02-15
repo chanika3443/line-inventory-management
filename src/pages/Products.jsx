@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useSheets } from '../contexts/SheetsContext'
 import { useLiff } from '../contexts/LiffContext'
+import * as sheetsService from '../services/sheetsService'
 import Loading from '../components/Loading'
 import { useHeaderShrink } from '../hooks/useHeaderShrink'
 import './Products.css'
@@ -24,14 +25,19 @@ export default function Products() {
   })
   const [message, setMessage] = useState(null)
   const [deleteConfirm, setDeleteConfirm] = useState({ show: false, product: null, input: '' })
+  const [allowedUsers, setAllowedUsers] = useState([])
+  const [checkingAccess, setCheckingAccess] = useState(true)
 
-  // Access control - list of allowed users
-  const allowedUsers = [
-    'Admin User',
-    'ชื่อผู้ดูแล 1',
-    'ชื่อผู้ดูแล 2',
-    // เพิ่มชื่อผู้ใช้ที่อนุญาตได้ที่นี่
-  ]
+  // Fetch allowed users from Google Sheets
+  useEffect(() => {
+    async function loadAllowedUsers() {
+      setCheckingAccess(true)
+      const users = await sheetsService.getAllowedUsers()
+      setAllowedUsers(users)
+      setCheckingAccess(false)
+    }
+    loadAllowedUsers()
+  }, [])
 
   const hasAccess = allowedUsers.includes(userName)
 
@@ -121,6 +127,11 @@ export default function Products() {
   }
 
   if (loading && products.length === 0) {
+    return <Loading />
+  }
+
+  // Show loading while checking access
+  if (checkingAccess) {
     return <Loading />
   }
 
