@@ -170,16 +170,6 @@ export async function getTransactionLogs(filters = {}) {
     return []
   }
 }
-  }
-}
-    transactions.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
-    
-    return transactions
-  } catch (error) {
-    console.error('Error getting transaction logs:', error)
-    return []
-  }
-}
 
 /**
  * Get dashboard data
