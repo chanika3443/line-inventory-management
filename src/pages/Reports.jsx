@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import * as sheetsService from '../services/sheetsService'
 import Loading from '../components/Loading'
 import { useHeaderShrink } from '../hooks/useHeaderShrink'
@@ -12,8 +12,9 @@ export default function Reports() {
     startDate: '',
     endDate: ''
   })
+  const isInitialMount = useRef(true)
 
-  const loadReport = useCallback(async (filterParams = filters) => {
+  const loadReport = useCallback(async (filterParams) => {
     setLoading(true)
     const transactions = await sheetsService.getTransactionLogs(filterParams)
     
@@ -51,31 +52,33 @@ export default function Reports() {
     console.log('Report data:', reportData)
     setReport(reportData)
     setLoading(false)
-  }, [filters])
+  }, [])
 
   useEffect(() => {
-    // Set default date range (last 30 days)
-    const today = new Date()
-    const thirtyDaysAgo = new Date(today)
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+    if (isInitialMount.current) {
+      isInitialMount.current = false
+      
+      // Set default date range (last 30 days)
+      const today = new Date()
+      const thirtyDaysAgo = new Date(today)
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
 
-    setFilters({
-      startDate: thirtyDaysAgo.toISOString().split('T')[0],
-      endDate: today.toISOString().split('T')[0]
-    })
+      const defaultFilters = {
+        startDate: thirtyDaysAgo.toISOString().split('T')[0],
+        endDate: today.toISOString().split('T')[0]
+      }
 
-    loadReport({
-      startDate: thirtyDaysAgo.toISOString().split('T')[0],
-      endDate: today.toISOString().split('T')[0]
-    })
-  }, [loadReport])
+      setFilters(defaultFilters)
+      loadReport(defaultFilters)
+    }
+  }, [])
 
   function handleFilterChange(key, value) {
     setFilters(prev => ({ ...prev, [key]: value }))
   }
 
   function handleApplyFilters() {
-    loadReport()
+    loadReport(filters)
   }
 
   if (loading) {
