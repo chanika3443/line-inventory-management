@@ -7,9 +7,8 @@ export const config = {
   },
   
   // For WRITE operations - Apps Script API
-  // TODO: Deploy your Apps Script as Web App and paste the URL here
   appsScript: {
-    url: 'https://script.google.com/macros/s/YOUR_SCRIPT_ID_HERE/exec'
+    url: import.meta.env.VITE_APPS_SCRIPT_URL || ''
   },
   
   // LINE LIFF
