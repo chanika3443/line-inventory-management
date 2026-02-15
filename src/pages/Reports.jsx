@@ -252,7 +252,7 @@ export default function Reports() {
       </div>
 
       <div className="container" style={{ paddingTop: '12px' }}>
-        <div className="filters-card card">
+        <div className={`filters-card card ${showExportMenu ? 'menu-open' : ''}`}>
         <div className="input-group">
           <label className="input-label">วันที่เริ่มต้น</label>
           <input
