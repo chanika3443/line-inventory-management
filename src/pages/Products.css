@@ -131,3 +131,52 @@
   font-weight: 700;
   margin-bottom: var(--spacing-lg);
 }
+
+/* Access Denied */
+.access-denied-card {
+  background: var(--color-bg-primary);
+  border-radius: var(--radius-lg);
+  padding: 40px 24px;
+  text-align: center;
+  box-shadow: var(--shadow-md);
+  margin-top: 20px;
+}
+
+.access-denied-icon {
+  font-size: 64px;
+  margin-bottom: 20px;
+  animation: shake 0.5s ease-in-out;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-10px); }
+  75% { transform: translateX(10px); }
+}
+
+.access-denied-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--color-danger);
+  margin-bottom: 12px;
+}
+
+.access-denied-message {
+  font-size: 15px;
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+  margin-bottom: 24px;
+}
+
+.access-denied-info {
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  margin-top: 24px;
+}
+
+.access-denied-user {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  font-weight: 500;
+}

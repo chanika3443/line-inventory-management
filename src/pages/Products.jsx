@@ -25,6 +25,16 @@ export default function Products() {
   const [message, setMessage] = useState(null)
   const [deleteConfirm, setDeleteConfirm] = useState({ show: false, product: null, input: '' })
 
+  // Access control - list of allowed users
+  const allowedUsers = [
+    'Admin User',
+    'ชื่อผู้ดูแล 1',
+    'ชื่อผู้ดูแล 2',
+    // เพิ่มชื่อผู้ใช้ที่อนุญาตได้ที่นี่
+  ]
+
+  const hasAccess = allowedUsers.includes(userName)
+
   useEffect(() => {
     fetchProducts()
   }, [fetchProducts])
@@ -112,6 +122,33 @@ export default function Products() {
 
   if (loading && products.length === 0) {
     return <Loading />
+  }
+
+  // Show access denied if user is not authorized
+  if (!hasAccess) {
+    return (
+      <div className="products-page">
+        <div className="header">
+          <h1>จัดการวัสดุ</h1>
+          <p className="header-subtitle">เพิ่ม แก้ไข ลบวัสดุ</p>
+        </div>
+
+        <div className="container" style={{ paddingTop: '16px' }}>
+          <div className="access-denied-card">
+            <div className="access-denied-icon">🔒</div>
+            <h2 className="access-denied-title">ไม่มีสิทธิ์เข้าถึง</h2>
+            <p className="access-denied-message">
+              คุณไม่มีสิทธิ์ในการจัดการวัสดุ
+              <br />
+              กรุณาติดต่อผู้ดูแลระบบ
+            </p>
+            <div className="access-denied-info">
+              <p className="access-denied-user">ผู้ใช้: {userName}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (
