@@ -8,9 +8,24 @@ export function LiffProvider({ children }) {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [userProfile, setUserProfile] = useState(null)
   const [userName, setUserName] = useState('')
+  const [loginMode, setLoginMode] = useState(null) // 'line' or 'manual'
 
   useEffect(() => {
     async function init() {
+      // Check if user has chosen login mode before
+      const savedMode = localStorage.getItem('login_mode')
+      const savedManualName = localStorage.getItem('manual_user_name')
+      
+      if (savedMode === 'manual' && savedManualName) {
+        // User previously chose manual mode
+        setLoginMode('manual')
+        setUserName(savedManualName)
+        setIsLoggedIn(true)
+        setUserProfile({ displayName: savedManualName, pictureUrl: null })
+        setIsReady(true)
+        return
+      }
+      
       // Set ready immediately so UI can render
       setIsReady(true)
 
@@ -24,16 +39,18 @@ export function LiffProvider({ children }) {
           // Logged in via LIFF, get fresh profile
           const profile = await liffService.getUserProfile()
           if (profile) {
+            setLoginMode('line')
             setIsLoggedIn(true)
             setUserProfile(profile)
             setUserName(profile.displayName || '')
             
             // Update localStorage with fresh data
+            localStorage.setItem('login_mode', 'line')
             localStorage.setItem('liff_user_profile', JSON.stringify(profile))
           }
         } else {
-          // Not logged in via LIFF, clear everything
-          localStorage.removeItem('liff_user_profile')
+          // Not logged in via LIFF
+          setLoginMode(null)
           setIsLoggedIn(false)
           setUserProfile(null)
           setUserName('')
@@ -41,20 +58,7 @@ export function LiffProvider({ children }) {
       } else {
         // LIFF failed to initialize (not in LINE app)
         console.warn('LIFF not available')
-        
-        // Try to load from localStorage for manual mode
-        const savedProfile = localStorage.getItem('liff_user_profile')
-        if (savedProfile) {
-          try {
-            const profile = JSON.parse(savedProfile)
-            setUserProfile(profile)
-            setUserName(profile.displayName || '')
-            setIsLoggedIn(true)
-          } catch (e) {
-            console.error('Failed to parse saved profile:', e)
-            localStorage.removeItem('liff_user_profile')
-          }
-        }
+        setLoginMode(null)
       }
     }
     
@@ -65,24 +69,43 @@ export function LiffProvider({ children }) {
     liffService.login()
   }
 
+  const loginWithManualName = (name) => {
+    if (!name || !name.trim()) return false
+    
+    const trimmedName = name.trim()
+    setLoginMode('manual')
+    setIsLoggedIn(true)
+    setUserName(trimmedName)
+    setUserProfile({ displayName: trimmedName, pictureUrl: null })
+    
+    localStorage.setItem('login_mode', 'manual')
+    localStorage.setItem('manual_user_name', trimmedName)
+    
+    return true
+  }
+
   const logout = () => {
     console.log('Logout called')
     
-    // Clear localStorage first
+    // Clear localStorage
     localStorage.removeItem('liff_user_profile')
+    localStorage.removeItem('login_mode')
+    localStorage.removeItem('manual_user_name')
     
     // Clear state
     setIsLoggedIn(false)
     setUserProfile(null)
     setUserName('')
+    setLoginMode(null)
     
-    // Logout from LIFF (will reload page)
-    try {
-      liffService.logout()
-    } catch (error) {
-      console.error('Logout error:', error)
-      // Force reload anyway
-      window.location.reload()
+    // Logout from LIFF if in LINE mode
+    if (loginMode === 'line') {
+      try {
+        liffService.logout()
+      } catch (error) {
+        console.error('Logout error:', error)
+        window.location.reload()
+      }
     }
   }
 
@@ -91,8 +114,10 @@ export function LiffProvider({ children }) {
     isLoggedIn,
     userProfile,
     userName,
-    setUserName, // Allow manual name input
+    loginMode,
+    setUserName,
     login,
+    loginWithManualName,
     logout,
     isInClient: liffService.isInClient(),
     closeWindow: liffService.closeWindow,
