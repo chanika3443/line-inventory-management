@@ -92,6 +92,7 @@ export default function Reports() {
     const summaryData = [
       ['รายงานการเคลื่อนไหววัสดุ'],
       ['ช่วงเวลา', `${filters.startDate} ถึง ${filters.endDate}`],
+      ['วันที่สร้างรายงาน', new Date().toLocaleString('th-TH')],
       [],
       ['สรุป'],
       ['เบิกออก', report.summary.totalWithdrawals],
@@ -104,7 +105,7 @@ export default function Reports() {
     const summarySheet = XLSX.utils.aoa_to_sheet(summaryData)
     XLSX.utils.book_append_sheet(wb, summarySheet, 'สรุป')
     
-    // Transactions sheet
+    // Transactions sheet with detailed information
     if (report.transactions.length > 0) {
       const transactionData = report.transactions.map(t => {
         const type = t.type.toUpperCase()
@@ -116,16 +117,40 @@ export default function Reports() {
         else if (type === 'EDIT') typeLabel = 'แก้ไข'
         else if (type === 'DELETE') typeLabel = 'ลบ'
         
+        const date = new Date(t.timestamp)
+        
         return {
+          'วันที่': date.toLocaleDateString('th-TH'),
+          'เวลา': date.toLocaleTimeString('th-TH'),
           'วัสดุ': t.productName,
+          'รหัสวัสดุ': t.productCode || '-',
           'ประเภท': typeLabel,
           'จำนวน': t.quantity,
-          'วันที่': new Date(t.timestamp).toLocaleDateString('th-TH'),
-          'เวลา': new Date(t.timestamp).toLocaleTimeString('th-TH')
+          'หน่วย': t.unit || '-',
+          'ผู้ทำรายการ': t.userName || '-',
+          'ห้องผู้ป่วย': t.roomNumber || '-',
+          'ประเภทผู้ป่วย': t.patientType || '-',
+          'หมายเหตุ': t.notes || '-'
         }
       })
       
       const transactionSheet = XLSX.utils.json_to_sheet(transactionData)
+      
+      // Set column widths
+      transactionSheet['!cols'] = [
+        { wch: 12 }, // วันที่
+        { wch: 10 }, // เวลา
+        { wch: 25 }, // วัสดุ
+        { wch: 12 }, // รหัสวัสดุ
+        { wch: 10 }, // ประเภท
+        { wch: 8 },  // จำนวน
+        { wch: 8 },  // หน่วย
+        { wch: 20 }, // ผู้ทำรายการ
+        { wch: 12 }, // ห้องผู้ป่วย
+        { wch: 15 }, // ประเภทผู้ป่วย
+        { wch: 30 }  // หมายเหตุ
+      ]
+      
       XLSX.utils.book_append_sheet(wb, transactionSheet, 'รายละเอียด')
     }
     
@@ -141,7 +166,8 @@ export default function Reports() {
     
     // Header
     csvContent += 'รายงานการเคลื่อนไหววัสดุ\n'
-    csvContent += `ช่วงเวลา,${filters.startDate} ถึง ${filters.endDate}\n\n`
+    csvContent += `ช่วงเวลา,${filters.startDate} ถึง ${filters.endDate}\n`
+    csvContent += `วันที่สร้างรายงาน,${new Date().toLocaleString('th-TH')}\n\n`
     
     // Summary
     csvContent += 'สรุป\n'
@@ -151,10 +177,10 @@ export default function Reports() {
     csvContent += `สุทธิ,${report.summary.netChange}\n`
     csvContent += `รายการทั้งหมด,${report.summary.transactionCount}\n\n`
     
-    // Transaction details
+    // Transaction details with all information
     if (report.transactions.length > 0) {
       csvContent += 'รายละเอียด\n'
-      csvContent += 'วัสดุ,ประเภท,จำนวน,วันที่,เวลา\n'
+      csvContent += 'วันที่,เวลา,วัสดุ,รหัสวัสดุ,ประเภท,จำนวน,หน่วย,ผู้ทำรายการ,ห้องผู้ป่วย,ประเภทผู้ป่วย,หมายเหตุ\n'
       
       report.transactions.forEach(t => {
         const type = t.type.toUpperCase()
@@ -167,7 +193,16 @@ export default function Reports() {
         else if (type === 'DELETE') typeLabel = 'ลบ'
         
         const date = new Date(t.timestamp)
-        csvContent += `${t.productName},${typeLabel},${t.quantity},${date.toLocaleDateString('th-TH')},${date.toLocaleTimeString('th-TH')}\n`
+        const dateStr = date.toLocaleDateString('th-TH')
+        const timeStr = date.toLocaleTimeString('th-TH')
+        const productCode = t.productCode || '-'
+        const unit = t.unit || '-'
+        const userName = t.userName || '-'
+        const roomNumber = t.roomNumber || '-'
+        const patientType = t.patientType || '-'
+        const notes = (t.notes || '-').replace(/,/g, ';') // Replace commas in notes
+        
+        csvContent += `${dateStr},${timeStr},${t.productName},${productCode},${typeLabel},${t.quantity},${unit},${userName},${roomNumber},${patientType},${notes}\n`
       })
     }
     
@@ -226,11 +261,17 @@ export default function Reports() {
           <div className="export-buttons">
             <button onClick={exportToExcel} className="btn btn-export btn-excel">
               <span className="export-icon">📊</span>
-              Excel
+              <span className="export-text">
+                <span className="export-title">Excel</span>
+                <span className="export-subtitle">ไฟล์ .xlsx</span>
+              </span>
             </button>
             <button onClick={exportToCSV} className="btn btn-export btn-csv">
               <span className="export-icon">📋</span>
-              CSV
+              <span className="export-text">
+                <span className="export-title">CSV</span>
+                <span className="export-subtitle">ไฟล์ .csv</span>
+              </span>
             </button>
           </div>
 
