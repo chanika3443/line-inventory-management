@@ -1066,6 +1066,98 @@ function previewWeeklySummary() {
   }
 }
 
+/**
+ * Test function - แสดงข้อมูลสรุปแบบง่าย (ไม่ส่ง LINE)
+ * ใช้สำหรับเทสว่าข้อมูลถูกต้องหรือไม่
+ */
+function testWeeklySummarySimple() {
+  try {
+    Logger.log('========================================');
+    Logger.log('🧪 TEST: Weekly Summary (ไม่ส่ง LINE)');
+    Logger.log('========================================\n');
+    
+    // Get data
+    const products = getAllProducts();
+    const lowStockProducts = getLowStockProducts();
+    const trends = calculateWeeklyTrends();
+    
+    // Calculate stats
+    let totalQuantity = 0;
+    let outOfStockCount = 0;
+    let goodStockCount = 0;
+    
+    products.forEach(function(p) {
+      totalQuantity += p.quantity || 0;
+      if (p.quantity <= 0) outOfStockCount++;
+      if (p.quantity > p.lowStockThreshold) goodStockCount++;
+    });
+    
+    // Print summary
+    Logger.log('📊 สถิติคลังวัสดุ:');
+    Logger.log('  • วัสดุทั้งหมด: ' + products.length + ' รายการ');
+    Logger.log('  • จำนวนรวม: ' + totalQuantity.toLocaleString() + ' ชิ้น');
+    Logger.log('  • ใกล้หมด: ' + lowStockProducts.length + ' รายการ');
+    Logger.log('  • หมดสต็อก: ' + outOfStockCount + ' รายการ');
+    Logger.log('  • สต็อกเพียงพอ: ' + goodStockCount + ' รายการ\n');
+    
+    // Print trends
+    Logger.log('📈 แนวโน้ม (' + trends.dateRange + '):');
+    Logger.log('  • การเปลี่ยนแปลงกิจกรรม: ' + (trends.quantityChange > 0 ? '+' : '') + trends.quantityChange + '%');
+    Logger.log('  • ข้อมูลกราफ 7 วัน: ' + JSON.stringify(trends.chartData) + '\n');
+    
+    // Print low stock items
+    if (lowStockProducts.length > 0) {
+      Logger.log('⚠️ วัสดุที่ต้องเติมสต็อก (แสดง 5 รายการแรก):');
+      lowStockProducts.slice(0, 5).forEach(function(p, index) {
+        const status = p.quantity <= 0 ? 'หมด' : p.quantity + ' ' + p.unit;
+        Logger.log('  ' + (index + 1) + '. ' + p.name + ' - ' + status);
+      });
+      if (lowStockProducts.length > 5) {
+        Logger.log('  ... และอีก ' + (lowStockProducts.length - 5) + ' รายการ');
+      }
+      Logger.log('');
+    }
+    
+    // Print good stock items
+    if (goodStockCount > 0) {
+      Logger.log('✅ วัสดุสต็อกเพียงพอ (แสดง 5 รายการแรก):');
+      const goodStockProducts = products.filter(function(p) {
+        return p.quantity > p.lowStockThreshold;
+      }).sort(function(a, b) { return b.quantity - a.quantity; });
+      
+      goodStockProducts.slice(0, 5).forEach(function(p, index) {
+        const medal = index < 3 ? ['🥇', '🥈', '🥉'][index] + ' ' : '  ';
+        Logger.log('  ' + medal + p.name + ' - ' + p.quantity + ' ' + p.unit);
+      });
+      if (goodStockProducts.length > 5) {
+        Logger.log('  ... และอีก ' + (goodStockProducts.length - 5) + ' รายการ');
+      }
+      Logger.log('');
+    }
+    
+    Logger.log('========================================');
+    Logger.log('✅ เทสสำเร็จ - ข้อมูลพร้อมส่ง');
+    Logger.log('========================================');
+    
+    return {
+      success: true,
+      message: 'เทสสำเร็จ - ดูผลลัพธ์ใน Logs',
+      data: {
+        totalProducts: products.length,
+        totalQuantity: totalQuantity,
+        lowStockCount: lowStockProducts.length,
+        outOfStockCount: outOfStockCount,
+        goodStockCount: goodStockCount,
+        trends: trends
+      }
+    };
+    
+  } catch (error) {
+    Logger.log('❌ Error: ' + error);
+    return { success: false, message: error.toString() };
+  }
+}
+
 // ========================================
 // Helper Functions for Weekly Summary
 // ========================================
