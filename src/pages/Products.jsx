@@ -23,6 +23,7 @@ export default function Products() {
     requirePatientType: false
   })
   const [message, setMessage] = useState(null)
+  const [deleteConfirm, setDeleteConfirm] = useState({ show: false, product: null, input: '' })
 
   useEffect(() => {
     fetchProducts()
@@ -89,22 +90,24 @@ export default function Products() {
   }
 
   async function handleDelete(product) {
-    const userInput = prompt(`ต้องการลบ "${product.name}" ใช่หรือไม่?\n\nพิมพ์ "delete" เพื่อยืนยัน:`)
-    
-    if (userInput !== 'delete') {
-      if (userInput !== null) {
-        setMessage({ type: 'error', text: 'ยกเลิกการลบ - กรุณาพิมพ์ "delete" เพื่อยืนยัน' })
-      }
+    setDeleteConfirm({ show: true, product, input: '' })
+  }
+
+  async function confirmDelete() {
+    if (deleteConfirm.input !== 'delete') {
+      setMessage({ type: 'error', text: 'กรุณาพิมพ์ "delete" เพื่อยืนยัน' })
       return
     }
 
-    const result = await deleteProduct(product.code, userName)
+    const result = await deleteProduct(deleteConfirm.product.code, userName)
     
     if (result.success) {
       setMessage({ type: 'success', text: result.message })
     } else {
       setMessage({ type: 'error', text: result.message })
     }
+    
+    setDeleteConfirm({ show: false, product: null, input: '' })
   }
 
   if (loading && products.length === 0) {
@@ -326,6 +329,55 @@ export default function Products() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {deleteConfirm.show && (
+        <div className="modal-overlay" onClick={() => setDeleteConfirm({ show: false, product: null, input: '' })}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '400px' }}>
+            <h2 style={{ color: 'var(--danger)', marginBottom: '16px' }}>⚠️ ยืนยันการลบ</h2>
+            
+            <p style={{ marginBottom: '16px', fontSize: '15px', lineHeight: '1.6' }}>
+              คุณกำลังจะลบวัสดุ <strong>"{deleteConfirm.product?.name}"</strong>
+            </p>
+            
+            <p style={{ marginBottom: '16px', fontSize: '14px', color: 'var(--text-secondary)' }}>
+              การลบจะไม่สามารถกู้คืนได้ กรุณาพิมพ์ <strong style={{ color: 'var(--danger)' }}>delete</strong> เพื่อยืนยัน
+            </p>
+
+            <div className="input-group">
+              <input
+                type="text"
+                className="input"
+                placeholder='พิมพ์ "delete" เพื่อยืนยัน'
+                value={deleteConfirm.input}
+                onChange={(e) => setDeleteConfirm({ ...deleteConfirm, input: e.target.value })}
+                autoFocus
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter') {
+                    confirmDelete()
+                  }
+                }}
+              />
+            </div>
+
+            <div className="button-group" style={{ marginTop: '20px' }}>
+              <button 
+                onClick={confirmDelete} 
+                className="btn btn-danger btn-block"
+                disabled={loading}
+              >
+                {loading ? 'กำลังลบ...' : 'ยืนยันลบ'}
+              </button>
+              <button
+                type="button"
+                className="btn btn-secondary btn-block"
+                onClick={() => setDeleteConfirm({ show: false, product: null, input: '' })}
+              >
+                ยกเลิก
+              </button>
+            </div>
           </div>
         </div>
       )}
