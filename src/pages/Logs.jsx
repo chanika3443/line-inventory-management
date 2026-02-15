@@ -197,7 +197,7 @@ export default function Logs() {
         <p className="header-subtitle">รายการทั้งหมดในระบบ</p>
       </div>
 
-      <div className="container" style={{ paddingTop: 0 }}>
+      <div className="container" style={{ paddingTop: '16px' }}>
         {/* Date Range Buttons */}
         <div style={{ 
           display: 'flex', 
