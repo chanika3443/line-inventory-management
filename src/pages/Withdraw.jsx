@@ -512,7 +512,7 @@ export default function Withdraw() {
 
               {selectedProduct.requireRoom && (
                 <div className="form-group">
-                  <label>ห้องผู้ป่วย *</label>
+                  <label>ห้องผู้ป่วย(ถ้ามี)</label>
                   <input
                     type="text"
                     className="input"
