@@ -15,8 +15,8 @@ export default function Products() {
   const [formData, setFormData] = useState({
     name: '',
     unit: '',
-    quantity: 0,
-    lowStockThreshold: 0,
+    quantity: '',
+    lowStockThreshold: '',
     category: '',
     returnable: false
   })
@@ -36,8 +36,8 @@ export default function Products() {
     setFormData({
       name: '',
       unit: '',
-      quantity: 0,
-      lowStockThreshold: 0,
+      quantity: '',
+      lowStockThreshold: '',
       category: '',
       returnable: false
     })
@@ -60,11 +60,18 @@ export default function Products() {
   async function handleSubmit(e) {
     e.preventDefault()
 
+    // Convert empty strings to 0 for numeric fields
+    const submitData = {
+      ...formData,
+      quantity: formData.quantity === '' ? 0 : parseInt(formData.quantity) || 0,
+      lowStockThreshold: formData.lowStockThreshold === '' ? 0 : parseInt(formData.lowStockThreshold) || 0
+    }
+
     let result
     if (editingProduct) {
-      result = await updateProduct(editingProduct.code, formData, userName)
+      result = await updateProduct(editingProduct.code, submitData, userName)
     } else {
-      result = await addProduct(formData, userName)
+      result = await addProduct(submitData, userName)
     }
 
     if (result.success) {
@@ -229,7 +236,7 @@ export default function Products() {
                   className="input"
                   placeholder="0"
                   value={formData.quantity}
-                  onChange={(e) => setFormData({ ...formData, quantity: e.target.value === '' ? '' : parseInt(e.target.value) || 0 })}
+                  onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
                   min="0"
                 />
               </div>
@@ -241,7 +248,7 @@ export default function Products() {
                   className="input"
                   placeholder="เช่น 10"
                   value={formData.lowStockThreshold}
-                  onChange={(e) => setFormData({ ...formData, lowStockThreshold: e.target.value === '' ? '' : parseInt(e.target.value) || 0 })}
+                  onChange={(e) => setFormData({ ...formData, lowStockThreshold: e.target.value })}
                   min="0"
                 />
               </div>
