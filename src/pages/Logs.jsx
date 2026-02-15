@@ -132,13 +132,12 @@ export default function Logs() {
 
   function formatDate(dateString) {
     const date = new Date(dateString)
-    return date.toLocaleString('th-TH', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    })
+    const day = date.getDate().toString().padStart(2, '0')
+    const month = (date.getMonth() + 1).toString().padStart(2, '0')
+    const hour = date.getHours().toString().padStart(2, '0')
+    const minute = date.getMinutes().toString().padStart(2, '0')
+    
+    return `${day}/${month} ${hour}:${minute}`
   }
 
   if (loading) {
