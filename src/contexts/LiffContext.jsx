@@ -68,12 +68,14 @@ export function LiffProvider({ children }) {
   }
 
   const logout = () => {
+    // Clear localStorage first
+    localStorage.removeItem('liff_user_profile')
+    
     // Clear state
     setIsLoggedIn(false)
     setUserProfile(null)
     setUserName('')
-    // Clear localStorage
-    localStorage.removeItem('liff_user_profile')
+    
     // Logout from LIFF (will reload page)
     liffService.logout()
   }

@@ -58,12 +58,23 @@ export function login() {
  * Logout from LINE
  */
 export function logout() {
-  if (isInitialized) {
-    liff.logout()
-  }
+  // Clear localStorage first
+  localStorage.removeItem('liff_user_profile')
+  
+  // Clear profile
   userProfile = null
-  // Force reload to clear LIFF state
-  window.location.reload()
+  
+  // Logout from LIFF if initialized
+  if (isInitialized) {
+    try {
+      liff.logout()
+    } catch (error) {
+      console.error('LIFF logout error:', error)
+    }
+  }
+  
+  // Force reload to clear all state
+  window.location.href = window.location.origin + window.location.pathname
 }
 
 /**
