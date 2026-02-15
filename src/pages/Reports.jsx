@@ -87,6 +87,18 @@ export default function Reports() {
     }
   }, [])
 
+  // Refresh report when page becomes visible
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && !isInitialMount.current && report) {
+        loadReport(filters)
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
+  }, [filters, loadReport, report])
+
   function handleFilterChange(key, value) {
     setFilters(prev => ({ ...prev, [key]: value }))
   }

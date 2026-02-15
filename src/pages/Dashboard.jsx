@@ -21,6 +21,18 @@ export default function Dashboard() {
     loadData()
   }, [loadData])
 
+  // Refresh data when page becomes visible
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        loadData()
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
+  }, [loadData])
+
   if (loading) {
     return <Loading />
   }

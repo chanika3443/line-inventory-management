@@ -79,6 +79,20 @@ export default function Logs() {
       isInitialMount.current = false
       applyDateRange(dateRange)
     }
+  }, [])
+
+  // Refresh transactions when page becomes visible
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && !isInitialMount.current) {
+        applyDateRange(dateRange)
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
+  }, [dateRange, applyDateRange])
+    }
   }, [applyDateRange, dateRange])
 
   async function loadTransactions() {

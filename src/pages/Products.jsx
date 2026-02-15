@@ -45,6 +45,18 @@ export default function Products() {
     fetchProducts()
   }, [fetchProducts])
 
+  // Refresh products when page becomes visible
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        fetchProducts()
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
+  }, [fetchProducts])
+
   const filteredProducts = products.filter(p =>
     p.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
     p.name.toLowerCase().includes(searchQuery.toLowerCase())
