@@ -187,6 +187,7 @@ export default function Products() {
                 <input
                   type="text"
                   className="input"
+                  placeholder="เช่น ปากกา, กระดาษ A4"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   required
@@ -198,6 +199,7 @@ export default function Products() {
                 <input
                   type="text"
                   className="input"
+                  placeholder="เช่น ชิ้น, แพ็ค, กล่อง"
                   value={formData.unit}
                   onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
                   required
@@ -209,6 +211,7 @@ export default function Products() {
                 <input
                   type="number"
                   className="input"
+                  placeholder="0"
                   value={formData.quantity}
                   onChange={(e) => setFormData({ ...formData, quantity: parseInt(e.target.value) || 0 })}
                   min="0"
@@ -220,6 +223,7 @@ export default function Products() {
                 <input
                   type="number"
                   className="input"
+                  placeholder="เช่น 10"
                   value={formData.lowStockThreshold}
                   onChange={(e) => setFormData({ ...formData, lowStockThreshold: parseInt(e.target.value) || 0 })}
                   min="0"
@@ -231,6 +235,7 @@ export default function Products() {
                 <input
                   type="text"
                   className="input"
+                  placeholder="เช่น เครื่องเขียน, อุปกรณ์สำนักงาน"
                   value={formData.category}
                   onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                 />
