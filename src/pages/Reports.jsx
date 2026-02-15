@@ -2,6 +2,9 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import * as sheetsService from '../services/sheetsService'
 import Loading from '../components/Loading'
 import { useHeaderShrink } from '../hooks/useHeaderShrink'
+import jsPDF from 'jspdf'
+import autoTable from 'jspdf-autotable'
+import * as XLSX from 'xlsx'
 import './Reports.css'
 
 export default function Reports() {
@@ -81,6 +84,180 @@ export default function Reports() {
     loadReport(filters)
   }
 
+  const exportToPDF = useCallback(() => {
+    if (!report) return
+
+    const doc = new jsPDF()
+    
+    // Add Thai font support (using default font for now)
+    doc.setFont('helvetica')
+    
+    // Title
+    doc.setFontSize(18)
+    doc.text('รายงานการเคลื่อนไหววัสดุ', 14, 20)
+    
+    // Date range
+    doc.setFontSize(10)
+    doc.text(`ช่วงเวลา: ${filters.startDate} ถึง ${filters.endDate}`, 14, 28)
+    
+    // Summary section
+    doc.setFontSize(12)
+    doc.text('สรุป', 14, 38)
+    
+    const summaryData = [
+      ['เบิกออก', report.summary.totalWithdrawals.toString()],
+      ['รับเข้า', report.summary.totalReceipts.toString()],
+      ['คืน', report.summary.totalReturns.toString()],
+      ['สุทธิ', report.summary.netChange.toString()],
+      ['รายการทั้งหมด', report.summary.transactionCount.toString()]
+    ]
+    
+    autoTable(doc, {
+      startY: 42,
+      head: [['รายการ', 'จำนวน']],
+      body: summaryData,
+      theme: 'grid',
+      headStyles: { fillColor: [66, 139, 202] }
+    })
+    
+    // Transaction details
+    if (report.transactions.length > 0) {
+      doc.setFontSize(12)
+      doc.text('รายละเอียด', 14, doc.lastAutoTable.finalY + 10)
+      
+      const transactionData = report.transactions.map(t => {
+        const type = t.type.toUpperCase()
+        let typeLabel = t.type
+        if (type === 'WITHDRAW' || type === 'เบิก') typeLabel = 'เบิก'
+        else if (type === 'RETURN' || type === 'คืน') typeLabel = 'คืน'
+        else if (type === 'RECEIVE' || type === 'รับเข้า') typeLabel = 'รับเข้า'
+        else if (type === 'CREATE') typeLabel = 'สร้าง'
+        else if (type === 'EDIT') typeLabel = 'แก้ไข'
+        else if (type === 'DELETE') typeLabel = 'ลบ'
+        
+        return [
+          t.productName,
+          typeLabel,
+          t.quantity.toString(),
+          new Date(t.timestamp).toLocaleDateString('th-TH')
+        ]
+      })
+      
+      autoTable(doc, {
+        startY: doc.lastAutoTable.finalY + 14,
+        head: [['วัสดุ', 'ประเภท', 'จำนวน', 'วันที่']],
+        body: transactionData,
+        theme: 'striped',
+        headStyles: { fillColor: [66, 139, 202] }
+      })
+    }
+    
+    // Save PDF
+    const filename = `รายงาน_${filters.startDate}_${filters.endDate}.pdf`
+    doc.save(filename)
+  }, [report, filters])
+
+  const exportToExcel = useCallback(() => {
+    if (!report) return
+
+    // Create workbook
+    const wb = XLSX.utils.book_new()
+    
+    // Summary sheet
+    const summaryData = [
+      ['รายงานการเคลื่อนไหววัสดุ'],
+      ['ช่วงเวลา', `${filters.startDate} ถึง ${filters.endDate}`],
+      [],
+      ['สรุป'],
+      ['เบิกออก', report.summary.totalWithdrawals],
+      ['รับเข้า', report.summary.totalReceipts],
+      ['คืน', report.summary.totalReturns],
+      ['สุทธิ', report.summary.netChange],
+      ['รายการทั้งหมด', report.summary.transactionCount]
+    ]
+    
+    const summarySheet = XLSX.utils.aoa_to_sheet(summaryData)
+    XLSX.utils.book_append_sheet(wb, summarySheet, 'สรุป')
+    
+    // Transactions sheet
+    if (report.transactions.length > 0) {
+      const transactionData = report.transactions.map(t => {
+        const type = t.type.toUpperCase()
+        let typeLabel = t.type
+        if (type === 'WITHDRAW' || type === 'เบิก') typeLabel = 'เบิก'
+        else if (type === 'RETURN' || type === 'คืน') typeLabel = 'คืน'
+        else if (type === 'RECEIVE' || type === 'รับเข้า') typeLabel = 'รับเข้า'
+        else if (type === 'CREATE') typeLabel = 'สร้าง'
+        else if (type === 'EDIT') typeLabel = 'แก้ไข'
+        else if (type === 'DELETE') typeLabel = 'ลบ'
+        
+        return {
+          'วัสดุ': t.productName,
+          'ประเภท': typeLabel,
+          'จำนวน': t.quantity,
+          'วันที่': new Date(t.timestamp).toLocaleDateString('th-TH'),
+          'เวลา': new Date(t.timestamp).toLocaleTimeString('th-TH')
+        }
+      })
+      
+      const transactionSheet = XLSX.utils.json_to_sheet(transactionData)
+      XLSX.utils.book_append_sheet(wb, transactionSheet, 'รายละเอียด')
+    }
+    
+    // Save Excel file
+    const filename = `รายงาน_${filters.startDate}_${filters.endDate}.xlsx`
+    XLSX.writeFile(wb, filename)
+  }, [report, filters])
+
+  const exportToCSV = useCallback(() => {
+    if (!report) return
+
+    let csvContent = '\uFEFF' // UTF-8 BOM for Thai characters
+    
+    // Header
+    csvContent += 'รายงานการเคลื่อนไหววัสดุ\n'
+    csvContent += `ช่วงเวลา,${filters.startDate} ถึง ${filters.endDate}\n\n`
+    
+    // Summary
+    csvContent += 'สรุป\n'
+    csvContent += `เบิกออก,${report.summary.totalWithdrawals}\n`
+    csvContent += `รับเข้า,${report.summary.totalReceipts}\n`
+    csvContent += `คืน,${report.summary.totalReturns}\n`
+    csvContent += `สุทธิ,${report.summary.netChange}\n`
+    csvContent += `รายการทั้งหมด,${report.summary.transactionCount}\n\n`
+    
+    // Transaction details
+    if (report.transactions.length > 0) {
+      csvContent += 'รายละเอียด\n'
+      csvContent += 'วัสดุ,ประเภท,จำนวน,วันที่,เวลา\n'
+      
+      report.transactions.forEach(t => {
+        const type = t.type.toUpperCase()
+        let typeLabel = t.type
+        if (type === 'WITHDRAW' || type === 'เบิก') typeLabel = 'เบิก'
+        else if (type === 'RETURN' || type === 'คืน') typeLabel = 'คืน'
+        else if (type === 'RECEIVE' || type === 'รับเข้า') typeLabel = 'รับเข้า'
+        else if (type === 'CREATE') typeLabel = 'สร้าง'
+        else if (type === 'EDIT') typeLabel = 'แก้ไข'
+        else if (type === 'DELETE') typeLabel = 'ลบ'
+        
+        const date = new Date(t.timestamp)
+        csvContent += `${t.productName},${typeLabel},${t.quantity},${date.toLocaleDateString('th-TH')},${date.toLocaleTimeString('th-TH')}\n`
+      })
+    }
+    
+    // Create download link
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+    const link = document.createElement('a')
+    const url = URL.createObjectURL(blob)
+    link.setAttribute('href', url)
+    link.setAttribute('download', `รายงาน_${filters.startDate}_${filters.endDate}.csv`)
+    link.style.visibility = 'hidden'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }, [report, filters])
+
   if (loading) {
     return <Loading />
   }
@@ -121,6 +298,21 @@ export default function Reports() {
 
       {report && (
         <>
+          <div className="export-buttons">
+            <button onClick={exportToPDF} className="btn btn-export btn-pdf">
+              <span className="export-icon">📄</span>
+              PDF
+            </button>
+            <button onClick={exportToExcel} className="btn btn-export btn-excel">
+              <span className="export-icon">📊</span>
+              Excel
+            </button>
+            <button onClick={exportToCSV} className="btn btn-export btn-csv">
+              <span className="export-icon">📋</span>
+              CSV
+            </button>
+          </div>
+
           <div className="summary-grid">
             <div className="summary-card">
               <div className="summary-value text-danger">{report.summary.totalWithdrawals}</div>
