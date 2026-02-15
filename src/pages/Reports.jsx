@@ -40,12 +40,12 @@ export default function Reports() {
     let totalReturns = 0
 
     transactions.forEach(t => {
-      const type = t.type.toLowerCase()
-      if (type === 'เบิก' || type === 'withdraw') {
+      const type = t.type.toUpperCase()
+      if (type === 'WITHDRAW' || type === 'เบิก') {
         totalWithdrawals += t.quantity
-      } else if (type === 'รับเข้า' || type === 'receive') {
+      } else if (type === 'RECEIVE' || type === 'รับเข้า') {
         totalReceipts += t.quantity
-      } else if (type === 'คืน' || type === 'return') {
+      } else if (type === 'RETURN' || type === 'คืน') {
         totalReturns += t.quantity
       }
     })
@@ -151,19 +151,32 @@ export default function Reports() {
               <h3>รายละเอียด</h3>
               <div className="report-list">
                 {report.transactions.slice(0, 10).map((transaction) => {
-                  const type = transaction.type.toLowerCase()
-                  const isWithdraw = type === 'เบิก' || type === 'withdraw'
-                  const isReturn = type === 'คืน' || type === 'return'
-                  const typeLabel = isWithdraw ? 'เบิก' : isReturn ? 'คืน' : 'รับเข้า'
+                  const type = transaction.type.toUpperCase()
+                  const isWithdraw = type === 'WITHDRAW' || type === 'เบิก'
+                  const isReturn = type === 'RETURN' || type === 'คืน'
+                  const isReceive = type === 'RECEIVE' || type === 'รับเข้า'
+                  const isCreate = type === 'CREATE'
+                  const isEdit = type === 'EDIT'
+                  const isDelete = type === 'DELETE'
+                  
+                  let typeLabel = transaction.type
+                  if (isWithdraw) typeLabel = 'เบิก'
+                  else if (isReturn) typeLabel = 'คืน'
+                  else if (isReceive) typeLabel = 'รับเข้า'
+                  else if (isCreate) typeLabel = 'สร้าง'
+                  else if (isEdit) typeLabel = 'แก้ไข'
+                  else if (isDelete) typeLabel = 'ลบ'
                   
                   return (
                     <div key={transaction.id} className="report-item">
                       <div className="report-item-header">
                         <span className="report-item-name">{transaction.productName}</span>
                         <span className={`report-item-quantity ${
-                          isWithdraw ? 'text-danger' : 'text-success'
+                          isWithdraw || isDelete ? 'text-danger' : 
+                          isReceive || isReturn || isCreate ? 'text-success' : 
+                          'text-muted'
                         }`}>
-                          {isWithdraw ? '-' : '+'}{transaction.quantity}
+                          {isWithdraw || isDelete ? '-' : isReceive || isReturn || isCreate ? '+' : ''}{transaction.quantity}
                         </span>
                       </div>
                       <div className="report-item-meta">
