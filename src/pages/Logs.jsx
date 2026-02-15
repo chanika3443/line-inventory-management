@@ -20,6 +20,17 @@ export default function Logs() {
     type: ''
   })
 
+  const loadTransactionsWithDates = useCallback(async (start, end) => {
+    setLoading(true)
+    const data = await sheetsService.getTransactionLogs({
+      startDate: start,
+      endDate: end,
+      type: filters.type
+    })
+    setTransactions(data)
+    setLoading(false)
+  }, [filters.type])
+
   const applyDateRange = useCallback((range) => {
     const today = new Date()
     today.setHours(0, 0, 0, 0)
@@ -60,22 +71,11 @@ export default function Logs() {
     
     // Load with new dates
     loadTransactionsWithDates(startDateStr, endDateStr)
-  }, [])
+  }, [loadTransactionsWithDates])
 
   useEffect(() => {
     applyDateRange(dateRange)
   }, [applyDateRange, dateRange])
-
-  async function loadTransactionsWithDates(start, end) {
-    setLoading(true)
-    const data = await sheetsService.getTransactionLogs({
-      startDate: start,
-      endDate: end,
-      type: filters.type
-    })
-    setTransactions(data)
-    setLoading(false)
-  }
 
   async function loadTransactions() {
     setLoading(true)
