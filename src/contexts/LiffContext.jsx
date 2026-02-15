@@ -87,10 +87,8 @@ export function LiffProvider({ children }) {
   const logout = () => {
     console.log('Logout called')
     
-    // Clear localStorage
-    localStorage.removeItem('liff_user_profile')
-    localStorage.removeItem('login_mode')
-    localStorage.removeItem('manual_user_name')
+    // Clear all localStorage
+    localStorage.clear()
     
     // Clear state
     setIsLoggedIn(false)
@@ -104,9 +102,11 @@ export function LiffProvider({ children }) {
         liffService.logout()
       } catch (error) {
         console.error('Logout error:', error)
-        window.location.reload()
       }
     }
+    
+    // Force reload to clear all cache and fetch fresh data
+    window.location.reload()
   }
 
   const value = {
