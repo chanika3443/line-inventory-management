@@ -26,29 +26,29 @@ async function callAppsScript(data) {
     
     const response = await fetch(APPS_SCRIPT_URL, {
       method: 'POST',
-      mode: 'no-cors', // Important for Apps Script
+      redirect: 'follow',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'text/plain;charset=utf-8'
       },
       body: JSON.stringify(data)
     })
     
-    // Note: no-cors mode returns opaque response, we can't read it
-    // Apps Script will handle the operation, we assume success
-    console.log('Apps Script response:', response)
+    console.log('Apps Script response status:', response.status)
     
-    // Since we can't read the response in no-cors mode,
-    // we return a success message
-    return {
-      success: true,
-      message: 'ดำเนินการสำเร็จ'
+    if (!response.ok) {
+      throw new Error(`Apps Script error: ${response.status}`)
     }
+    
+    const result = await response.json()
+    console.log('Apps Script result:', result)
+    
+    return result
     
   } catch (error) {
     console.error('Error calling Apps Script:', error)
     return {
       success: false,
-      message: error.toString()
+      message: 'เกิดข้อผิดพลาด: ' + error.message
     }
   }
 }
