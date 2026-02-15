@@ -168,7 +168,7 @@ export default function Logs() {
       RETURN: 'badge-warning',
       CREATE: 'badge-success',
       EDIT: 'badge-info',
-      DELETE: 'badge-danger',
+      DELETE: 'badge-delete',
       'เบิก': 'badge-danger',
       'รับเข้า': 'badge-success',
       'คืน': 'badge-warning'

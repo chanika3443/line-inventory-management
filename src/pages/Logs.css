@@ -94,6 +94,13 @@
   box-shadow: 0 2px 8px rgba(238, 90, 111, 0.3);
 }
 
+.badge-delete {
+  background: linear-gradient(135deg, #c92a2a 0%, #a61e4d 100%);
+  color: white;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(166, 30, 77, 0.3);
+}
+
 .badge-success {
   background: linear-gradient(135deg, #51cf66 0%, #37b24d 100%);
   color: white;
