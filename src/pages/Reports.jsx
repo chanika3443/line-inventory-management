@@ -89,7 +89,7 @@ export default function Reports() {
         <p className="header-subtitle">สรุปการเคลื่อนไหววัสดุ</p>
       </div>
 
-      <div className="container" style={{ paddingTop: 0 }}>
+      <div className="container" style={{ paddingTop: '16px' }}>
         <div className="filters-card card">
         <div className="input-group">
           <label className="input-label">วันที่เริ่มต้น</label>
