@@ -195,14 +195,15 @@ export default function Products() {
               textAlign: 'center',
               fontSize: '12px',
               color: product.returnable ? '#51cf66' : '#999',
-              opacity: product.returnable ? '1' : '0.7',
+              opacity: product.returnable ? 1 : 0.7,
               fontWeight: product.returnable ? '600' : '400',
-              border: '1px solid ' + (product.returnable ? '#51cf66' : '#ddd')
+              border: product.returnable ? '1px solid #51cf66' : '1px solid #ddd'
             }}>
               {product.returnable ? '✓ คืนได้' : '✗ คืนไม่ได้'}
             </div>
           </div>
-        )})}
+          )
+        })}
       </div>
       </div>
 
