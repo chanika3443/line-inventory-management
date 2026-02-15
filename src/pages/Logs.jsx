@@ -297,81 +297,109 @@ export default function Logs() {
       ) : (
         <>
           {/* Table */}
-          <div style={{ overflowX: 'auto', marginBottom: '16px' }}>
+          <div style={{ overflowX: 'auto', marginBottom: '16px', borderRadius: 'var(--radius-lg)', overflow: 'hidden', boxShadow: 'var(--shadow-md)' }}>
             <table style={{ 
               width: '100%', 
               fontSize: '13px',
               borderCollapse: 'collapse',
-              background: 'var(--bg-elevated)',
-              borderRadius: 'var(--radius-md)',
-              overflow: 'hidden'
+              background: 'var(--bg-elevated)'
             }}>
               <thead>
-                <tr style={{ background: 'var(--bg-secondary)', borderBottom: '2px solid var(--border)' }}>
+                <tr style={{ background: 'linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-primary) 100%)', borderBottom: '2px solid var(--border-strong)' }}>
                   <th 
                     onClick={() => handleSort('type')}
                     style={{ 
-                      padding: '12px 8px', 
+                      padding: '14px 10px', 
                       textAlign: 'left', 
-                      fontWeight: '600', 
+                      fontWeight: '700', 
                       color: 'var(--text-primary)',
                       cursor: 'pointer',
-                      userSelect: 'none'
+                      userSelect: 'none',
+                      fontSize: '12px',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px',
+                      transition: 'background 0.2s'
                     }}
+                    onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-secondary)'}
+                    onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
                   >
-                    ประเภท {sortField === 'type' && (sortDirection === 'asc' ? '↑' : '↓')}
+                    ประเภท {sortField === 'type' && <span style={{ color: 'var(--accent)' }}>{sortDirection === 'asc' ? '↑' : '↓'}</span>}
                   </th>
                   <th 
                     onClick={() => handleSort('productName')}
                     style={{ 
-                      padding: '12px 8px', 
+                      padding: '14px 10px', 
                       textAlign: 'left', 
-                      fontWeight: '600', 
+                      fontWeight: '700', 
                       color: 'var(--text-primary)',
                       cursor: 'pointer',
-                      userSelect: 'none'
+                      userSelect: 'none',
+                      fontSize: '12px',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px',
+                      transition: 'background 0.2s'
                     }}
+                    onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-secondary)'}
+                    onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
                   >
-                    วัสดุ {sortField === 'productName' && (sortDirection === 'asc' ? '↑' : '↓')}
+                    วัสดุ {sortField === 'productName' && <span style={{ color: 'var(--accent)' }}>{sortDirection === 'asc' ? '↑' : '↓'}</span>}
                   </th>
                   <th 
                     onClick={() => handleSort('quantity')}
                     style={{ 
-                      padding: '12px 8px', 
+                      padding: '14px 10px', 
                       textAlign: 'center', 
-                      fontWeight: '600', 
+                      fontWeight: '700', 
                       color: 'var(--text-primary)',
                       cursor: 'pointer',
-                      userSelect: 'none'
+                      userSelect: 'none',
+                      fontSize: '12px',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px',
+                      transition: 'background 0.2s'
                     }}
+                    onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-secondary)'}
+                    onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
                   >
-                    จำนวน {sortField === 'quantity' && (sortDirection === 'asc' ? '↑' : '↓')}
+                    จำนวน {sortField === 'quantity' && <span style={{ color: 'var(--accent)' }}>{sortDirection === 'asc' ? '↑' : '↓'}</span>}
                   </th>
                   <th 
                     onClick={() => handleSort('userName')}
                     style={{ 
-                      padding: '12px 8px', 
+                      padding: '14px 10px', 
                       textAlign: 'left', 
-                      fontWeight: '600', 
+                      fontWeight: '700', 
                       color: 'var(--text-primary)',
                       cursor: 'pointer',
-                      userSelect: 'none'
+                      userSelect: 'none',
+                      fontSize: '12px',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px',
+                      transition: 'background 0.2s'
                     }}
+                    onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-secondary)'}
+                    onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
                   >
-                    ผู้ทำรายการ {sortField === 'userName' && (sortDirection === 'asc' ? '↑' : '↓')}
+                    ผู้ทำรายการ {sortField === 'userName' && <span style={{ color: 'var(--accent)' }}>{sortDirection === 'asc' ? '↑' : '↓'}</span>}
                   </th>
                   <th 
                     onClick={() => handleSort('timestamp')}
                     style={{ 
-                      padding: '12px 8px', 
+                      padding: '14px 10px', 
                       textAlign: 'left', 
-                      fontWeight: '600', 
+                      fontWeight: '700', 
                       color: 'var(--text-primary)',
                       cursor: 'pointer',
-                      userSelect: 'none'
+                      userSelect: 'none',
+                      fontSize: '12px',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px',
+                      transition: 'background 0.2s'
                     }}
+                    onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-secondary)'}
+                    onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
                   >
-                    เวลา {sortField === 'timestamp' && (sortDirection === 'asc' ? '↑' : '↓')}
+                    เวลา {sortField === 'timestamp' && <span style={{ color: 'var(--accent)' }}>{sortDirection === 'asc' ? '↑' : '↓'}</span>}
                   </th>
                 </tr>
               </thead>
@@ -379,28 +407,32 @@ export default function Logs() {
                 {currentTransactions.map((transaction, index) => (
                   <tr key={transaction.id} style={{ 
                     borderBottom: '1px solid var(--border)',
-                    background: index % 2 === 0 ? 'var(--bg-elevated)' : 'var(--bg-primary)'
-                  }}>
-                    <td style={{ padding: '10px 8px' }}>
-                      <span className={`badge ${getTypeBadgeClass(transaction.type)}`} style={{ fontSize: '11px', padding: '4px 8px' }}>
+                    background: index % 2 === 0 ? 'var(--bg-elevated)' : 'var(--bg-primary)',
+                    transition: 'background 0.2s'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-secondary)'}
+                  onMouseLeave={(e) => e.currentTarget.style.background = index % 2 === 0 ? 'var(--bg-elevated)' : 'var(--bg-primary)'}
+                  >
+                    <td style={{ padding: '12px 10px' }}>
+                      <span className={`badge ${getTypeBadgeClass(transaction.type)}`} style={{ fontSize: '11px', padding: '5px 10px', borderRadius: 'var(--radius-full)', fontWeight: '600' }}>
                         {getTypeLabel(transaction.type)}
                       </span>
                     </td>
-                    <td style={{ padding: '10px 8px', fontWeight: '600', color: 'var(--text-primary)' }}>
+                    <td style={{ padding: '12px 10px', fontWeight: '600', color: 'var(--text-primary)', fontSize: '14px' }}>
                       {transaction.productName}
                     </td>
-                    <td style={{ padding: '10px 8px', textAlign: 'center' }}>
-                      <div style={{ fontWeight: '700', color: 'var(--accent)', fontSize: '15px' }}>
+                    <td style={{ padding: '12px 10px', textAlign: 'center' }}>
+                      <div style={{ fontWeight: '700', color: 'var(--accent)', fontSize: '16px' }}>
                         {transaction.quantity}
                       </div>
-                      <div style={{ fontSize: '10px', color: 'var(--text-tertiary)' }}>
+                      <div style={{ fontSize: '10px', color: 'var(--text-tertiary)', marginTop: '2px' }}>
                         {transaction.beforeQuantity}→{transaction.afterQuantity}
                       </div>
                     </td>
-                    <td style={{ padding: '10px 8px', color: 'var(--text-primary)' }}>
+                    <td style={{ padding: '12px 10px', color: 'var(--text-primary)', fontSize: '13px' }}>
                       {transaction.userName}
                     </td>
-                    <td style={{ padding: '10px 8px', color: 'var(--text-tertiary)', fontSize: '11px', whiteSpace: 'nowrap' }}>
+                    <td style={{ padding: '12px 10px', color: 'var(--text-secondary)', fontSize: '12px', whiteSpace: 'nowrap' }}>
                       {formatDate(transaction.timestamp)}
                     </td>
                   </tr>
