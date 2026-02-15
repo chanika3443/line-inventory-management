@@ -32,7 +32,6 @@ export default function UserMenu() {
             {userName.charAt(0).toUpperCase()}
           </div>
         )}
-        <span className="user-name">{userName}</span>
       </button>
 
       {showMenu && (
