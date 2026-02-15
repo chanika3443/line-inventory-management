@@ -201,11 +201,11 @@ export default function Logs() {
         {/* Date Range Buttons */}
         <div style={{ 
           display: 'flex', 
-          gap: '8px', 
+          gap: '10px', 
           marginBottom: '16px',
-          overflowX: 'auto',
-          paddingBottom: '4px',
-          WebkitOverflowScrolling: 'touch'
+          justifyContent: 'center',
+          alignItems: 'center',
+          paddingBottom: '4px'
         }}>
           {[
             { value: 'today', label: 'วันนี้' },
@@ -219,12 +219,12 @@ export default function Logs() {
               className={`btn ${dateRange === range.value ? 'btn-primary' : 'btn-outline'}`}
               style={{ 
                 fontSize: '12px', 
-                padding: '8px 16px',
+                padding: '8px 18px',
                 whiteSpace: 'nowrap',
-                flex: '0 0 auto',
                 fontWeight: '600',
                 borderRadius: 'var(--radius-full)',
-                transition: 'all 0.2s'
+                transition: 'all 0.2s',
+                minWidth: '70px'
               }}
             >
               {range.label}
