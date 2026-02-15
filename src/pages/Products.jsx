@@ -205,6 +205,7 @@ export default function Products() {
           )
         })}
       </div>
+      </div>
 
       {showModal && (
         <div className="modal-overlay" onClick={() => setShowModal(false)}>
