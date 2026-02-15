@@ -181,28 +181,25 @@ export default function Withdraw() {
                   <div
                     key={product.code}
                     className={`product-item ${isSelected ? 'selected' : ''}`}
-                    style={{ display: 'flex', alignItems: 'center', gap: '12px' }}
+                    style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}
+                    onClick={() => {
+                      if (isMultiSelectMode) {
+                        toggleProductSelection(product)
+                      } else {
+                        setSelectedProduct(product)
+                      }
+                    }}
                   >
                     {isMultiSelectMode && (
                       <input
                         type="checkbox"
                         checked={isSelected}
-                        onChange={(e) => {
-                          e.stopPropagation()
-                          toggleProductSelection(product)
-                        }}
-                        style={{ width: '20px', height: '20px', cursor: 'pointer', flexShrink: 0 }}
+                        onChange={() => {}} // Handled by parent onClick
+                        style={{ width: '20px', height: '20px', cursor: 'pointer', flexShrink: 0, pointerEvents: 'none' }}
                       />
                     )}
                     <div 
-                      style={{ flex: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}
-                      onClick={() => {
-                        if (isMultiSelectMode) {
-                          toggleProductSelection(product)
-                        } else {
-                          setSelectedProduct(product)
-                        }
-                      }}
+                      style={{ flex: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
                     >
                       <div className="product-info">
                         <div className="product-name">{product.name}</div>
