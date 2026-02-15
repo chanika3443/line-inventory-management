@@ -227,9 +227,70 @@ export default function Withdraw() {
                 padding: '16px 20px',
                 boxShadow: '0 -2px 10px rgba(0,0,0,0.1)',
                 borderTop: '1px solid var(--border)',
-                zIndex: 50
+                zIndex: 50,
+                maxHeight: '60vh',
+                overflowY: 'auto'
               }}>
                 <div style={{ maxWidth: '500px', margin: '0 auto' }}>
+                  <div style={{ marginBottom: '16px' }}>
+                    <div style={{ fontSize: '16px', fontWeight: '600', marginBottom: '12px', color: 'var(--text-primary)' }}>
+                      รายการที่เลือก ({selectedItems.length})
+                    </div>
+                    {selectedItems.map((item) => (
+                      <div key={item.product.code} style={{ 
+                        background: 'var(--bg-secondary)', 
+                        padding: '12px', 
+                        borderRadius: 'var(--radius-md)', 
+                        marginBottom: '8px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '12px'
+                      }}>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-primary)' }}>
+                            {item.product.name}
+                          </div>
+                          <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
+                            คงเหลือ: {item.product.quantity} {item.product.unit}
+                          </div>
+                        </div>
+                        <input
+                          type="number"
+                          value={item.quantity}
+                          onChange={(e) => updateItemQuantity(item.product.code, e.target.value)}
+                          min="1"
+                          max={item.product.quantity}
+                          style={{
+                            width: '80px',
+                            padding: '8px 12px',
+                            border: '1.5px solid var(--border-strong)',
+                            borderRadius: 'var(--radius-md)',
+                            fontSize: '14px',
+                            textAlign: 'center',
+                            background: 'var(--bg-primary)'
+                          }}
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            toggleProductSelection(item.product)
+                          }}
+                          style={{
+                            background: 'transparent',
+                            border: 'none',
+                            color: 'var(--danger)',
+                            cursor: 'pointer',
+                            fontSize: '20px',
+                            padding: '4px 8px'
+                          }}
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+
                   <div className="form-group" style={{ marginBottom: '12px' }}>
                     <label style={{ fontSize: '14px', fontWeight: '600', marginBottom: '8px', display: 'block' }}>
                       ชื่อผู้เบิก
