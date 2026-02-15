@@ -100,12 +100,16 @@ export default function UserMenu() {
               </div>
             </div>
             <button 
+              type="button"
               className="logout-btn"
+              onMouseDown={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+              }}
               onClick={(e) => {
                 e.preventDefault()
                 e.stopPropagation()
                 console.log('Logout button clicked')
-                setShowMenu(false)
                 logout()
               }}
             >

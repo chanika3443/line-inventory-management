@@ -83,12 +83,13 @@
 .menu-overlay {
   position: fixed;
   inset: 0;
-  z-index: 999;
+  z-index: 998;
+  background: transparent;
 }
 
 .user-dropdown {
   position: absolute;
-  top: 40px;
+  top: 48px;
   right: 0;
   width: 240px;
   background: var(--bg-elevated);
@@ -97,6 +98,7 @@
   box-shadow: var(--shadow-lg);
   overflow: hidden;
   animation: slideDown 0.2s ease-out;
+  z-index: 999;
 }
 
 @keyframes slideDown {
@@ -175,11 +177,14 @@
   font-weight: 600;
   cursor: pointer;
   transition: background 0.2s;
+  position: relative;
+  z-index: 1000;
 }
 
 .logout-btn svg {
   width: 16px;
   height: 16px;
+  pointer-events: none;
 }
 
 .logout-btn:hover {
