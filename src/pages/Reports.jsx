@@ -349,43 +349,62 @@ export default function Reports() {
           ) : (
             <div className="report-details card">
               <h3>รายละเอียด</h3>
-              <div className="report-list">
-                {report.transactions.map((transaction) => {
-                  const type = transaction.type.toUpperCase()
-                  const isWithdraw = type === 'WITHDRAW' || type === 'เบิก'
-                  const isReturn = type === 'RETURN' || type === 'คืน'
-                  const isReceive = type === 'RECEIVE' || type === 'รับเข้า'
-                  const isCreate = type === 'CREATE'
-                  const isEdit = type === 'EDIT'
-                  const isDelete = type === 'DELETE'
-                  
-                  let typeLabel = transaction.type
-                  if (isWithdraw) typeLabel = 'เบิก'
-                  else if (isReturn) typeLabel = 'คืน'
-                  else if (isReceive) typeLabel = 'รับเข้า'
-                  else if (isCreate) typeLabel = 'สร้าง'
-                  else if (isEdit) typeLabel = 'แก้ไข'
-                  else if (isDelete) typeLabel = 'ลบ'
-                  
-                  return (
-                    <div key={transaction.id} className="report-item">
-                      <div className="report-item-header">
-                        <span className="report-item-name">{transaction.productName}</span>
-                        <span className={`report-item-quantity ${
-                          isWithdraw || isDelete ? 'text-danger' : 
-                          isReceive || isReturn || isCreate ? 'text-success' : 
-                          'text-muted'
-                        }`}>
-                          {isWithdraw || isDelete ? '-' : isReceive || isReturn || isCreate ? '+' : ''}{transaction.quantity}
-                        </span>
-                      </div>
-                      <div className="report-item-meta">
-                        <span>{typeLabel}</span>
-                        <span>{new Date(transaction.timestamp).toLocaleDateString('th-TH')}</span>
-                      </div>
-                    </div>
-                  )
-                })}
+              <div className="report-table-wrapper">
+                <table className="report-table">
+                  <thead>
+                    <tr>
+                      <th>วัสดุ</th>
+                      <th>ประเภท</th>
+                      <th>จำนวน</th>
+                      <th>วันที่</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {report.transactions.map((transaction) => {
+                      const type = transaction.type.toUpperCase()
+                      const isWithdraw = type === 'WITHDRAW' || type === 'เบิก'
+                      const isReturn = type === 'RETURN' || type === 'คืน'
+                      const isReceive = type === 'RECEIVE' || type === 'รับเข้า'
+                      const isCreate = type === 'CREATE'
+                      const isEdit = type === 'EDIT'
+                      const isDelete = type === 'DELETE'
+                      
+                      let typeLabel = transaction.type
+                      if (isWithdraw) typeLabel = 'เบิก'
+                      else if (isReturn) typeLabel = 'คืน'
+                      else if (isReceive) typeLabel = 'รับเข้า'
+                      else if (isCreate) typeLabel = 'สร้าง'
+                      else if (isEdit) typeLabel = 'แก้ไข'
+                      else if (isDelete) typeLabel = 'ลบ'
+                      
+                      return (
+                        <tr key={transaction.id}>
+                          <td className="product-name">{transaction.productName}</td>
+                          <td className="transaction-type">
+                            <span className={`type-badge ${
+                              isWithdraw ? 'badge-withdraw' :
+                              isReturn ? 'badge-return' :
+                              isReceive ? 'badge-receive' :
+                              isCreate ? 'badge-create' :
+                              isEdit ? 'badge-edit' :
+                              isDelete ? 'badge-delete' : ''
+                            }`}>
+                              {typeLabel}
+                            </span>
+                          </td>
+                          <td className={`quantity ${
+                            isWithdraw || isDelete ? 'text-danger' : 
+                            isReceive || isReturn || isCreate ? 'text-success' : 
+                            'text-muted'
+                          }`}>
+                            {isWithdraw || isDelete ? '-' : isReceive || isReturn || isCreate ? '+' : ''}{transaction.quantity}
+                          </td>
+                          <td className="date">{new Date(transaction.timestamp).toLocaleDateString('th-TH', { day: '2-digit', month: '2-digit', year: '2-digit' })}</td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
               </div>
             </div>
           )}

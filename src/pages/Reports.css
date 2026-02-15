@@ -59,45 +59,109 @@
   margin-bottom: 10px;
 }
 
-.report-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+.report-table-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
-.report-item {
-  padding: 10px;
-  border-bottom: 1px solid var(--color-border);
+.report-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.report-table thead {
   background: var(--color-bg-secondary);
-  border-radius: var(--radius-sm);
+  position: sticky;
+  top: 0;
+  z-index: 1;
 }
 
-.report-item:last-child {
+.report-table th {
+  padding: 8px 6px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 11px;
+  color: var(--color-text-secondary);
+  border-bottom: 2px solid var(--color-border);
+  white-space: nowrap;
+}
+
+.report-table td {
+  padding: 8px 6px;
   border-bottom: 1px solid var(--color-border);
 }
 
-.report-item-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 4px;
+.report-table tbody tr:hover {
+  background: var(--color-bg-secondary);
 }
 
-.report-item-name {
+.report-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.report-table .product-name {
+  font-weight: 500;
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.report-table .transaction-type {
+  text-align: center;
+}
+
+.report-table .type-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 10px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.type-badge.badge-withdraw {
+  background: #ffebee;
+  color: #c62828;
+}
+
+.type-badge.badge-return {
+  background: #fff9c4;
+  color: #f57f17;
+}
+
+.type-badge.badge-receive {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.type-badge.badge-create {
+  background: #e3f2fd;
+  color: #1565c0;
+}
+
+.type-badge.badge-edit {
+  background: #f3e5f5;
+  color: #6a1b9a;
+}
+
+.type-badge.badge-delete {
+  background: #ffcdd2;
+  color: #b71c1c;
+}
+
+.report-table .quantity {
+  text-align: right;
   font-weight: 600;
   font-size: 13px;
 }
 
-.report-item-quantity {
-  font-weight: 700;
-  font-size: 14px;
-}
-
-.report-item-meta {
-  display: flex;
-  justify-content: space-between;
-  font-size: 11px;
+.report-table .date {
+  text-align: right;
   color: var(--color-text-secondary);
+  font-size: 11px;
+  white-space: nowrap;
 }
 
 .export-buttons {
