@@ -25,7 +25,7 @@ export default function Layout() {
         alignItems: 'center',
         justifyContent: 'center',
         padding: '20px',
-        background: 'linear-gradient(180deg, #4A90E2 0%, #5AC8FA 100%)'
+        background: 'linear-gradient(180deg, #1E3A8A 0%, #3B82F6 100%)'
       }}>
         <div style={{
           background: 'white',
@@ -40,13 +40,13 @@ export default function Layout() {
           <div style={{
             width: '96px',
             height: '96px',
-            background: 'linear-gradient(135deg, #4A90E2 0%, #5AC8FA 100%)',
+            background: 'linear-gradient(135deg, #1E3A8A 0%, #3B82F6 100%)',
             borderRadius: '24px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             margin: '0 auto 32px',
-            boxShadow: '0 12px 32px rgba(74, 144, 226, 0.25)'
+            boxShadow: '0 12px 32px rgba(30, 58, 138, 0.3)'
           }}>
             <Icon name="products" size={48} color="white" />
           </div>
@@ -139,7 +139,7 @@ export default function Layout() {
                   fontWeight: '400'
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.color = '#4A90E2'
+                  e.currentTarget.style.color = '#3B82F6'
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.color = '#aeaeb2'
