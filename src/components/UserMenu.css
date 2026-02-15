@@ -31,7 +31,7 @@
 .user-menu {
   position: fixed;
   top: 12px;
-  right: 16px;
+  right: 12px;
   z-index: 1000;
 }
 
@@ -199,7 +199,7 @@
 .login-buttons {
   position: fixed;
   top: 12px;
-  right: 16px;
+  right: 12px;
   z-index: 1000;
   display: flex;
   gap: 8px;
@@ -235,7 +235,7 @@
 .manual-login {
   position: fixed;
   top: 12px;
-  right: 16px;
+  right: 12px;
   z-index: 1000;
   display: flex;
   gap: 6px;
