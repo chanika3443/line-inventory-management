@@ -147,7 +147,9 @@ export default function Products() {
       </div>
 
       <div className="product-list">
-        {filteredProducts.map((product) => (
+        {filteredProducts.map((product) => {
+          console.log('Product:', product.name, 'Returnable:', product.returnable)
+          return (
           <div key={product.code} className="product-card card">
             <div className="product-header">
               <div>
@@ -188,18 +190,20 @@ export default function Products() {
             <div style={{ 
               marginTop: '10px', 
               padding: '8px 12px', 
-              background: product.returnable ? 'rgba(81, 207, 102, 0.1)' : 'var(--bg-secondary)', 
+              background: product.returnable ? 'rgba(81, 207, 102, 0.1)' : '#f0f0f0', 
               borderRadius: 'var(--radius-md)',
               textAlign: 'center',
               fontSize: '12px',
-              color: product.returnable ? '#51cf66' : 'var(--text-tertiary)',
+              color: product.returnable ? '#51cf66' : '#999',
               opacity: product.returnable ? '1' : '0.7',
-              fontWeight: product.returnable ? '600' : '400'
+              fontWeight: product.returnable ? '600' : '400',
+              border: '1px solid ' + (product.returnable ? '#51cf66' : '#ddd')
             }}>
-              {product.returnable ? 'คืนได้' : 'คืนไม่ได้'}
+              {product.returnable ? '✓ คืนได้' : '✗ คืนไม่ได้'}
             </div>
           </div>
-        ))}
+        )})}
+      </div>
       </div>
 
       {showModal && (
