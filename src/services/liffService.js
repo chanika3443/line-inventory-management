@@ -71,9 +71,10 @@ export function logout() {
   // Logout from LIFF if initialized
   if (isInitialized && liff.isLoggedIn()) {
     console.log('Calling liff.logout()')
-    // Use window.location.href to force logout and redirect
-    const logoutUrl = `https://access.line.me/oauth2/v2.1/logout?post_logout_redirect_uri=${encodeURIComponent(window.location.origin + window.location.pathname)}&client_id=${config.liff.id}`
-    window.location.href = logoutUrl
+    // Call LIFF logout which will clear the session
+    liff.logout()
+    // Then reload to clear state
+    window.location.href = window.location.origin + window.location.pathname
   } else {
     // Not logged in via LIFF, just reload
     console.log('Not logged in via LIFF, reloading page')
