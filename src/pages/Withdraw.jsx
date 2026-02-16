@@ -4,6 +4,7 @@ import { useLiff } from '../contexts/LiffContext'
 import Icon from '../components/Icon'
 import Loading from '../components/Loading'
 import { useHeaderShrink } from '../hooks/useHeaderShrink'
+import { ERROR_MESSAGES, getSuccessMessage } from '../utils/errorMessages'
 import './Transaction.css'
 
 export default function Withdraw() {
@@ -88,12 +89,12 @@ export default function Withdraw() {
 
   const handleMultiWithdraw = async () => {
     if (selectedItems.length === 0) {
-      setMessage({ type: 'error', text: 'กรุณาเลือกวัสดุที่ต้องการเบิก' })
+      setMessage({ type: 'error', text: ERROR_MESSAGES.REQUIRED_PRODUCT })
       return
     }
 
     if (!userName.trim()) {
-      setMessage({ type: 'error', text: 'กรุณาระบุชื่อผู้เบิก' })
+      setMessage({ type: 'error', text: ERROR_MESSAGES.REQUIRED_USER })
       return
     }
 
@@ -129,12 +130,12 @@ export default function Withdraw() {
     e.preventDefault()
     
     if (!selectedProduct || !quantity) {
-      setMessage({ type: 'error', text: 'กรุณาเลือกวัสดุและระบุจำนวน' })
+      setMessage({ type: 'error', text: ERROR_MESSAGES.REQUIRED_PRODUCT_AND_QUANTITY })
       return
     }
 
     if (!userName.trim()) {
-      setMessage({ type: 'error', text: 'กรุณาระบุชื่อผู้เบิก' })
+      setMessage({ type: 'error', text: ERROR_MESSAGES.REQUIRED_USER })
       return
     }
 
