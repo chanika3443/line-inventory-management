@@ -112,7 +112,18 @@ export default function Reports() {
   const handleExport = (format) => {
     // Check if in LINE app
     if (isInClient) {
-      alert('⚠️ ไม่สามารถ Export ใน LINE ได้\n\nกรุณาเปิดในเบราว์เซอร์ภายนอก:\n1. กดปุ่ม ⋯ มุมขวาบน\n2. เลือก "เปิดในเบราว์เซอร์ภายนอก"')
+      const confirmOpen = window.confirm(
+        '⚠️ ไม่สามารถ Export ใน LINE ได้\n\n' +
+        'ต้องการเปิดในเบราว์เซอร์ภายนอก (Chrome/Safari) หรือไม่?\n\n' +
+        'กด OK เพื่อเปิดในเบราว์เซอร์'
+      )
+      
+      if (confirmOpen) {
+        // Open in external browser
+        const currentUrl = window.location.href
+        window.open(currentUrl, '_blank')
+      }
+      
       setShowExportMenu(false)
       return
     }
