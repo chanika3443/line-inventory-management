@@ -175,7 +175,7 @@ export default function Withdraw() {
         <p className="header-subtitle">เบิกวัสดุออกจากคลัง</p>
       </div>
 
-      <div className="container">
+      <div className="container" style={{ paddingBottom: '100px' }}>
         {message && (
           <div className={message.type === 'success' ? 'alert alert-success' : 'alert alert-danger'}>
             {message.text}
