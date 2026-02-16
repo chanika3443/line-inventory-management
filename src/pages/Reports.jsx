@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import * as sheetsService from '../services/sheetsService'
+import { useLiff } from '../contexts/LiffContext'
 import Loading from '../components/Loading'
 import { useHeaderShrink } from '../hooks/useHeaderShrink'
 import * as XLSX from 'xlsx'
@@ -7,6 +8,7 @@ import './Reports.css'
 
 export default function Reports() {
   useHeaderShrink()
+  const { isInClient } = useLiff()
   const [report, setReport] = useState(null)
   const [loading, setLoading] = useState(true)
   const [filters, setFilters] = useState({
@@ -108,6 +110,13 @@ export default function Reports() {
   }
 
   const handleExport = (format) => {
+    // Check if in LINE app
+    if (isInClient) {
+      alert('⚠️ ไม่สามารถ Export ใน LINE ได้\n\nกรุณาเปิดในเบราว์เซอร์ภายนอก:\n1. กดปุ่ม ⋯ มุมขวาบน\n2. เลือก "เปิดในเบราว์เซอร์ภายนอก"')
+      setShowExportMenu(false)
+      return
+    }
+
     if (format === 'excel') {
       exportToExcel()
     } else if (format === 'csv') {
