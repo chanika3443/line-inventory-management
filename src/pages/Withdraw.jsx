@@ -266,12 +266,12 @@ export default function Withdraw() {
             {isMultiSelectMode && selectedItems.length > 0 && (
               <div className="multi-select-footer" style={{ 
                 position: 'fixed', 
-                bottom: '90px', 
+                bottom: '100px', 
                 left: '0', 
                 right: '0', 
                 background: 'var(--bg-elevated)', 
                 padding: '16px 20px',
-                paddingBottom: '20px',
+                paddingBottom: '24px',
                 boxShadow: '0 -2px 10px rgba(0,0,0,0.1)',
                 borderTop: '1px solid var(--border)',
                 zIndex: 50,
