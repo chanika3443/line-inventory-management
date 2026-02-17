@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import * as sheetsService from '../services/sheetsService'
 import SkeletonLoader from '../components/SkeletonLoader'
+import { haptics } from '../utils/haptics'
 import './Logs.css'
 
 export default function Logs() {
@@ -31,6 +32,7 @@ export default function Logs() {
   }, [filters.type])
 
   const applyDateRange = useCallback((range) => {
+    haptics.light()
     const today = new Date()
     today.setHours(0, 0, 0, 0)
     
@@ -112,6 +114,7 @@ export default function Logs() {
   }
 
   function handleSort(field) {
+    haptics.selection()
     if (sortField === field) {
       // Toggle direction
       setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')

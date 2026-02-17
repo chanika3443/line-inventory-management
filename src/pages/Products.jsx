@@ -3,6 +3,7 @@ import { useSheets } from '../contexts/SheetsContext'
 import { useLiff } from '../contexts/LiffContext'
 import * as sheetsService from '../services/sheetsService'
 import SkeletonLoader from '../components/SkeletonLoader'
+import { haptics } from '../utils/haptics'
 import './Products.css'
 
 export default function Products() {
@@ -97,6 +98,7 @@ export default function Products() {
 
   async function handleSubmit(e) {
     e.preventDefault()
+    haptics.medium()
 
     // Convert empty strings to 0 for numeric fields
     const submitData = {
@@ -113,28 +115,35 @@ export default function Products() {
     }
 
     if (result.success) {
+      haptics.success()
       setMessage({ type: 'success', text: result.message })
       setShowModal(false)
     } else {
+      haptics.error()
       setMessage({ type: 'error', text: result.message })
     }
   }
 
   async function handleDelete(product) {
+    haptics.light()
     setDeleteConfirm({ show: true, product, input: '' })
   }
 
   async function confirmDelete() {
     if (deleteConfirm.input !== 'delete') {
+      haptics.error()
       setMessage({ type: 'error', text: 'กรุณาพิมพ์ "delete" เพื่อยืนยัน' })
       return
     }
 
+    haptics.medium()
     const result = await deleteProduct(deleteConfirm.product.code, userName)
     
     if (result.success) {
+      haptics.success()
       setMessage({ type: 'success', text: result.message })
     } else {
+      haptics.error()
       setMessage({ type: 'error', text: result.message })
     }
     

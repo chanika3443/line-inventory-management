@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import * as sheetsService from '../services/sheetsService'
 import { useLiff } from '../contexts/LiffContext'
 import SkeletonLoader from '../components/SkeletonLoader'
+import { haptics } from '../utils/haptics'
 import * as XLSX from 'xlsx'
 import './Reports.css'
 
@@ -110,6 +111,7 @@ export default function Reports() {
   }
 
   const handleExport = (format) => {
+    haptics.light()
     // Check if in LINE app
     if (isInClient) {
       const confirmOpen = window.confirm(
@@ -128,11 +130,13 @@ export default function Reports() {
       return
     }
 
+    haptics.medium()
     if (format === 'excel') {
       exportToExcel()
     } else if (format === 'csv') {
       exportToCSV()
     }
+    haptics.success()
     setShowExportMenu(false)
   }
 
