@@ -12,7 +12,6 @@ export default function Return() {
   
 
   
-  const [searchQuery, setSearchQuery] = useState('')
   const [selectedProduct, setSelectedProduct] = useState(null)
   const [quantity, setQuantity] = useState('')
   const [note, setNote] = useState('')
@@ -43,11 +42,6 @@ export default function Return() {
 
   // Filter only returnable products
   const returnableProducts = products.filter(p => p.returnable)
-  
-  const filteredProducts = returnableProducts.filter(p =>
-    p.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    p.name.toLowerCase().includes(searchQuery.toLowerCase())
-  )
 
   const handleReturn = async (e) => {
     e.preventDefault()
@@ -73,7 +67,6 @@ export default function Return() {
       setSelectedProduct(null)
       setQuantity('')
       setNote('')
-      setSearchQuery('')
     } else {
       haptics.error()
       setMessage({ type: 'error', text: result.message })
@@ -110,24 +103,14 @@ export default function Return() {
 
         {!selectedProduct ? (
           <>
-            <div className="form-group">
-              <input
-                type="text"
-                className="input"
-                placeholder="ค้นหาวัสดุที่สามารถคืนได้..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
-
-            {filteredProducts.length === 0 ? (
+            {returnableProducts.length === 0 ? (
               <div className="empty-state">
                 <div className="empty-state-icon">📦</div>
                 <p>ไม่พบวัสดุที่สามารถคืนได้</p>
               </div>
             ) : (
               <div className="product-list">
-                {filteredProducts.map((product) => (
+                {returnableProducts.map((product) => (
                   <div
                     key={product.code}
                     className="product-item"

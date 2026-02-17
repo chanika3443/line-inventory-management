@@ -12,7 +12,6 @@ export default function Receive() {
   
 
   
-  const [searchQuery, setSearchQuery] = useState('')
   const [selectedProduct, setSelectedProduct] = useState(null)
   const [quantity, setQuantity] = useState('')
   const [userName, setLocalUserName] = useState(liffUserName || '')
@@ -40,11 +39,6 @@ export default function Receive() {
     }
   }, [liffUserName])
 
-  const filteredProducts = products.filter(p =>
-    p.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    p.name.toLowerCase().includes(searchQuery.toLowerCase())
-  )
-
   const handleReceive = async (e) => {
     e.preventDefault()
     haptics.medium()
@@ -68,7 +62,6 @@ export default function Receive() {
       setMessage({ type: 'success', text: result.message })
       setSelectedProduct(null)
       setQuantity('')
-      setSearchQuery('')
     } else {
       haptics.error()
       setMessage({ type: 'error', text: result.message })
@@ -105,18 +98,8 @@ export default function Receive() {
 
         {!selectedProduct ? (
           <>
-            <div className="form-group">
-              <input
-                type="text"
-                className="input"
-                placeholder="ค้นหาวัสดุ..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
-
             <div className="product-list">
-              {filteredProducts.map((product) => (
+              {products.map((product) => (
                 <div
                   key={product.code}
                   className="product-item"

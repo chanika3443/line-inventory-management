@@ -13,7 +13,6 @@ export default function Withdraw() {
   
 
   
-  const [searchQuery, setSearchQuery] = useState('')
   const [selectedProduct, setSelectedProduct] = useState(null)
   const [quantity, setQuantity] = useState('')
   const [userName, setLocalUserName] = useState(liffUserName || '')
@@ -68,11 +67,6 @@ export default function Withdraw() {
     }
   }, [liffUserName])
 
-  const filteredProducts = products.filter(p =>
-    p.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    p.name.toLowerCase().includes(searchQuery.toLowerCase())
-  )
-
   const toggleProductSelection = (product) => {
     haptics.selection()
     const isSelected = selectedItems.some(item => item.product.code === product.code)
@@ -122,7 +116,6 @@ export default function Withdraw() {
       setMessage({ type: 'success', text: `เบิกสำเร็จ ${successCount} รายการ` })
       setSelectedItems([])
       setIsMultiSelectMode(false)
-      setSearchQuery('')
     } else {
       haptics.error()
       setMessage({ type: 'error', text: `เบิกสำเร็จ ${successCount} รายการ, ล้มเหลว ${failCount} รายการ` })
@@ -197,7 +190,6 @@ export default function Withdraw() {
       setQuantity('')
       setRoomNumber('')
       setPatientType(getDefaultPatientType())
-      setSearchQuery('')
     } else {
       haptics.error()
       setMessage({ type: 'error', text: result.message })
@@ -254,20 +246,8 @@ export default function Withdraw() {
               </button>
             </div>
 
-            <div className="form-group">
-              <input
-                type="text"
-                className="input"
-                placeholder="ค้นหาวัสดุ..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
-
-            {/* Selected counter removed - not needed */}
-
             <div className="product-list">
-              {filteredProducts.map((product) => {
+              {products.map((product) => {
                 const isSelected = selectedItems.some(item => item.product.code === product.code)
                 return (
                   <div
