@@ -33,13 +33,6 @@ export default function Logs() {
     setLoading(false)
   }, [filters.type])
 
-  // Pull to refresh
-  const handleRefresh = async () => {
-    haptics.light()
-    applyDateRange(dateRange)
-  }
-  const { isPulling, pullDistance } = usePullToRefresh(handleRefresh)
-
   const applyDateRange = useCallback((range) => {
     const today = new Date()
     today.setHours(0, 0, 0, 0)
@@ -81,6 +74,13 @@ export default function Logs() {
     // Load with new dates
     loadTransactionsWithDates(startDateStr, endDateStr)
   }, [loadTransactionsWithDates])
+
+  // Pull to refresh
+  const handleRefresh = async () => {
+    haptics.light()
+    applyDateRange(dateRange)
+  }
+  const { isPulling, pullDistance } = usePullToRefresh(handleRefresh)
 
   useEffect(() => {
     if (isInitialMount.current) {
