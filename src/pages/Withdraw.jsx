@@ -40,6 +40,7 @@ export default function Withdraw() {
   // Multi-select mode
   const [selectedItems, setSelectedItems] = useState([]) // [{ product, quantity }]
   const [isMultiSelectMode, setIsMultiSelectMode] = useState(false)
+  const [isFooterExpanded, setIsFooterExpanded] = useState(false)
 
   useEffect(() => {
     fetchProducts()
@@ -271,20 +272,44 @@ export default function Withdraw() {
                 left: '0', 
                 right: '0', 
                 background: 'var(--bg-elevated)', 
-                padding: '16px 20px',
-                paddingBottom: '28px',
+                padding: isFooterExpanded ? '16px 20px 28px' : '12px 20px',
                 boxShadow: '0 -2px 10px rgba(0,0,0,0.1)',
                 borderTop: '1px solid var(--border)',
                 zIndex: 50,
-                maxHeight: '60vh',
-                overflowY: 'auto'
+                maxHeight: isFooterExpanded ? '60vh' : 'auto',
+                overflowY: isFooterExpanded ? 'auto' : 'hidden',
+                transition: 'all 0.3s ease'
               }}>
                 <div style={{ maxWidth: '500px', margin: '0 auto' }}>
-                  <div style={{ marginBottom: '16px' }}>
-                    <div style={{ fontSize: '16px', fontWeight: '600', marginBottom: '12px', color: 'var(--text-primary)' }}>
+                  {/* Header - Always visible */}
+                  <div 
+                    onClick={() => setIsFooterExpanded(!isFooterExpanded)}
+                    style={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      justifyContent: 'space-between',
+                      cursor: 'pointer',
+                      marginBottom: isFooterExpanded ? '16px' : '0'
+                    }}
+                  >
+                    <div style={{ fontSize: '16px', fontWeight: '600', color: 'var(--text-primary)' }}>
                       รายการที่เลือก ({selectedItems.length})
                     </div>
-                    {selectedItems.map((item) => (
+                    <div style={{ 
+                      fontSize: '20px', 
+                      color: 'var(--text-secondary)',
+                      transform: isFooterExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
+                      transition: 'transform 0.3s ease'
+                    }}>
+                      ▼
+                    </div>
+                  </div>
+
+                  {/* Expanded content */}
+                  {isFooterExpanded && (
+                    <>
+                      <div style={{ marginBottom: '16px' }}>
+                        {selectedItems.map((item) => (
                       <div key={item.product.code} style={{ 
                         background: 'var(--bg-secondary)', 
                         padding: '12px', 
@@ -402,7 +427,11 @@ export default function Withdraw() {
                       required
                     />
                   </div>
-                  <div style={{ display: 'flex', gap: '8px' }}>
+                  </>
+                  )}
+
+                  {/* Buttons - Always visible */}
+                  <div style={{ display: 'flex', gap: '8px', marginTop: isFooterExpanded ? '0' : '12px' }}>
                     <button 
                       onClick={handleMultiWithdraw} 
                       className="btn btn-primary" 
