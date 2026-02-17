@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import * as sheetsService from '../services/sheetsService'
 import SkeletonLoader from '../components/SkeletonLoader'
-import { haptics } from '../utils/haptics'
 import './Logs.css'
 
 export default function Logs() {

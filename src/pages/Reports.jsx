@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import * as sheetsService from '../services/sheetsService'
 import { useLiff } from '../contexts/LiffContext'
 import SkeletonLoader from '../components/SkeletonLoader'
-import { haptics } from '../utils/haptics'
 import * as XLSX from 'xlsx'
 import './Reports.css'
 

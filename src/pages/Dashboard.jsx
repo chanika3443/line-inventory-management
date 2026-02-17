@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom'
 import * as sheetsService from '../services/sheetsService'
 import Icon from '../components/Icon'
 import SkeletonLoader from '../components/SkeletonLoader'
-import { haptics } from '../utils/haptics'
 import './Dashboard.css'
 
 export default function Dashboard() {

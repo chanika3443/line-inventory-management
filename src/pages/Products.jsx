@@ -3,7 +3,6 @@ import { useSheets } from '../contexts/SheetsContext'
 import { useLiff } from '../contexts/LiffContext'
 import * as sheetsService from '../services/sheetsService'
 import SkeletonLoader from '../components/SkeletonLoader'
-import { haptics } from '../utils/haptics'
 import './Products.css'
 
 export default function Products() {
