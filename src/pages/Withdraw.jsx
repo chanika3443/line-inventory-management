@@ -642,7 +642,7 @@ export default function Withdraw() {
                 </div>
               )}
 
-              <button type="submit" className="btn btn-primary btn-block" disabled={loading}>
+              <button type="submit" className="btn btn-primary btn-block" disabled={loading} style={{ marginTop: '16px' }}>
                 <Icon name="withdraw" size={20} color="white" />
                 {loading ? 'กำลังบันทึก...' : 'ยืนยันการเบิก'}
               </button>

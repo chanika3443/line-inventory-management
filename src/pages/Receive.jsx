@@ -594,7 +594,7 @@ export default function Receive() {
 
 
 
-              <button type="submit" className="btn btn-success btn-block" disabled={loading}>
+              <button type="submit" className="btn btn-success btn-block" disabled={loading} style={{ marginTop: '16px' }}>
                 <Icon name="receive" size={20} color="white" />
                 {loading ? 'กำลังบันทึก...' : 'ยืนยันรับเข้า'}
               </button>
