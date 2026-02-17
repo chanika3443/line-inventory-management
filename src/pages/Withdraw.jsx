@@ -4,7 +4,7 @@ import { useLiff } from '../contexts/LiffContext'
 import Icon from '../components/Icon'
 import Loading from '../components/Loading'
 import { useHeaderShrink } from '../hooks/useHeaderShrink'
-import { ERROR_MESSAGES, getSuccessMessage } from '../utils/errorMessages'
+import { ERROR_MESSAGES } from '../utils/errorMessages'
 import './Transaction.css'
 
 export default function Withdraw() {

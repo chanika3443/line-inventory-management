@@ -10,15 +10,27 @@ let isInitialized = false
 let userProfile = null
 
 /**
- * Initialize LIFF
+ * Initialize LIFF with timeout
  */
 export async function initializeLiff() {
   if (isInitialized) {
     return true
   }
   
+  // Skip LIFF in localhost development
+  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    console.log('Skipping LIFF initialization in localhost')
+    return false
+  }
+  
   try {
-    await liff.init({ liffId: config.liff.id })
+    // Add timeout to prevent hanging
+    const initPromise = liff.init({ liffId: config.liff.id })
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('LIFF init timeout')), 5000)
+    )
+    
+    await Promise.race([initPromise, timeoutPromise])
     isInitialized = true
     
     // Get user profile if logged in
