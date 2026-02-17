@@ -155,7 +155,7 @@
   text-align: center;
   color: var(--color-text-secondary);
   font-size: var(--text-xs);
-  whiteSpace: nowrap;
+  white-space: nowrap;
 }
 
 .export-buttons {
