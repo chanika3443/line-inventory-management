@@ -6,9 +6,11 @@ repos:
         entry: npm run lint
         language: system
         pass_filenames: false
+        always_run: true
         
       - id: build
         name: Build Check
         entry: npm run build
         language: system
         pass_filenames: false
+        always_run: true
