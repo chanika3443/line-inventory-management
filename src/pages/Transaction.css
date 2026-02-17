@@ -267,17 +267,36 @@ input[type="number"] {
   appearance: textfield;
 }
 
-/* Selected counter - no animation to prevent replay on count change */
+/* Selected counter - compact with slide-up animation on first show only */
 .selected-counter {
   background: var(--accent-light);
   color: var(--accent);
-  padding: var(--space-4);
-  border-radius: var(--radius-md);
-  font-size: var(--text-sm);
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-full);
+  font-size: var(--text-xs);
   text-align: center;
   font-weight: var(--font-semibold);
-  margin-bottom: var(--space-4);
+  margin-bottom: var(--space-3);
   border: 1px solid rgba(0, 122, 255, 0.2);
-  /* No animation - updates frequently */
-  transition: none;
+  display: inline-block;
+  /* Animation only on mount, not on updates */
+  animation: slideUpOnce 0.3s ease-out;
+}
+
+@keyframes slideUpOnce {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Wrapper to center the counter */
+.selected-counter-wrapper {
+  display: flex;
+  justify-content: center;
+  margin-bottom: var(--space-3);
 }

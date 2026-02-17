@@ -263,8 +263,10 @@ export default function Withdraw() {
             </div>
 
             {isMultiSelectMode && selectedItems.length > 0 && (
-              <div className="selected-counter">
-                เลือกแล้ว {selectedItems.length} รายการ
+              <div className="selected-counter-wrapper">
+                <div className="selected-counter" key={selectedItems.length > 0 ? 'has-items' : 'no-items'}>
+                  📦 {selectedItems.length} รายการ
+                </div>
               </div>
             )}
 
