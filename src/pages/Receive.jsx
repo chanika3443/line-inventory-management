@@ -2,12 +2,23 @@ import { useState, useEffect } from 'react'
 import { useSheets } from '../contexts/SheetsContext'
 import { useLiff } from '../contexts/LiffContext'
 import Icon from '../components/Icon'
-import Loading from '../components/Loading'
+import SkeletonLoader from '../components/SkeletonLoader'
+import PullToRefresh from '../components/PullToRefresh'
+import { usePullToRefresh } from '../hooks/usePullToRefresh'
+import { haptics } from '../utils/haptics'
 import './Transaction.css'
 
 export default function Receive() {
   const { products, fetchProducts, receive, loading } = useSheets()
   const { userName: liffUserName } = useLiff()
+  
+  // Pull to refresh
+  const handleRefresh = async () => {
+    haptics.light()
+    await fetchProducts()
+  }
+  const { isPulling, pullDistance } = usePullToRefresh(handleRefresh)
+  
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedProduct, setSelectedProduct] = useState(null)
   const [quantity, setQuantity] = useState('')
@@ -43,13 +54,16 @@ export default function Receive() {
 
   const handleReceive = async (e) => {
     e.preventDefault()
+    haptics.medium()
     
     if (!selectedProduct || !quantity) {
+      haptics.error()
       setMessage({ type: 'error', text: 'กรุณาเลือกวัสดุและระบุจำนวน' })
       return
     }
 
     if (!userName.trim()) {
+      haptics.error()
       setMessage({ type: 'error', text: 'กรุณาระบุชื่อผู้รับเข้า' })
       return
     }
@@ -57,21 +71,34 @@ export default function Receive() {
     const result = await receive(selectedProduct.code, quantity, userName)
     
     if (result.success) {
+      haptics.success()
       setMessage({ type: 'success', text: result.message })
       setSelectedProduct(null)
       setQuantity('')
       setSearchQuery('')
     } else {
+      haptics.error()
       setMessage({ type: 'error', text: result.message })
     }
   }
 
   if (loading && products.length === 0) {
-    return <Loading />
+    return (
+      <div className="transaction-page">
+        <div className="header">
+          <h1>รับเข้าวัสดุ</h1>
+          <p className="header-subtitle">รับวัสดุเข้าคลัง</p>
+        </div>
+        <div className="container">
+          <SkeletonLoader type="list" count={5} />
+        </div>
+      </div>
+    )
   }
 
   return (
     <div className="transaction-page">
+      <PullToRefresh isPulling={isPulling} pullDistance={pullDistance} />
       <div className="header">
         <h1>รับเข้าวัสดุ</h1>
         <p className="header-subtitle">รับวัสดุเข้าคลัง</p>
