@@ -488,8 +488,12 @@ export default function Logs() {
                       {transaction.productName}
                     </td>
                     <td style={{ padding: '8px 6px', textAlign: 'center' }}>
-                      <div style={{ fontWeight: '700', color: 'var(--accent)', fontSize: 'var(--text-sm)' }}>
-                        {transaction.quantity}
+                      <div style={{ 
+                        fontWeight: '700', 
+                        color: transaction.type.toUpperCase() === 'WITHDRAW' || transaction.type === 'เบิก' ? '#ff3b30' : '#34c759',
+                        fontSize: 'var(--text-sm)' 
+                      }}>
+                        {(transaction.type.toUpperCase() === 'WITHDRAW' || transaction.type === 'เบิก') ? '-' : '+'}{transaction.quantity}
                       </div>
                       <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)', marginTop: '2px' }}>
                         {transaction.beforeQuantity}→{transaction.afterQuantity}
