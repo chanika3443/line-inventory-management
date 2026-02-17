@@ -525,7 +525,7 @@ export default function Withdraw() {
                 <div className="product-name">{selectedProduct.name}</div>
               </div>
 
-              <div className="alert alert-warning">
+              <div className="alert alert-warning" style={{ padding: '4px 8px', fontSize: '11px', marginBottom: '8px', display: 'inline-block' }}>
                 คงเหลือ {selectedProduct.quantity} {selectedProduct.unit}
               </div>
 
