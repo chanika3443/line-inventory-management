@@ -23,7 +23,7 @@ export default function BottomNav() {
         className={`nav-item ${isActive('/') ? 'active' : ''}`}
         onClick={(e) => handleNavClick(e, '/')}
       >
-        <Icon name="home" size={24} />
+        <Icon name="home" size={20} />
         <span>หน้าแรก</span>
       </Link>
 
@@ -32,7 +32,7 @@ export default function BottomNav() {
         className={`nav-item ${isActive('/withdraw') ? 'active' : ''}`}
         onClick={(e) => handleNavClick(e, '/withdraw')}
       >
-        <Icon name="withdraw" size={24} />
+        <Icon name="withdraw" size={20} />
         <span>เบิก</span>
       </Link>
 
@@ -41,7 +41,7 @@ export default function BottomNav() {
         className={`nav-item ${isActive('/return') ? 'active' : ''}`}
         onClick={(e) => handleNavClick(e, '/return')}
       >
-        <Icon name="return" size={24} />
+        <Icon name="return" size={20} />
         <span>คืน</span>
       </Link>
 
@@ -50,7 +50,7 @@ export default function BottomNav() {
         className={`nav-item ${isActive('/receive') ? 'active' : ''}`}
         onClick={(e) => handleNavClick(e, '/receive')}
       >
-        <Icon name="receive" size={24} />
+        <Icon name="receive" size={20} />
         <span>รับเข้า</span>
       </Link>
 
@@ -59,7 +59,7 @@ export default function BottomNav() {
         className={`nav-item ${isActive('/logs') ? 'active' : ''}`}
         onClick={(e) => handleNavClick(e, '/logs')}
       >
-        <Icon name="logs" size={24} />
+        <Icon name="logs" size={20} />
         <span>ประวัติ</span>
       </Link>
     </nav>
