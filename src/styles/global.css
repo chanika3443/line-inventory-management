@@ -625,22 +625,12 @@ a, button, input, select, textarea {
   animation: scaleIn 0.3s var(--ease-spring) backwards;
 }
 
-/* Smooth list item animations */
+/* Smooth list item animations - disabled to prevent re-animation on state change */
 .product-list > *,
 .list > * {
-  animation: slideUp 0.3s var(--ease-spring) backwards;
+  /* animation: slideUp 0.3s var(--ease-spring) backwards; */
+  /* Removed to prevent animation replay when selecting items */
 }
-
-.product-list > *:nth-child(1),
-.list > *:nth-child(1) { animation-delay: 0.05s; }
-.product-list > *:nth-child(2),
-.list > *:nth-child(2) { animation-delay: 0.1s; }
-.product-list > *:nth-child(3),
-.list > *:nth-child(3) { animation-delay: 0.15s; }
-.product-list > *:nth-child(4),
-.list > *:nth-child(4) { animation-delay: 0.2s; }
-.product-list > *:nth-child(5),
-.list > *:nth-child(5) { animation-delay: 0.25s; }
 
 /* Smooth modal animations */
 .modal-overlay {
