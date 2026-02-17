@@ -225,7 +225,7 @@ export default function Withdraw() {
         <p className="header-subtitle">เบิกวัสดุออกจากคลัง</p>
       </div>
 
-      <div className="container" style={{ paddingBottom: '140px' }}>
+      <div className="container" style={{ paddingBottom: '100px' }}>
         {message && (
           <div className={message.type === 'success' ? 'alert alert-success' : 'alert alert-danger'}>
             {message.text}
@@ -311,12 +311,12 @@ export default function Withdraw() {
             {isMultiSelectMode && selectedItems.length > 0 && (
               <div className="multi-select-footer" style={{ 
                 position: 'fixed', 
-                bottom: 'calc(80px + env(safe-area-inset-bottom))', 
+                bottom: 'calc(60px + env(safe-area-inset-bottom))', 
                 left: '0', 
                 right: '0', 
                 background: 'white', 
-                padding: isFooterExpanded ? '20px' : '16px 20px',
-                paddingBottom: isFooterExpanded ? 'calc(20px + env(safe-area-inset-bottom))' : 'calc(16px + env(safe-area-inset-bottom))',
+                padding: isFooterExpanded ? '16px' : '12px 16px',
+                paddingBottom: isFooterExpanded ? 'calc(16px + env(safe-area-inset-bottom))' : 'calc(12px + env(safe-area-inset-bottom))',
                 boxShadow: '0 -4px 12px rgba(0,0,0,0.08)',
                 borderTop: '1px solid #e5e5e7',
                 zIndex: 50,
