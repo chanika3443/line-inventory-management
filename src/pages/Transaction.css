@@ -228,7 +228,8 @@
 }
 
 .multi-select-footer {
-  animation: slideUp 0.3s ease-out;
+  /* animation: slideUp 0.3s ease-out; */
+  /* Disabled - plays twice when selecting items */
 }
 
 @keyframes slideUp {
@@ -241,6 +242,8 @@
     opacity: 1;
   }
 }
+
+/* Remove unused slideUp animation */
 
 .btn-secondary {
   background: var(--bg-tertiary);

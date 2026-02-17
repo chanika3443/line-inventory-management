@@ -257,7 +257,6 @@ export default function Return() {
                   setNote('')
                   window.scrollTo({ top: 0, behavior: 'smooth' })
                 }}
-                }}
               >
                 ยกเลิก
               </button>
