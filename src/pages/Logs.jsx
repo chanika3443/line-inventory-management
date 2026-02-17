@@ -484,18 +484,18 @@ export default function Logs() {
                         {getTypeLabel(transaction.type)}
                       </span>
                     </td>
-                    <td style={{ padding: '10px 8px', fontWeight: '600', color: 'var(--text-primary)', fontSize: 'var(--text-sm)' }}>
+                    <td style={{ padding: '10px 8px', fontWeight: '600', color: 'var(--text-primary)', fontSize: 'var(--text-xs)' }}>
                       {transaction.productName}
                     </td>
                     <td style={{ padding: '10px 8px', textAlign: 'center' }}>
-                      <div style={{ fontWeight: '700', color: 'var(--accent)', fontSize: 'var(--text-md)' }}>
+                      <div style={{ fontWeight: '700', color: 'var(--accent)', fontSize: 'var(--text-sm)' }}>
                         {transaction.quantity}
                       </div>
                       <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)', marginTop: '2px' }}>
                         {transaction.beforeQuantity}→{transaction.afterQuantity}
                       </div>
                     </td>
-                    <td style={{ padding: '10px 8px', color: 'var(--text-primary)', fontSize: 'var(--text-sm)' }}>
+                    <td style={{ padding: '10px 8px', color: 'var(--text-primary)', fontSize: 'var(--text-xs)' }}>
                       {transaction.userName}
                     </td>
                     <td style={{ padding: '10px 8px', color: 'var(--text-secondary)', fontSize: 'var(--text-xs)', whiteSpace: 'nowrap' }}>
