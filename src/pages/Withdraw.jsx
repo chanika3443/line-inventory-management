@@ -525,7 +525,7 @@ export default function Withdraw() {
                 <div className="product-name">{selectedProduct.name}</div>
               </div>
 
-              <div style={{ marginBottom: '12px' }}>
+              <div style={{ marginBottom: '12px', textAlign: 'right' }}>
                 <span style={{ 
                   display: 'inline-block',
                   padding: '4px 10px',
