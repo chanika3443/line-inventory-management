@@ -525,8 +525,18 @@ export default function Withdraw() {
                 <div className="product-name">{selectedProduct.name}</div>
               </div>
 
-              <div className="alert alert-warning" style={{ padding: '4px 8px', fontSize: '11px', marginBottom: '8px', display: 'inline-block' }}>
-                คงเหลือ {selectedProduct.quantity} {selectedProduct.unit}
+              <div style={{ marginBottom: '12px' }}>
+                <span style={{ 
+                  display: 'inline-block',
+                  padding: '4px 10px',
+                  background: 'rgba(255, 159, 10, 0.15)',
+                  color: '#ff9f0a',
+                  borderRadius: '6px',
+                  fontSize: '12px',
+                  fontWeight: '600'
+                }}>
+                  คงเหลือ {selectedProduct.quantity} {selectedProduct.unit}
+                </span>
               </div>
 
               <div className="form-group">
