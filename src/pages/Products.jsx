@@ -187,7 +187,7 @@ export default function Products() {
           <p className="header-subtitle">เพิ่ม แก้ไข ลบวัสดุ</p>
         </div>
 
-        <div className="container" style={{ paddingTop: '16px' }}>
+        <div className="container">
           <div className="access-denied-card">
             <div className="access-denied-icon">🔒</div>
             <h2 className="access-denied-title">ไม่มีสิทธิ์เข้าถึง</h2>
@@ -226,7 +226,7 @@ export default function Products() {
         <p className="header-subtitle">จัดการรายการวัสดุทั้งหมด</p>
       </div>
 
-      <div className="container" style={{ paddingTop: '16px' }}>
+      <div className="container">
         <button 
           onClick={handleAdd} 
           className="btn btn-primary" 

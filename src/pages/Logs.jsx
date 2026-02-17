@@ -232,7 +232,7 @@ export default function Logs() {
         <p className="header-subtitle">รายการทั้งหมดในระบบ</p>
       </div>
 
-      <div className="container" style={{ paddingTop: '16px' }}>
+      <div className="container">
         {/* Date Range Buttons */}
         <div style={{ 
           display: 'flex', 
