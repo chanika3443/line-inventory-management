@@ -4,7 +4,7 @@ import { useState, useCallback } from 'react'
  * Hook for optimistic UI updates with rollback on error
  * Prevents race conditions and provides instant feedback
  */
-export function useOptimisticUpdate(initialData, updateFn) {
+export function useOptimisticUpdate(initialData) {
   const [data, setData] = useState(initialData)
   const [isUpdating, setIsUpdating] = useState(false)
   const [error, setError] = useState(null)
