@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useSheets } from '../contexts/SheetsContext'
 import { useLiff } from '../contexts/LiffContext'
+import * as sheetsService from '../services/sheetsService'
 import Icon from '../components/Icon'
 import SkeletonLoader from '../components/SkeletonLoader'
 import { haptics } from '../utils/haptics'
@@ -8,7 +9,7 @@ import './Transaction.css'
 
 export default function Receive() {
   const { products, fetchProducts, receive, loading } = useSheets()
-  const { userName: liffUserName } = useLiff()
+  const { userName: liffUserName, loginMode } = useLiff()
   
 
   
@@ -21,6 +22,25 @@ export default function Receive() {
   const [selectedItems, setSelectedItems] = useState([]) // [{ product, quantity }]
   const [isMultiSelectMode, setIsMultiSelectMode] = useState(false)
   const [isFooterExpanded, setIsFooterExpanded] = useState(false)
+  
+  // Auth
+  const [allowedUsers, setAllowedUsers] = useState([])
+  const [checkingAccess, setCheckingAccess] = useState(true)
+
+  // Fetch allowed users from Google Sheets
+  useEffect(() => {
+    async function loadAllowedUsers() {
+      setCheckingAccess(true)
+      const users = await sheetsService.getAllowedUsers()
+      setAllowedUsers(users)
+      setCheckingAccess(false)
+    }
+    loadAllowedUsers()
+  }, [])
+
+  // Check access: must login with LINE AND (name must be in allowed list OR "ALL" is in the list)
+  const isLineLogin = loginMode === 'line'
+  const hasAccess = isLineLogin && (allowedUsers.includes(liffUserName) || allowedUsers.includes('ALL'))
 
   useEffect(() => {
     fetchProducts()
@@ -125,6 +145,83 @@ export default function Receive() {
       haptics.error()
       setMessage({ type: 'error', text: result.message })
     }
+  }
+
+  if (loading && products.length === 0) {
+    return (
+      <div className="transaction-page">
+        <div className="header">
+          <h1>รับเข้าวัสดุ</h1>
+          <p className="header-subtitle">รับวัสดุเข้าคลัง</p>
+        </div>
+        <div className="container">
+          <SkeletonLoader type="list" count={5} />
+        </div>
+      </div>
+    )
+  }
+
+  // Show checking access state
+  if (checkingAccess) {
+    return (
+      <div className="transaction-page">
+        <div className="header">
+          <h1>รับเข้าวัสดุ</h1>
+          <p className="header-subtitle">รับวัสดุเข้าคลัง</p>
+        </div>
+        <div className="container">
+          <SkeletonLoader type="list" count={3} />
+        </div>
+      </div>
+    )
+  }
+
+  // Show access denied if user is not authorized
+  if (!hasAccess) {
+    return (
+      <div className="transaction-page">
+        <div className="header">
+          <h1>รับเข้าวัสดุ</h1>
+          <p className="header-subtitle">รับวัสดุเข้าคลัง</p>
+        </div>
+
+        <div className="container">
+          <div className="card" style={{ textAlign: 'center', padding: '40px 20px' }}>
+            <div style={{ fontSize: '64px', marginBottom: '16px' }}>🔒</div>
+            <h2 style={{ fontSize: '20px', fontWeight: '600', marginBottom: '12px', color: 'var(--text-primary)' }}>
+              ไม่มีสิทธิ์เข้าถึง
+            </h2>
+            <p style={{ fontSize: '14px', color: 'var(--text-secondary)', marginBottom: '16px', lineHeight: '1.6' }}>
+              {!isLineLogin ? (
+                <>
+                  หน้านี้ต้อง Login with LINE เท่านั้น
+                  <br />
+                  กรุณา Logout และ Login ด้วย LINE อีกครั้ง
+                </>
+              ) : (
+                <>
+                  คุณไม่มีสิทธิ์ในการรับเข้าวัสดุ
+                  <br />
+                  กรุณาติดต่อผู้ดูแลระบบ
+                </>
+              )}
+            </p>
+            <div style={{ 
+              background: 'var(--bg-secondary)', 
+              padding: '12px', 
+              borderRadius: 'var(--radius-md)',
+              fontSize: '13px',
+              color: 'var(--text-secondary)'
+            }}>
+              <p>ผู้ใช้: {liffUserName}</p>
+              <p style={{ marginTop: '4px', fontSize: '12px', color: 'var(--text-tertiary)' }}>
+                Login Mode: {isLineLogin ? 'LINE' : 'Manual'}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   if (loading && products.length === 0) {

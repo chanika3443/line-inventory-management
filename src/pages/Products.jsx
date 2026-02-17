@@ -44,9 +44,9 @@ export default function Products() {
     loadAllowedUsers()
   }, [])
 
-  // Check access: must login with LINE AND name must be in allowed list
+  // Check access: must login with LINE AND (name must be in allowed list OR "ALL" is in the list)
   const isLineLogin = loginMode === 'line'
-  const hasAccess = isLineLogin && allowedUsers.includes(userName)
+  const hasAccess = isLineLogin && (allowedUsers.includes(userName) || allowedUsers.includes('ALL'))
 
   useEffect(() => {
     fetchProducts()
