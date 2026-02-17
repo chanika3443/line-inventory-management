@@ -363,10 +363,10 @@ export default function Logs() {
               width: '100%', 
               fontSize: 'var(--text-xs)',
               borderCollapse: 'collapse',
-              background: 'var(--bg-elevated)'
+              background: 'var(--color-bg-elevated)'
             }}>
               <thead>
-                <tr style={{ background: 'linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-primary) 100%)', borderBottom: '2px solid var(--border-strong)' }}>
+                <tr style={{ background: 'linear-gradient(180deg, var(--color-bg-secondary) 0%, var(--color-bg-primary) 100%)', borderBottom: '2px solid var(--color-border)' }}>
                   <th 
                     onClick={() => handleSort('type')}
                     style={{ 
@@ -381,7 +381,7 @@ export default function Logs() {
                       letterSpacing: '0.5px',
                       transition: 'background 0.2s'
                     }}
-                    onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-secondary)'}
+                    onMouseEnter={(e) => e.currentTarget.style.background = 'var(--color-bg-secondary)'}
                     onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
                   >
                     ประเภท {sortField === 'type' && <span style={{ color: 'var(--accent)' }}>{sortDirection === 'asc' ? '↑' : '↓'}</span>}
@@ -400,7 +400,7 @@ export default function Logs() {
                       letterSpacing: '0.5px',
                       transition: 'background 0.2s'
                     }}
-                    onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-secondary)'}
+                    onMouseEnter={(e) => e.currentTarget.style.background = 'var(--color-bg-secondary)'}
                     onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
                   >
                     วัสดุ {sortField === 'productName' && <span style={{ color: 'var(--accent)' }}>{sortDirection === 'asc' ? '↑' : '↓'}</span>}
@@ -419,7 +419,7 @@ export default function Logs() {
                       letterSpacing: '0.5px',
                       transition: 'background 0.2s'
                     }}
-                    onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-secondary)'}
+                    onMouseEnter={(e) => e.currentTarget.style.background = 'var(--color-bg-secondary)'}
                     onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
                   >
                     จำนวน {sortField === 'quantity' && <span style={{ color: 'var(--accent)' }}>{sortDirection === 'asc' ? '↑' : '↓'}</span>}
@@ -438,7 +438,7 @@ export default function Logs() {
                       letterSpacing: '0.5px',
                       transition: 'background 0.2s'
                     }}
-                    onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-secondary)'}
+                    onMouseEnter={(e) => e.currentTarget.style.background = 'var(--color-bg-secondary)'}
                     onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
                   >
                     ผู้ทำรายการ {sortField === 'userName' && <span style={{ color: 'var(--accent)' }}>{sortDirection === 'asc' ? '↑' : '↓'}</span>}
@@ -457,7 +457,7 @@ export default function Logs() {
                       letterSpacing: '0.5px',
                       transition: 'background 0.2s'
                     }}
-                    onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-secondary)'}
+                    onMouseEnter={(e) => e.currentTarget.style.background = 'var(--color-bg-secondary)'}
                     onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
                   >
                     เวลา {sortField === 'timestamp' && <span style={{ color: 'var(--accent)' }}>{sortDirection === 'asc' ? '↑' : '↓'}</span>}
@@ -468,11 +468,11 @@ export default function Logs() {
                 {currentTransactions.map((transaction, index) => (
                   <tr key={transaction.id} style={{ 
                     borderBottom: '1px solid var(--border)',
-                    background: index % 2 === 0 ? 'var(--bg-elevated)' : 'var(--bg-primary)',
+                    background: index % 2 === 0 ? 'var(--color-bg-elevated)' : 'var(--color-bg-primary)',
                     transition: 'background 0.2s'
                   }}
-                  onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-secondary)'}
-                  onMouseLeave={(e) => e.currentTarget.style.background = index % 2 === 0 ? 'var(--bg-elevated)' : 'var(--bg-primary)'}
+                  onMouseEnter={(e) => e.currentTarget.style.background = 'var(--color-bg-secondary)'}
+                  onMouseLeave={(e) => e.currentTarget.style.background = index % 2 === 0 ? 'var(--color-bg-elevated)' : 'var(--color-bg-primary)'}
                   >
                     <td style={{ padding: '8px 6px', textAlign: 'center' }}>
                       <span className={`badge ${getTypeBadgeClass(transaction.type)}`}>
