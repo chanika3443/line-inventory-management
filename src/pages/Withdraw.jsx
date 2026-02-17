@@ -131,7 +131,9 @@ export default function Withdraw() {
 
   const cancelMultiSelect = () => {
     setSelectedItems([])
-    setIsMultiSelectMode(false)
+    // Don't change mode - stay in multi-select mode
+    // setIsMultiSelectMode(false)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   const handleWithdraw = async (e) => {
