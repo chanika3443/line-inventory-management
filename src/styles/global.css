@@ -610,9 +610,10 @@ a, button, input, select, textarea {
   }
 }
 
-/* Apply animations to page elements */
+/* Apply animations to page elements - only on initial mount */
 .container > * {
-  animation: fadeIn 0.4s var(--ease-spring) backwards;
+  /* animation: fadeIn 0.4s var(--ease-spring) backwards; */
+  /* Disabled to prevent re-animation on state changes */
 }
 
 .container > *:nth-child(1) { animation-delay: 0.05s; }
@@ -622,7 +623,8 @@ a, button, input, select, textarea {
 .container > *:nth-child(5) { animation-delay: 0.25s; }
 
 .card {
-  animation: scaleIn 0.3s var(--ease-spring) backwards;
+  /* animation: scaleIn 0.3s var(--ease-spring) backwards; */
+  /* Disabled to prevent re-animation on state changes */
 }
 
 /* Smooth list item animations - disabled to prevent re-animation on state change */
@@ -648,7 +650,9 @@ a, button, input, select, textarea {
   margin-bottom: var(--space-4);
   font-size: var(--text-sm);
   line-height: 1.5;
-  animation: slideUp 0.3s var(--ease-spring);
+  /* animation: slideUp 0.3s var(--ease-spring); */
+  /* Reduced to simple fade for less distraction */
+  animation: fadeIn 0.2s var(--ease-out);
   border: 1px solid transparent;
 }
 
@@ -672,7 +676,8 @@ a, button, input, select, textarea {
 
 .success-message,
 .error-message {
-  animation: slideUp 0.3s var(--ease-spring);
+  /* animation: slideUp 0.3s var(--ease-spring); */
+  animation: fadeIn 0.2s var(--ease-out);
 }
 
 /* Hardware acceleration for smooth animations */
@@ -686,9 +691,9 @@ a, button, input, select, textarea {
   perspective: 1000px;
 }
 
-/* Smooth badge animations */
+/* Smooth badge animations - disabled to prevent constant re-animation */
 .badge {
-  animation: scaleIn 0.2s var(--ease-spring);
+  /* animation: scaleIn 0.2s var(--ease-spring); */
   transition: all 0.2s var(--ease-spring);
 }
 
@@ -740,7 +745,9 @@ input[type="radio"] {
   transition: all 0.2s var(--ease-spring);
 }
 
+/* Checkbox and radio animations - subtle scale only */
 input[type="checkbox"]:checked,
 input[type="radio"]:checked {
-  animation: scaleIn 0.2s var(--ease-spring);
+  /* animation: scaleIn 0.2s var(--ease-spring); */
+  /* Disabled - too distracting on repeated clicks */
 }
