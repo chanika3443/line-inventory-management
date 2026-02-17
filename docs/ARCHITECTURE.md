@@ -160,6 +160,49 @@ export const apiService = {
 - ❌ ใครก็แก้ไขได้
 - ❌ ไม่ปลอดภัย
 
+## Modern Features
+
+### UX Enhancements
+
+1. **Haptic Feedback** (`src/utils/haptics.js`)
+   - Light, medium, success, error, selection vibrations
+   - ใช้ใน navigation, buttons, และ user actions
+   - รองรับทั้ง iOS และ Android
+
+2. **Pull-to-Refresh** (`src/hooks/usePullToRefresh.js`, `src/components/PullToRefresh.jsx`)
+   - ดึงลงเพื่อรีเฟรชข้อมูล
+   - แสดง loading indicator
+   - ใช้ได้ทุกหน้าที่มีข้อมูล
+
+3. **Skeleton Loading** (`src/components/SkeletonLoader.jsx`)
+   - แสดงโครงสร้างขณะโหลดข้อมูล
+   - ดีกว่าการแสดง "Loading..." แบบเดิม
+   - ปรับปรุง perceived performance
+
+4. **Auto Scroll to Top** (`src/components/ScrollToTop.jsx`)
+   - เลื่อนขึ้นบนอัตโนมัติเมื่อเปลี่ยนหน้า
+   - ปรับปรุง navigation experience
+
+### UI Optimizations
+
+1. **Compact Header & Navbar**
+   - ลดขนาดจาก ~60px เหลือ ~45px
+   - เพิ่มพื้นที่ใช้งาน
+   - ยังคงความสวยงามและใช้งานง่าย
+
+2. **Thai Font Support**
+   - Sukhumvit Set, Sarabun, Prompt, Kanit
+   - อ่านง่ายและสวยงามสำหรับภาษาไทย
+
+3. **Standardized Font Sizes**
+   - CSS variables: --text-xs (11px) ถึง --text-3xl (28px)
+   - ใช้งานสอดคล้องกันทั้งแอป
+
+4. **Optimized Tables**
+   - ขนาดฟอนต์ที่เหมาะสม (11px)
+   - แสดง +/- และสีในตัวเลข transaction
+   - จัดตำแหน่ง column headers ให้เหมาะสม
+
 ## Recommended Setup
 
 ### Step 1: Keep Existing Apps Script
@@ -265,11 +308,29 @@ export const dataService = {
 - ได้ทั้งความเร็วและความปลอดภัย
 - ใช้ Apps Script ที่มีอยู่แล้ว (ไม่ต้องสร้างใหม่)
 
+## Deployment Options
+
+### Option 1: GitHub Pages (แนะนำสำหรับ production)
+- ใช้ GitHub Actions สำหรับ CI/CD
+- Deploy อัตโนมัติเมื่อ push to main
+- ฟรีและรวดเร็ว
+- SSL/HTTPS built-in
+
+### Option 2: Docker (แนะนำสำหรับ self-hosting)
+- Multi-stage build (Node.js + Nginx)
+- Optimized production image (~50MB)
+- Gzip compression
+- Browser caching
+- ดูรายละเอียดใน `DOCKER.md`
+
 ## Migration Path
 
 1. ✅ Deploy React app to GitHub Pages
 2. ✅ Use Sheets API for read operations
 3. ✅ Keep Apps Script for write operations
 4. ✅ Update Apps Script to add CORS headers
-5. ✅ Test all features
-6. ✅ Monitor performance and errors
+5. ✅ Add modern UX features (haptics, pull-to-refresh, skeleton loading)
+6. ✅ Optimize UI (compact header, Thai fonts, standardized sizes)
+7. ✅ Add Docker support for self-hosting
+8. ✅ Test all features
+9. ✅ Monitor performance and errors

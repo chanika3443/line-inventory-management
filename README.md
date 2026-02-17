@@ -12,6 +12,12 @@
 - ✅ รายงาน (Reports)
 - ✅ ประวัติการทำรายการ (Transaction Logs)
 - ✅ แจ้งเตือนสต็อกต่ำ (Low Stock Alert)
+- ✅ Haptic Feedback (การสั่นตอบกลับ)
+- ✅ Pull-to-Refresh (ดึงเพื่อรีเฟรช)
+- ✅ Skeleton Loading (แสดงโครงสร้างขณะโหลด)
+- ✅ Auto Scroll to Top (เลื่อนขึ้นบนอัตโนมัติเมื่อเปลี่ยนหน้า)
+- ✅ Optimized UI (ลดขนาด header/navbar, ฟอนต์ไทย)
+- ✅ Docker Support (รองรับการ deploy ด้วย Docker)
 
 ## 🏗️ Architecture
 
@@ -123,7 +129,9 @@ npm run dev
 
 ## 📦 Deployment
 
-### 1. Setup GitHub Secrets
+### Option 1: GitHub Pages (แนะนำ)
+
+#### 1. Setup GitHub Secrets
 
 ไปที่ GitHub Repository Settings → Secrets and variables → Actions
 
@@ -132,37 +140,51 @@ npm run dev
 - `VITE_SPREADSHEET_ID`
 - `VITE_GOOGLE_API_KEY`
 
-### 2. Push to GitHub
+#### 2. Push to GitHub
 
 ```bash
 git add .
-git commit -m "Add React inventory app"
+git commit -m "Deploy React inventory app"
 git push origin main
 ```
 
-### 3. Enable GitHub Pages
+#### 3. Enable GitHub Pages
 
 1. ไปที่ Repository Settings → Pages
 2. Source: GitHub Actions
 3. รอ deployment เสร็จ (~2-3 นาที)
 
-### 4. Access Your App
+#### 4. Access Your App
 
 https://chanika3443.github.io/line-inventory-management/
+
+### Option 2: Docker Deployment
+
+ดูรายละเอียดเพิ่มเติมใน [DOCKER.md](./DOCKER.md)
+
+```bash
+# Build and run with Docker Compose
+docker-compose up -d
+
+# Access at http://localhost:3000
+```
 
 ## 📚 Documentation
 
 - [Architecture Overview](./docs/ARCHITECTURE.md)
 - [Google API Key Setup](./docs/GOOGLE-API-KEY-SETUP.md)
+- [Docker Deployment Guide](./DOCKER.md)
+- [Apps Script Setup](./apps-script/README.md)
 
 ## 🛠️ Tech Stack
 
 - **Frontend**: React 18, Vite
 - **Routing**: React Router v6
-- **Styling**: CSS (iOS-inspired)
-- **API**: Google Sheets API, Apps Script
+- **Styling**: CSS (iOS-inspired) with Thai fonts (Sukhumvit Set, Sarabun, Prompt, Kanit)
+- **API**: Google Sheets API (Read), Apps Script (Write)
 - **Authentication**: LINE LIFF
-- **Deployment**: GitHub Pages + GitHub Actions
+- **Deployment**: GitHub Pages + GitHub Actions, Docker + Nginx
+- **UX Features**: Haptic feedback, Pull-to-refresh, Skeleton loading
 
 ## 📱 Browser Support
 
