@@ -4,23 +4,6 @@
   min-height: 100vh;
 }
 
-.reports-page .header {
-  background: var(--color-bg-primary);
-  padding: 16px 20px;
-  border-bottom: 1px solid var(--color-border);
-}
-
-.reports-page h1 {
-  font-size: 22px;
-  font-weight: 700;
-  margin-bottom: 2px;
-}
-
-.reports-page .header-subtitle {
-  font-size: 12px;
-  color: var(--color-text-secondary);
-}
-
 .summary-grid {
   display: flex;
   justify-content: center;

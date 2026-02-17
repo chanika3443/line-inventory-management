@@ -4,34 +4,34 @@
 }
 
 .hero-section {
-  padding: 40px 24px;
+  padding: 24px 24px 20px;
   text-align: center;
 }
 
 .hero-icon {
-  width: 80px;
-  height: 80px;
+  width: 64px;
+  height: 64px;
   background: linear-gradient(135deg, #007aff 0%, #5856d6 100%);
-  border-radius: 24px;
+  border-radius: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 0 auto 20px;
+  margin: 0 auto 16px;
   box-shadow: 0 8px 24px rgba(0,122,255,0.3);
 }
 
 .hero-section h1 {
-  font-size: 28px;
+  font-size: 22px;
   font-weight: 700;
   letter-spacing: -0.02em;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   line-height: 1.2;
 }
 
 .hero-subtitle {
   color: var(--text-secondary);
-  font-size: 15px;
-  margin-top: 8px;
+  font-size: 13px;
+  margin-top: 4px;
   font-weight: var(--font-regular);
   letter-spacing: -0.01em;
   line-height: 1.4;

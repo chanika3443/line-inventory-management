@@ -44,7 +44,7 @@ export default function Home() {
         <p className="hero-subtitle">จัดการสต็อกผู้ป่วยใน</p>
       </div>
 
-      <div className="container" style={{ paddingTop: 0 }}>
+      <div className="container">
         <div className="menu-grid">
           {menuItems.map((item) => (
             <Link key={item.path} to={item.path} className="menu-item">
