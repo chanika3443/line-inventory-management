@@ -17,3 +17,4 @@ if [ $? -ne 0 ]; then
 fi
 
 echo "✅ All checks passed!"
+exit 0
