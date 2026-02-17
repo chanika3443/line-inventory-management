@@ -4,23 +4,23 @@
 }
 
 .form-group {
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 }
 
 .form-group label {
   display: block;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--color-text-primary);
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 .input {
   width: 100%;
-  padding: 12px 16px;
+  padding: 10px 14px;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  font-size: 16px;
+  font-size: 15px;
   font-family: var(--font-family);
   transition: border-color 0.2s;
   background: var(--color-bg-primary);
@@ -37,10 +37,10 @@
 }
 
 .alert {
-  padding: 12px 16px;
+  padding: 10px 14px;
   border-radius: var(--radius-md);
-  margin-bottom: 16px;
-  font-size: 14px;
+  margin-bottom: 12px;
+  font-size: 13px;
 }
 
 .alert-success {
@@ -77,7 +77,7 @@
 .product-item {
   background: var(--color-bg-primary);
   border-radius: var(--radius-md);
-  padding: 16px;
+  padding: 12px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -97,65 +97,59 @@
 }
 
 .product-name {
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
-  margin-bottom: 4px;
   color: var(--color-text-primary);
 }
 
-.product-code {
-  font-size: 13px;
-  color: var(--color-text-secondary);
-}
-
 .product-quantity {
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
   color: var(--color-primary);
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
+  white-space: nowrap;
 }
 
 .card {
   background: var(--color-bg-primary);
   border-radius: var(--radius-lg);
-  padding: 20px;
-  margin-bottom: 16px;
+  padding: 16px;
+  margin-bottom: 12px;
   box-shadow: var(--shadow-sm);
   border: 1px solid var(--color-border);
 }
 
 .card-title {
-  font-size: 17px;
+  font-size: 15px;
   font-weight: 600;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
   color: var(--color-text-primary);
 }
 
 .selected-product {
   text-align: center;
-  padding: 16px 0;
-  margin-bottom: 16px;
+  padding: 12px 0;
+  margin-bottom: 12px;
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-md);
 }
 
 .selected-product .product-name {
-  font-size: 18px;
-  margin-bottom: 8px;
-}
-
-.selected-product .product-code {
-  font-size: 14px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-text-primary);
 }
 
 .btn {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 14px 20px;
+  gap: 6px;
+  padding: 11px 16px;
   border-radius: var(--radius-md);
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 600;
   text-decoration: none;
   border: none;

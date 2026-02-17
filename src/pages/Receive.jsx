@@ -146,18 +146,18 @@ export default function Receive() {
 
               <div className="form-group">
                 <label>จำนวนที่รับเข้า</label>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <button
                     type="button"
                     onClick={() => setQuantity(Math.max(1, parseInt(quantity || 1) - 1).toString())}
                     style={{
-                      width: '40px',
-                      height: '48px',
+                      width: '36px',
+                      height: '40px',
                       border: '1.5px solid var(--border-strong)',
                       borderRadius: 'var(--radius-md)',
                       background: 'var(--bg-primary)',
                       color: 'var(--text-primary)',
-                      fontSize: '20px',
+                      fontSize: '18px',
                       fontWeight: '600',
                       cursor: 'pointer',
                       display: 'flex',
@@ -175,19 +175,19 @@ export default function Receive() {
                     min="1"
                     placeholder="ระบุจำนวน"
                     required
-                    style={{ flex: 1, textAlign: 'center', fontSize: '16px', fontWeight: '600' }}
+                    style={{ flex: 1, textAlign: 'center', fontSize: '15px', fontWeight: '600' }}
                   />
                   <button
                     type="button"
                     onClick={() => setQuantity((parseInt(quantity || 0) + 1).toString())}
                     style={{
-                      width: '40px',
-                      height: '48px',
+                      width: '36px',
+                      height: '40px',
                       border: '1.5px solid var(--border-strong)',
                       borderRadius: 'var(--radius-md)',
                       background: 'var(--bg-primary)',
                       color: 'var(--text-primary)',
-                      fontSize: '20px',
+                      fontSize: '18px',
                       fontWeight: '600',
                       cursor: 'pointer',
                       display: 'flex',
