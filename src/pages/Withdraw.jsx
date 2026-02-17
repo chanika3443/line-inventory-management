@@ -295,7 +295,6 @@ export default function Withdraw() {
                     >
                       <div className="product-info">
                         <div className="product-name">{product.name}</div>
-                        <div className="product-code">{product.code}</div>
                       </div>
                       <div className="product-quantity">
                         {product.quantity} {product.unit}
@@ -491,20 +490,7 @@ export default function Withdraw() {
                     ))}
                   </div>
 
-                  <div className="form-group" style={{ marginBottom: '12px' }}>
-                    <label style={{ fontSize: '14px', fontWeight: '600', marginBottom: '8px', display: 'block' }}>
-                      ชื่อผู้เบิก
-                    </label>
-                    <input
-                      type="text"
-                      className="input"
-                      value={userName}
-                      onChange={(e) => setLocalUserName(e.target.value)}
-                      placeholder={liffUserName ? "ดึงจาก LINE แล้ว" : "กรุณากรอกชื่อของคุณ"}
-                      disabled={!!liffUserName}
-                      required
-                    />
-                  </div>
+
                   </>
                   )}
 
@@ -537,7 +523,6 @@ export default function Withdraw() {
             <form onSubmit={handleWithdraw}>
               <div className="selected-product">
                 <div className="product-name">{selectedProduct.name}</div>
-                <div className="product-code">{selectedProduct.code}</div>
               </div>
 
               <div className="alert alert-warning">
@@ -601,23 +586,7 @@ export default function Withdraw() {
                 </div>
               </div>
 
-              <div className="form-group">
-                <label>ชื่อผู้เบิก</label>
-                <input
-                  type="text"
-                  className="input"
-                  value={userName}
-                  onChange={(e) => setLocalUserName(e.target.value)}
-                  placeholder={liffUserName ? "ดึงจาก LINE แล้ว" : "กรุณากรอกชื่อของคุณ"}
-                  disabled={!!liffUserName}
-                  required
-                />
-                {!liffUserName && (
-                  <small style={{ color: 'var(--text-secondary)', fontSize: '13px', marginTop: '4px', display: 'block' }}>
-                    ไม่สามารถดึงชื่อจาก LINE ได้ กรุณากรอกชื่อ
-                  </small>
-                )}
-              </div>
+
 
               {selectedProduct.requireRoom && (
                 <div className="form-group">

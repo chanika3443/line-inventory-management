@@ -124,7 +124,6 @@ export default function Receive() {
                 >
                   <div className="product-info">
                     <div className="product-name">{product.name}</div>
-                    <div className="product-code">{product.code}</div>
                   </div>
                   <div className="product-quantity">
                     {product.quantity} {product.unit}
@@ -139,7 +138,6 @@ export default function Receive() {
             <form onSubmit={handleReceive}>
               <div className="selected-product">
                 <div className="product-name">{selectedProduct.name}</div>
-                <div className="product-code">{selectedProduct.code}</div>
               </div>
 
               <div className="alert alert-info">
@@ -202,23 +200,7 @@ export default function Receive() {
                 </div>
               </div>
 
-              <div className="form-group">
-                <label>ชื่อผู้รับเข้า</label>
-                <input
-                  type="text"
-                  className="input"
-                  value={userName}
-                  onChange={(e) => setLocalUserName(e.target.value)}
-                  placeholder={liffUserName ? "ดึงจาก LINE แล้ว" : "กรุณากรอกชื่อของคุณ"}
-                  disabled={!!liffUserName}
-                  required
-                />
-                {!liffUserName && (
-                  <small style={{ color: 'var(--text-secondary)', fontSize: '13px', marginTop: '4px', display: 'block' }}>
-                    ไม่สามารถดึงชื่อจาก LINE ได้ กรุณากรอกชื่อ
-                  </small>
-                )}
-              </div>
+
 
               <button type="submit" className="btn btn-success btn-block" disabled={loading}>
                 <Icon name="receive" size={20} color="white" />
