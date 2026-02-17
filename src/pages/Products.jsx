@@ -3,8 +3,6 @@ import { useSheets } from '../contexts/SheetsContext'
 import { useLiff } from '../contexts/LiffContext'
 import * as sheetsService from '../services/sheetsService'
 import SkeletonLoader from '../components/SkeletonLoader'
-import PullToRefresh from '../components/PullToRefresh'
-import { usePullToRefresh } from '../hooks/usePullToRefresh'
 import { haptics } from '../utils/haptics'
 import './Products.css'
 
@@ -12,12 +10,7 @@ export default function Products() {
   const { products, fetchProducts, addProduct, updateProduct, deleteProduct, loading } = useSheets()
   const { userName, loginMode } = useLiff()
   
-  // Pull to refresh
-  const handleRefresh = async () => {
-    haptics.light()
-    await fetchProducts()
-  }
-  const { isPulling, pullDistance } = usePullToRefresh(handleRefresh)
+
   
   const [searchQuery, setSearchQuery] = useState('')
   const [showModal, setShowModal] = useState(false)
@@ -220,7 +213,6 @@ export default function Products() {
 
   return (
     <div className="products-page">
-      <PullToRefresh isPulling={isPulling} pullDistance={pullDistance} />
       <div className="header">
         <h1>วัสดุ</h1>
         <p className="header-subtitle">จัดการรายการวัสดุทั้งหมด</p>

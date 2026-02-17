@@ -1,8 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import * as sheetsService from '../services/sheetsService'
 import SkeletonLoader from '../components/SkeletonLoader'
-import PullToRefresh from '../components/PullToRefresh'
-import { usePullToRefresh } from '../hooks/usePullToRefresh'
 import { haptics } from '../utils/haptics'
 import './Logs.css'
 
@@ -76,11 +74,7 @@ export default function Logs() {
   }, [loadTransactionsWithDates])
 
   // Pull to refresh
-  const handleRefresh = async () => {
-    haptics.light()
-    applyDateRange(dateRange)
-  }
-  const { isPulling, pullDistance } = usePullToRefresh(handleRefresh)
+
 
   useEffect(() => {
     if (isInitialMount.current) {
@@ -226,7 +220,6 @@ export default function Logs() {
 
   return (
     <div className="logs-page">
-      <PullToRefresh isPulling={isPulling} pullDistance={pullDistance} />
       <div className="header">
         <h1>ประวัติ</h1>
         <p className="header-subtitle">รายการทั้งหมดในระบบ</p>

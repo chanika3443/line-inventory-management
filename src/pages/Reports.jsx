@@ -2,8 +2,6 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import * as sheetsService from '../services/sheetsService'
 import { useLiff } from '../contexts/LiffContext'
 import SkeletonLoader from '../components/SkeletonLoader'
-import PullToRefresh from '../components/PullToRefresh'
-import { usePullToRefresh } from '../hooks/usePullToRefresh'
 import { haptics } from '../utils/haptics'
 import * as XLSX from 'xlsx'
 import './Reports.css'
@@ -19,12 +17,7 @@ export default function Reports() {
   const [showExportMenu, setShowExportMenu] = useState(false)
   const isInitialMount = useRef(true)
 
-  // Pull to refresh
-  const handleRefresh = async () => {
-    haptics.light()
-    await loadReport()
-  }
-  const { isPulling, pullDistance } = usePullToRefresh(handleRefresh)
+
 
   // Close export menu when clicking outside
   useEffect(() => {
@@ -297,7 +290,6 @@ export default function Reports() {
 
   return (
     <div className="reports-page">
-      <PullToRefresh isPulling={isPulling} pullDistance={pullDistance} />
       <div className="header">
         <h1>รายงาน</h1>
         <p className="header-subtitle">สรุปการเคลื่อนไหววัสดุ</p>

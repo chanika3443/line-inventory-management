@@ -3,8 +3,6 @@ import { useSheets } from '../contexts/SheetsContext'
 import { useLiff } from '../contexts/LiffContext'
 import Icon from '../components/Icon'
 import SkeletonLoader from '../components/SkeletonLoader'
-import PullToRefresh from '../components/PullToRefresh'
-import { usePullToRefresh } from '../hooks/usePullToRefresh'
 import { haptics } from '../utils/haptics'
 import './Transaction.css'
 
@@ -12,12 +10,7 @@ export default function Return() {
   const { products, fetchProducts, returnProduct, loading } = useSheets()
   const { userName: liffUserName } = useLiff()
   
-  // Pull to refresh
-  const handleRefresh = async () => {
-    haptics.light()
-    await fetchProducts()
-  }
-  const { isPulling, pullDistance } = usePullToRefresh(handleRefresh)
+
   
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedProduct, setSelectedProduct] = useState(null)
@@ -103,7 +96,6 @@ export default function Return() {
 
   return (
     <div className="transaction-page">
-      <PullToRefresh isPulling={isPulling} pullDistance={pullDistance} />
       <div className="header">
         <h1>คืนวัสดุ</h1>
         <p className="header-subtitle">คืนวัสดุเข้าคลัง</p>

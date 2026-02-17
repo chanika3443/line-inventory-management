@@ -3,8 +3,6 @@ import { Link } from 'react-router-dom'
 import * as sheetsService from '../services/sheetsService'
 import Icon from '../components/Icon'
 import SkeletonLoader from '../components/SkeletonLoader'
-import PullToRefresh from '../components/PullToRefresh'
-import { usePullToRefresh } from '../hooks/usePullToRefresh'
 import { haptics } from '../utils/haptics'
 import './Dashboard.css'
 
@@ -18,12 +16,7 @@ export default function Dashboard() {
     setLoading(false)
   }, [])
 
-  // Pull to refresh
-  const handleRefresh = async () => {
-    haptics.light()
-    await loadData()
-  }
-  const { isPulling, pullDistance } = usePullToRefresh(handleRefresh)
+
 
   useEffect(() => {
     loadData()
@@ -58,7 +51,6 @@ export default function Dashboard() {
 
   return (
     <div className="dashboard-page">
-      <PullToRefresh isPulling={isPulling} pullDistance={pullDistance} />
       <div className="header">
         <h1>ภาพรวม</h1>
         <p className="header-subtitle">ภาพรวมคลังวัสดุ</p>
