@@ -262,13 +262,7 @@ export default function Withdraw() {
               />
             </div>
 
-            {isMultiSelectMode && selectedItems.length > 0 && (
-              <div className="selected-counter-wrapper">
-                <div className="selected-counter" key={selectedItems.length > 0 ? 'has-items' : 'no-items'}>
-                  📦 {selectedItems.length} รายการ
-                </div>
-              </div>
-            )}
+            {/* Selected counter removed - not needed */}
 
             <div className="product-list">
               {filteredProducts.map((product) => {
