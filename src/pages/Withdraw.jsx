@@ -3,10 +3,8 @@ import { useSheets } from '../contexts/SheetsContext'
 import { useLiff } from '../contexts/LiffContext'
 import Icon from '../components/Icon'
 import SkeletonLoader from '../components/SkeletonLoader'
-import StockAlert from '../components/StockAlert'
 import { haptics } from '../utils/haptics'
 import { ERROR_MESSAGES } from '../utils/errorMessages'
-import { usePolling } from '../hooks/usePolling'
 import './Transaction.css'
 
 export default function Withdraw() {
@@ -20,7 +18,6 @@ export default function Withdraw() {
   const [quantity, setQuantity] = useState('')
   const [userName, setLocalUserName] = useState(liffUserName || '')
   const [roomNumber, setRoomNumber] = useState('')
-  const [stockAlerts, setStockAlerts] = useState([])
   const [isSubmitting, setIsSubmitting] = useState(false)
   
   // Get default patient type based on current time
@@ -51,25 +48,6 @@ export default function Withdraw() {
   useEffect(() => {
     fetchProducts()
   }, [fetchProducts])
-
-  // Real-time polling for stock updates (every 30 seconds)
-  usePolling(fetchProducts, 30000, true)
-
-  // Check for low stock after products update
-  useEffect(() => {
-    if (products.length > 0) {
-      const lowStockItems = products.filter(p => 
-        p.quantity <= p.lowStockThreshold && p.quantity > 0
-      )
-      const outOfStockItems = products.filter(p => p.quantity === 0)
-      
-      // Show alerts for critical items
-      const criticalItems = [...outOfStockItems, ...lowStockItems.slice(0, 2)]
-      if (criticalItems.length > 0 && stockAlerts.length === 0) {
-        setStockAlerts(criticalItems)
-      }
-    }
-  }, [products])
 
   // Refresh products when page becomes visible
   useEffect(() => {
@@ -213,12 +191,6 @@ export default function Withdraw() {
       haptics.success()
       setMessage({ type: 'success', text: result.message })
       
-      // Check if stock is low after withdrawal
-      const updatedProduct = products.find(p => p.code === selectedProduct.code)
-      if (updatedProduct && updatedProduct.quantity <= updatedProduct.lowStockThreshold) {
-        setStockAlerts([updatedProduct])
-      }
-      
       setSelectedProduct(null)
       setQuantity('')
       setRoomNumber('')
@@ -246,15 +218,6 @@ export default function Withdraw() {
 
   return (
     <div className="transaction-page">
-      {/* Stock Alerts */}
-      {stockAlerts.map((product, index) => (
-        <StockAlert
-          key={product.code}
-          product={product}
-          onClose={() => setStockAlerts(alerts => alerts.filter((_, i) => i !== index))}
-        />
-      ))}
-      
       <div className="header">
         <h1>เบิกวัสดุ</h1>
         <p className="header-subtitle">เบิกวัสดุออกจากคลัง</p>
