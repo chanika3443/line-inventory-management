@@ -3,11 +3,9 @@ import { Link } from 'react-router-dom'
 import * as sheetsService from '../services/sheetsService'
 import Icon from '../components/Icon'
 import Loading from '../components/Loading'
-import { useHeaderShrink } from '../hooks/useHeaderShrink'
 import './Dashboard.css'
 
 export default function Dashboard() {
-  useHeaderShrink()
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
 

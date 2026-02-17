@@ -3,11 +3,9 @@ import { useSheets } from '../contexts/SheetsContext'
 import { useLiff } from '../contexts/LiffContext'
 import Icon from '../components/Icon'
 import Loading from '../components/Loading'
-import { useHeaderShrink } from '../hooks/useHeaderShrink'
 import './Transaction.css'
 
 export default function Return() {
-  useHeaderShrink()
   const { products, fetchProducts, returnProduct, loading } = useSheets()
   const { userName: liffUserName } = useLiff()
   const [searchQuery, setSearchQuery] = useState('')

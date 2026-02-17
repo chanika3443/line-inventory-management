@@ -3,11 +3,9 @@ import { useSheets } from '../contexts/SheetsContext'
 import { useLiff } from '../contexts/LiffContext'
 import * as sheetsService from '../services/sheetsService'
 import Loading from '../components/Loading'
-import { useHeaderShrink } from '../hooks/useHeaderShrink'
 import './Products.css'
 
 export default function Products() {
-  useHeaderShrink()
   const { products, fetchProducts, addProduct, updateProduct, deleteProduct, loading } = useSheets()
   const { userName, loginMode } = useLiff()
   const [searchQuery, setSearchQuery] = useState('')

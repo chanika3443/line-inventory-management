@@ -2,12 +2,10 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import * as sheetsService from '../services/sheetsService'
 import { useLiff } from '../contexts/LiffContext'
 import Loading from '../components/Loading'
-import { useHeaderShrink } from '../hooks/useHeaderShrink'
 import * as XLSX from 'xlsx'
 import './Reports.css'
 
 export default function Reports() {
-  useHeaderShrink()
   const { isInClient } = useLiff()
   const [report, setReport] = useState(null)
   const [loading, setLoading] = useState(true)

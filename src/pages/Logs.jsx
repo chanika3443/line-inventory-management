@@ -1,11 +1,9 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import * as sheetsService from '../services/sheetsService'
 import Loading from '../components/Loading'
-import { useHeaderShrink } from '../hooks/useHeaderShrink'
 import './Logs.css'
 
 export default function Logs() {
-  useHeaderShrink()
   const [transactions, setTransactions] = useState([])
   const [loading, setLoading] = useState(true)
   const [showFilters, setShowFilters] = useState(false)
