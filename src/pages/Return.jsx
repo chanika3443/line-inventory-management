@@ -255,6 +255,8 @@ export default function Return() {
                   setSelectedProduct(null)
                   setQuantity('')
                   setNote('')
+                  window.scrollTo({ top: 0, behavior: 'smooth' })
+                }}
                 }}
               >
                 ยกเลิก

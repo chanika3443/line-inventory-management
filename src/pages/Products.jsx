@@ -332,7 +332,10 @@ export default function Products() {
       </div>
 
       {showModal && (
-        <div className="modal-overlay" onClick={() => setShowModal(false)}>
+        <div className="modal-overlay" onClick={() => {
+          setShowModal(false)
+          window.scrollTo({ top: 0, behavior: 'smooth' })
+        }}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <h2>{editingProduct ? 'แก้ไขวัสดุ' : 'เพิ่มวัสดุใหม่'}</h2>
 
@@ -441,7 +444,10 @@ export default function Products() {
                 <button
                   type="button"
                   className="btn btn-secondary btn-block"
-                  onClick={() => setShowModal(false)}
+                  onClick={() => {
+                    setShowModal(false)
+                    window.scrollTo({ top: 0, behavior: 'smooth' })
+                  }}
                   disabled={submitting}
                 >
                   ยกเลิก

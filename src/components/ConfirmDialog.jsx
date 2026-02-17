@@ -21,8 +21,13 @@ export default function ConfirmDialog({
     onConfirm()
   }
 
+  const handleCancel = () => {
+    onCancel()
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
   return (
-    <div className="confirm-dialog-overlay" onClick={onCancel}>
+    <div className="confirm-dialog-overlay" onClick={handleCancel}>
       <div className="confirm-dialog" onClick={(e) => e.stopPropagation()}>
         <div className="confirm-dialog-header">
           <h3>{title}</h3>
@@ -46,7 +51,7 @@ export default function ConfirmDialog({
         <div className="confirm-dialog-footer">
           <button 
             className="btn btn-outline"
-            onClick={onCancel}
+            onClick={handleCancel}
           >
             {cancelText}
           </button>

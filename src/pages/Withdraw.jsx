@@ -697,6 +697,7 @@ export default function Withdraw() {
                 onClick={() => {
                   setSelectedProduct(null)
                   setQuantity('')
+                  window.scrollTo({ top: 0, behavior: 'smooth' })
                 }}
               >
                 ยกเลิก

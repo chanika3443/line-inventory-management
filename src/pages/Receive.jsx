@@ -230,6 +230,7 @@ export default function Receive() {
                 onClick={() => {
                   setSelectedProduct(null)
                   setQuantity('')
+                  window.scrollTo({ top: 0, behavior: 'smooth' })
                 }}
               >
                 ยกเลิก
