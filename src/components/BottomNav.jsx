@@ -1,5 +1,6 @@
 import { Link, useLocation } from 'react-router-dom'
 import Icon from './Icon'
+import { haptics } from '../utils/haptics'
 import './BottomNav.css'
 
 export default function BottomNav() {
@@ -8,6 +9,7 @@ export default function BottomNav() {
   const isActive = (path) => location.pathname === path
 
   const handleNavClick = (e, path) => {
+    haptics.light()
     if (isActive(path)) {
       e.preventDefault()
       window.location.reload()

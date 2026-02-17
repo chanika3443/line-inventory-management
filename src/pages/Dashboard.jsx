@@ -2,7 +2,10 @@ import { useState, useEffect, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import * as sheetsService from '../services/sheetsService'
 import Icon from '../components/Icon'
-import Loading from '../components/Loading'
+import SkeletonLoader from '../components/SkeletonLoader'
+import PullToRefresh from '../components/PullToRefresh'
+import { usePullToRefresh } from '../hooks/usePullToRefresh'
+import { haptics } from '../utils/haptics'
 import './Dashboard.css'
 
 export default function Dashboard() {
@@ -14,6 +17,13 @@ export default function Dashboard() {
     setData(dashboardData)
     setLoading(false)
   }, [])
+
+  // Pull to refresh
+  const handleRefresh = async () => {
+    haptics.light()
+    await loadData()
+  }
+  const { isPulling, pullDistance } = usePullToRefresh(handleRefresh)
 
   useEffect(() => {
     loadData()
@@ -32,11 +42,23 @@ export default function Dashboard() {
   }, [loadData])
 
   if (loading) {
-    return <Loading />
+    return (
+      <div className="dashboard-page">
+        <div className="header">
+          <h1>ภาพรวม</h1>
+          <p className="header-subtitle">ภาพรวมคลังวัสดุ</p>
+        </div>
+        <div className="container">
+          <SkeletonLoader type="stats" count={2} />
+          <SkeletonLoader type="card" count={1} />
+        </div>
+      </div>
+    )
   }
 
   return (
     <div className="dashboard-page">
+      <PullToRefresh isPulling={isPulling} pullDistance={pullDistance} />
       <div className="header">
         <h1>ภาพรวม</h1>
         <p className="header-subtitle">ภาพรวมคลังวัสดุ</p>

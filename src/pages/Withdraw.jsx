@@ -2,13 +2,24 @@ import { useState, useEffect } from 'react'
 import { useSheets } from '../contexts/SheetsContext'
 import { useLiff } from '../contexts/LiffContext'
 import Icon from '../components/Icon'
-import Loading from '../components/Loading'
+import SkeletonLoader from '../components/SkeletonLoader'
+import PullToRefresh from '../components/PullToRefresh'
+import { usePullToRefresh } from '../hooks/usePullToRefresh'
+import { haptics } from '../utils/haptics'
 import { ERROR_MESSAGES } from '../utils/errorMessages'
 import './Transaction.css'
 
 export default function Withdraw() {
   const { products, fetchProducts, withdraw, loading } = useSheets()
   const { userName: liffUserName } = useLiff()
+  
+  // Pull to refresh
+  const handleRefresh = async () => {
+    haptics.light()
+    await fetchProducts()
+  }
+  const { isPulling, pullDistance } = usePullToRefresh(handleRefresh)
+  
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedProduct, setSelectedProduct] = useState(null)
   const [quantity, setQuantity] = useState('')
@@ -69,6 +80,7 @@ export default function Withdraw() {
   )
 
   const toggleProductSelection = (product) => {
+    haptics.selection()
     const isSelected = selectedItems.some(item => item.product.code === product.code)
     if (isSelected) {
       setSelectedItems(selectedItems.filter(item => item.product.code !== product.code))
@@ -87,6 +99,7 @@ export default function Withdraw() {
   }
 
   const handleMultiWithdraw = async () => {
+    haptics.medium()
     if (selectedItems.length === 0) {
       setMessage({ type: 'error', text: ERROR_MESSAGES.REQUIRED_PRODUCT })
       return
@@ -111,11 +124,13 @@ export default function Withdraw() {
     }
 
     if (failCount === 0) {
+      haptics.success()
       setMessage({ type: 'success', text: `เบิกสำเร็จ ${successCount} รายการ` })
       setSelectedItems([])
       setIsMultiSelectMode(false)
       setSearchQuery('')
     } else {
+      haptics.error()
       setMessage({ type: 'error', text: `เบิกสำเร็จ ${successCount} รายการ, ล้มเหลว ${failCount} รายการ` })
     }
   }
@@ -127,6 +142,7 @@ export default function Withdraw() {
 
   const handleWithdraw = async (e) => {
     e.preventDefault()
+    haptics.medium()
     
     if (!selectedProduct || !quantity) {
       setMessage({ type: 'error', text: ERROR_MESSAGES.REQUIRED_PRODUCT_AND_QUANTITY })
@@ -153,6 +169,7 @@ export default function Withdraw() {
     const result = await withdraw(selectedProduct.code, quantity, userName, note)
     
     if (result.success) {
+      haptics.success()
       setMessage({ type: 'success', text: result.message })
       setSelectedProduct(null)
       setQuantity('')
@@ -160,16 +177,28 @@ export default function Withdraw() {
       setPatientType(getDefaultPatientType()) // Reset to default based on time
       setSearchQuery('')
     } else {
+      haptics.error()
       setMessage({ type: 'error', text: result.message })
     }
   }
 
   if (loading && products.length === 0) {
-    return <Loading />
+    return (
+      <div className="transaction-page">
+        <div className="header">
+          <h1>เบิกวัสดุ</h1>
+          <p className="header-subtitle">เบิกวัสดุออกจากคลัง</p>
+        </div>
+        <div className="container">
+          <SkeletonLoader type="list" count={5} />
+        </div>
+      </div>
+    )
   }
 
   return (
     <div className="transaction-page">
+      <PullToRefresh isPulling={isPulling} pullDistance={pullDistance} />
       <div className="header">
         <h1>เบิกวัสดุ</h1>
         <p className="header-subtitle">เบิกวัสดุออกจากคลัง</p>
