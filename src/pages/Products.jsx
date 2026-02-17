@@ -3,6 +3,8 @@ import { useSheets } from '../contexts/SheetsContext'
 import { useLiff } from '../contexts/LiffContext'
 import * as sheetsService from '../services/sheetsService'
 import SkeletonLoader from '../components/SkeletonLoader'
+import LoadingButton from '../components/LoadingButton'
+import ConfirmDialog from '../components/ConfirmDialog'
 import { haptics } from '../utils/haptics'
 import './Products.css'
 
@@ -29,6 +31,7 @@ export default function Products() {
   const [deleteConfirm, setDeleteConfirm] = useState({ show: false, product: null, input: '' })
   const [allowedUsers, setAllowedUsers] = useState([])
   const [checkingAccess, setCheckingAccess] = useState(true)
+  const [submitting, setSubmitting] = useState(false)
 
   // Fetch allowed users from Google Sheets
   useEffect(() => {
@@ -99,6 +102,7 @@ export default function Products() {
   async function handleSubmit(e) {
     e.preventDefault()
     haptics.medium()
+    setSubmitting(true)
 
     // Convert empty strings to 0 for numeric fields
     const submitData = {
@@ -114,6 +118,8 @@ export default function Products() {
       result = await addProduct(submitData, userName)
     }
 
+    setSubmitting(false)
+    
     if (result.success) {
       haptics.success()
       setMessage({ type: 'success', text: result.message })
@@ -137,7 +143,9 @@ export default function Products() {
     }
 
     haptics.medium()
+    setSubmitting(true)
     const result = await deleteProduct(deleteConfirm.product.code, userName)
+    setSubmitting(false)
     
     if (result.success) {
       haptics.success()
@@ -422,13 +430,19 @@ export default function Products() {
               </div>
 
               <div className="button-group">
-                <button type="submit" className="btn btn-primary btn-block" disabled={loading}>
-                  {loading ? 'กำลังบันทึก...' : 'บันทึก'}
-                </button>
+                <LoadingButton 
+                  type="submit" 
+                  className="btn btn-primary btn-block" 
+                  loading={submitting}
+                  disabled={submitting}
+                >
+                  บันทึก
+                </LoadingButton>
                 <button
                   type="button"
                   className="btn btn-secondary btn-block"
                   onClick={() => setShowModal(false)}
+                  disabled={submitting}
                 >
                   ยกเลิก
                 </button>
@@ -438,54 +452,20 @@ export default function Products() {
         </div>
       )}
 
-      {deleteConfirm.show && (
-        <div className="modal-overlay" onClick={() => setDeleteConfirm({ show: false, product: null, input: '' })}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '400px' }}>
-            <h2 style={{ color: 'var(--danger)', marginBottom: '16px' }}>⚠️ ยืนยันการลบ</h2>
-            
-            <p style={{ marginBottom: '16px', fontSize: '15px', lineHeight: '1.6' }}>
-              คุณกำลังจะลบวัสดุ <strong>"{deleteConfirm.product?.name}"</strong>
-            </p>
-            
-            <p style={{ marginBottom: '16px', fontSize: '14px', color: 'var(--text-secondary)' }}>
-              การลบจะไม่สามารถกู้คืนได้ กรุณาพิมพ์ <strong style={{ color: 'var(--danger)' }}>delete</strong> เพื่อยืนยัน
-            </p>
-
-            <div className="input-group">
-              <input
-                type="text"
-                className="input"
-                placeholder='พิมพ์ "delete" เพื่อยืนยัน'
-                value={deleteConfirm.input}
-                onChange={(e) => setDeleteConfirm({ ...deleteConfirm, input: e.target.value })}
-                autoFocus
-                onKeyPress={(e) => {
-                  if (e.key === 'Enter') {
-                    confirmDelete()
-                  }
-                }}
-              />
-            </div>
-
-            <div className="button-group" style={{ marginTop: '20px' }}>
-              <button 
-                onClick={confirmDelete} 
-                className="btn btn-danger btn-block"
-                disabled={loading}
-              >
-                {loading ? 'กำลังลบ...' : 'ยืนยันลบ'}
-              </button>
-              <button
-                type="button"
-                className="btn btn-secondary btn-block"
-                onClick={() => setDeleteConfirm({ show: false, product: null, input: '' })}
-              >
-                ยกเลิก
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmDialog
+        show={deleteConfirm.show}
+        title="⚠️ ยืนยันการลบ"
+        message={`คุณกำลังจะลบวัสดุ "${deleteConfirm.product?.name}"\n\nการลบจะไม่สามารถกู้คืนได้ กรุณาพิมพ์ "delete" เพื่อยืนยัน`}
+        confirmText={submitting ? 'กำลังลบ...' : 'ยืนยันลบ'}
+        cancelText="ยกเลิก"
+        confirmStyle="danger"
+        requireInput={true}
+        inputPlaceholder='พิมพ์ "delete" เพื่อยืนยัน'
+        inputValue={deleteConfirm.input}
+        onInputChange={(value) => setDeleteConfirm({ ...deleteConfirm, input: value })}
+        onConfirm={confirmDelete}
+        onCancel={() => setDeleteConfirm({ show: false, product: null, input: '' })}
+      />
     </div>
   )
 }
