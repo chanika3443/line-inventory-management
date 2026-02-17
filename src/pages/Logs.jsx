@@ -366,7 +366,7 @@ export default function Logs() {
           <div style={{ overflowX: 'auto', marginBottom: '16px', borderRadius: 'var(--radius-lg)', overflow: 'hidden', boxShadow: 'var(--shadow-md)' }}>
             <table style={{ 
               width: '100%', 
-              fontSize: 'var(--text-sm)',
+              fontSize: 'var(--text-xs)',
               borderCollapse: 'collapse',
               background: 'var(--bg-elevated)'
             }}>
@@ -375,8 +375,8 @@ export default function Logs() {
                   <th 
                     onClick={() => handleSort('type')}
                     style={{ 
-                      padding: '10px 8px', 
-                      textAlign: 'left', 
+                      padding: '8px 6px', 
+                      textAlign: 'center', 
                       fontWeight: '700', 
                       color: 'var(--text-primary)',
                       cursor: 'pointer',
@@ -394,7 +394,7 @@ export default function Logs() {
                   <th 
                     onClick={() => handleSort('productName')}
                     style={{ 
-                      padding: '10px 8px', 
+                      padding: '8px 6px', 
                       textAlign: 'left', 
                       fontWeight: '700', 
                       color: 'var(--text-primary)',
@@ -413,7 +413,7 @@ export default function Logs() {
                   <th 
                     onClick={() => handleSort('quantity')}
                     style={{ 
-                      padding: '10px 8px', 
+                      padding: '8px 6px', 
                       textAlign: 'center', 
                       fontWeight: '700', 
                       color: 'var(--text-primary)',
@@ -432,8 +432,8 @@ export default function Logs() {
                   <th 
                     onClick={() => handleSort('userName')}
                     style={{ 
-                      padding: '10px 8px', 
-                      textAlign: 'left', 
+                      padding: '8px 6px', 
+                      textAlign: 'center', 
                       fontWeight: '700', 
                       color: 'var(--text-primary)',
                       cursor: 'pointer',
@@ -451,8 +451,8 @@ export default function Logs() {
                   <th 
                     onClick={() => handleSort('timestamp')}
                     style={{ 
-                      padding: '10px 8px', 
-                      textAlign: 'left', 
+                      padding: '8px 6px', 
+                      textAlign: 'center', 
                       fontWeight: '700', 
                       color: 'var(--text-primary)',
                       cursor: 'pointer',
@@ -479,15 +479,15 @@ export default function Logs() {
                   onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-secondary)'}
                   onMouseLeave={(e) => e.currentTarget.style.background = index % 2 === 0 ? 'var(--bg-elevated)' : 'var(--bg-primary)'}
                   >
-                    <td style={{ padding: '10px 8px' }}>
+                    <td style={{ padding: '8px 6px', textAlign: 'center' }}>
                       <span className={`badge ${getTypeBadgeClass(transaction.type)}`}>
                         {getTypeLabel(transaction.type)}
                       </span>
                     </td>
-                    <td style={{ padding: '10px 8px', fontWeight: '600', color: 'var(--text-primary)', fontSize: 'var(--text-xs)' }}>
+                    <td style={{ padding: '8px 6px', fontWeight: '600', color: 'var(--text-primary)', fontSize: 'var(--text-xs)', textAlign: 'left' }}>
                       {transaction.productName}
                     </td>
-                    <td style={{ padding: '10px 8px', textAlign: 'center' }}>
+                    <td style={{ padding: '8px 6px', textAlign: 'center' }}>
                       <div style={{ fontWeight: '700', color: 'var(--accent)', fontSize: 'var(--text-sm)' }}>
                         {transaction.quantity}
                       </div>
@@ -495,10 +495,10 @@ export default function Logs() {
                         {transaction.beforeQuantity}→{transaction.afterQuantity}
                       </div>
                     </td>
-                    <td style={{ padding: '10px 8px', color: 'var(--text-primary)', fontSize: 'var(--text-xs)' }}>
+                    <td style={{ padding: '8px 6px', color: 'var(--text-primary)', fontSize: 'var(--text-xs)', textAlign: 'center' }}>
                       {transaction.userName}
                     </td>
-                    <td style={{ padding: '10px 8px', color: 'var(--text-secondary)', fontSize: 'var(--text-xs)', whiteSpace: 'nowrap' }}>
+                    <td style={{ padding: '8px 6px', color: 'var(--text-secondary)', fontSize: 'var(--text-xs)', whiteSpace: 'nowrap', textAlign: 'center' }}>
                       {formatDate(transaction.timestamp)}
                     </td>
                   </tr>
