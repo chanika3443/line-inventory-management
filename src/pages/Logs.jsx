@@ -414,7 +414,7 @@ export default function Logs() {
                     onClick={() => handleSort('quantity')}
                     style={{ 
                       padding: '10px 8px', 
-                      textAlign: 'right', 
+                      textAlign: 'center', 
                       fontWeight: '700', 
                       color: 'var(--text-primary)',
                       cursor: 'pointer',
@@ -452,7 +452,7 @@ export default function Logs() {
                     onClick={() => handleSort('timestamp')}
                     style={{ 
                       padding: '10px 8px', 
-                      textAlign: 'right', 
+                      textAlign: 'left', 
                       fontWeight: '700', 
                       color: 'var(--text-primary)',
                       cursor: 'pointer',
@@ -487,7 +487,7 @@ export default function Logs() {
                     <td style={{ padding: '10px 8px', fontWeight: '600', color: 'var(--text-primary)', fontSize: 'var(--text-xs)' }}>
                       {transaction.productName}
                     </td>
-                    <td style={{ padding: '10px 8px', textAlign: 'right' }}>
+                    <td style={{ padding: '10px 8px', textAlign: 'center' }}>
                       <div style={{ fontWeight: '700', color: 'var(--accent)', fontSize: 'var(--text-sm)' }}>
                         {transaction.quantity}
                       </div>
@@ -498,7 +498,7 @@ export default function Logs() {
                     <td style={{ padding: '10px 8px', color: 'var(--text-primary)', fontSize: 'var(--text-xs)' }}>
                       {transaction.userName}
                     </td>
-                    <td style={{ padding: '10px 8px', color: 'var(--text-secondary)', fontSize: 'var(--text-xs)', whiteSpace: 'nowrap', textAlign: 'right' }}>
+                    <td style={{ padding: '10px 8px', color: 'var(--text-secondary)', fontSize: 'var(--text-xs)', whiteSpace: 'nowrap' }}>
                       {formatDate(transaction.timestamp)}
                     </td>
                   </tr>
