@@ -39,8 +39,8 @@
 .alert {
   padding: 8px 12px;
   border-radius: var(--radius-md);
-  margin-bottom: 10px;
-  font-size: 12px;
+  margin-bottom: 12px;
+  font-size: 13px;
   font-weight: 500;
 }
 
