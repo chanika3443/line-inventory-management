@@ -4,7 +4,7 @@
 }
 
 .form-group {
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
 
 .form-group label {
@@ -17,10 +17,10 @@
 
 .input {
   width: 100%;
-  padding: 10px 14px;
+  padding: 8px 12px;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  font-size: 15px;
+  font-size: 14px;
   font-family: var(--font-family);
   transition: border-color 0.2s;
   background: var(--color-bg-primary);
