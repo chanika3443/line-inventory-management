@@ -271,14 +271,16 @@ export default function Withdraw() {
                 bottom: '110px', 
                 left: '0', 
                 right: '0', 
-                background: 'var(--bg-elevated)', 
-                padding: isFooterExpanded ? '16px 20px 28px' : '12px 20px',
-                boxShadow: '0 -2px 10px rgba(0,0,0,0.1)',
-                borderTop: '1px solid var(--border)',
+                background: 'white', 
+                padding: isFooterExpanded ? '20px' : '16px 20px',
+                boxShadow: '0 -4px 12px rgba(0,0,0,0.08)',
+                borderTop: '1px solid #e5e5e7',
                 zIndex: 50,
                 maxHeight: isFooterExpanded ? '60vh' : 'auto',
                 overflowY: isFooterExpanded ? 'auto' : 'hidden',
-                transition: 'all 0.3s ease'
+                transition: 'all 0.3s ease',
+                borderTopLeftRadius: '16px',
+                borderTopRightRadius: '16px'
               }}>
                 <div style={{ maxWidth: '500px', margin: '0 auto' }}>
                   {/* Header - Always visible */}
@@ -289,19 +291,50 @@ export default function Withdraw() {
                       alignItems: 'center', 
                       justifyContent: 'space-between',
                       cursor: 'pointer',
-                      marginBottom: isFooterExpanded ? '16px' : '0'
+                      marginBottom: isFooterExpanded ? '16px' : '12px',
+                      padding: '8px 12px',
+                      background: isFooterExpanded ? 'transparent' : '#f5f5f7',
+                      borderRadius: '12px',
+                      transition: 'background 0.2s ease'
                     }}
                   >
-                    <div style={{ fontSize: '16px', fontWeight: '600', color: 'var(--text-primary)' }}>
-                      รายการที่เลือก ({selectedItems.length})
+                    <div style={{ 
+                      fontSize: '17px', 
+                      fontWeight: '600', 
+                      color: '#1d1d1f',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px'
+                    }}>
+                      <span>{isFooterExpanded ? '📋' : '📦'}</span>
+                      <span>รายการที่เลือก</span>
+                      <span style={{
+                        background: '#007aff',
+                        color: 'white',
+                        padding: '2px 10px',
+                        borderRadius: '12px',
+                        fontSize: '14px',
+                        fontWeight: '700'
+                      }}>
+                        {selectedItems.length}
+                      </span>
                     </div>
                     <div style={{ 
-                      fontSize: '20px', 
-                      color: 'var(--text-secondary)',
-                      transform: isFooterExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
-                      transition: 'transform 0.3s ease'
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      color: '#007aff',
+                      fontSize: '14px',
+                      fontWeight: '500'
                     }}>
-                      ▼
+                      <span>{isFooterExpanded ? 'ย่อลง' : 'ดูรายการ'}</span>
+                      <div style={{
+                        transform: isFooterExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
+                        transition: 'transform 0.3s ease',
+                        fontSize: '12px'
+                      }}>
+                        ▼
+                      </div>
                     </div>
                   </div>
 
