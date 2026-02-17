@@ -14,7 +14,7 @@ import Products from './pages/Products'
 
 function App() {
   return (
-    <BrowserRouter basename="/line-inventory-management">
+    <BrowserRouter basename="/line-inventory-management/">
       <ScrollToTop />
       <LiffProvider>
         <SheetsProvider>
