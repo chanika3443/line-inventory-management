@@ -17,6 +17,10 @@ export default function Return() {
   const [note, setNote] = useState('')
   const [userName, setLocalUserName] = useState(liffUserName || '')
   const [message, setMessage] = useState(null)
+  
+  // Multi-select mode
+  const [selectedItems, setSelectedItems] = useState([]) // [{ product, quantity, note }]
+  const [isMultiSelectMode, setIsMultiSelectMode] = useState(false)
 
   useEffect(() => {
     fetchProducts()
@@ -42,6 +46,52 @@ export default function Return() {
 
   // Filter only returnable products
   const returnableProducts = products.filter(p => p.returnable)
+
+  const toggleProductSelection = (product) => {
+    haptics.selection()
+    const isSelected = selectedItems.some(item => item.product.code === product.code)
+    if (isSelected) {
+      setSelectedItems(selectedItems.filter(item => item.product.code !== product.code))
+    } else {
+      setSelectedItems([...selectedItems, { product, quantity: 1, note: '' }])
+    }
+    setIsMultiSelectMode(true)
+  }
+
+  const handleMultiReturn = async () => {
+    haptics.medium()
+    if (selectedItems.length === 0) {
+      setMessage({ type: 'error', text: 'กรุณาเลือกวัสดุที่ต้องการคืน' })
+      return
+    }
+
+    let successCount = 0
+    let failCount = 0
+
+    for (const item of selectedItems) {
+      const result = await returnProduct(item.product.code, item.quantity, userName, item.note)
+      if (result.success) {
+        successCount++
+      } else {
+        failCount++
+      }
+    }
+
+    if (failCount === 0) {
+      haptics.success()
+      setMessage({ type: 'success', text: `คืนสำเร็จ ${successCount} รายการ` })
+      setSelectedItems([])
+      setIsMultiSelectMode(false)
+    } else {
+      haptics.error()
+      setMessage({ type: 'error', text: `คืนสำเร็จ ${successCount} รายการ, ล้มเหลว ${failCount} รายการ` })
+    }
+  }
+
+  const cancelMultiSelect = () => {
+    setSelectedItems([])
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
 
   const handleReturn = async (e) => {
     e.preventDefault()
@@ -103,6 +153,26 @@ export default function Return() {
 
         {!selectedProduct ? (
           <>
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
+              <button
+                onClick={() => {
+                  setIsMultiSelectMode(false)
+                  setSelectedItems([])
+                }}
+                className={`btn ${!isMultiSelectMode ? 'btn-primary' : 'btn-outline'}`}
+                style={{ flex: 1, fontSize: '14px', padding: '10px 16px' }}
+              >
+                คืนรายการเดียว
+              </button>
+              <button
+                onClick={() => setIsMultiSelectMode(true)}
+                className={`btn ${isMultiSelectMode ? 'btn-primary' : 'btn-outline'}`}
+                style={{ flex: 1, fontSize: '14px', padding: '10px 16px' }}
+              >
+                คืนหลายรายการ
+              </button>
+            </div>
+
             {returnableProducts.length === 0 ? (
               <div className="empty-state">
                 <div className="empty-state-icon">📦</div>
@@ -110,21 +180,78 @@ export default function Return() {
               </div>
             ) : (
               <div className="product-list">
-                {returnableProducts.map((product) => (
-                  <div
-                    key={product.code}
-                    className="product-item"
-                    onClick={() => setSelectedProduct(product)}
-                  >
-                    <div className="product-info">
-                      <div className="product-name">{product.name}</div>
+                {returnableProducts.map((product) => {
+                  const isSelected = selectedItems.some(item => item.product.code === product.code)
+                  return (
+                    <div
+                      key={product.code}
+                      className={`product-item ${isSelected ? 'selected' : ''}`}
+                      style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}
+                      onClick={() => {
+                        if (isMultiSelectMode) {
+                          toggleProductSelection(product)
+                        } else {
+                          setSelectedProduct(product)
+                        }
+                      }}
+                    >
+                      {isMultiSelectMode && (
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={() => {}}
+                          style={{ width: '20px', height: '20px', cursor: 'pointer', flexShrink: 0, pointerEvents: 'none' }}
+                        />
+                      )}
+                      <div style={{ flex: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div className="product-info">
+                          <div className="product-name">{product.name}</div>
+                        </div>
+                        <div className="product-quantity">
+                          {product.quantity} {product.unit}
+                          <span className="badge badge-success ml-sm">คืนได้</span>
+                        </div>
+                      </div>
                     </div>
-                    <div className="product-quantity">
-                      {product.quantity} {product.unit}
-                      <span className="badge badge-success ml-sm">คืนได้</span>
-                    </div>
+                  )
+                })}
+              </div>
+            )}
+
+            {isMultiSelectMode && selectedItems.length > 0 && (
+              <div style={{ 
+                position: 'fixed', 
+                bottom: 'calc(60px + env(safe-area-inset-bottom))', 
+                left: '0', 
+                right: '0', 
+                background: 'white', 
+                padding: '12px 16px',
+                paddingBottom: 'calc(12px + env(safe-area-inset-bottom))',
+                boxShadow: '0 -4px 12px rgba(0,0,0,0.08)',
+                borderTop: '1px solid #e5e5e7',
+                zIndex: 50
+              }}>
+                <div style={{ maxWidth: '500px', margin: '0 auto', display: 'flex', gap: '8px', alignItems: 'center' }}>
+                  <div style={{ flex: 1, fontSize: '14px', fontWeight: '600' }}>
+                    เลือกแล้ว {selectedItems.length} รายการ
                   </div>
-                ))}
+                  <button 
+                    onClick={handleMultiReturn} 
+                    className="btn btn-warning" 
+                    style={{ minWidth: '120px' }}
+                    disabled={loading}
+                  >
+                    <Icon name="return" size={20} color="white" />
+                    {loading ? 'กำลังบันทึก...' : `คืน ${selectedItems.length} รายการ`}
+                  </button>
+                  <button 
+                    onClick={cancelMultiSelect} 
+                    className="btn btn-secondary"
+                    style={{ minWidth: '70px' }}
+                  >
+                    ยกเลิก
+                  </button>
+                </div>
               </div>
             )}
           </>
