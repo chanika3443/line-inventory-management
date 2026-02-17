@@ -266,7 +266,6 @@ export default function Products() {
         <input
           type="text"
           className="input"
-          style={{ fontSize: '14px', padding: '10px 12px' }}
           placeholder="ค้นหาวัสดุ..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}

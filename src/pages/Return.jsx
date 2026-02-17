@@ -196,7 +196,7 @@ export default function Return() {
                     min="1"
                     placeholder="ระบุจำนวน"
                     required
-                    style={{ flex: 1, textAlign: 'center', fontSize: '15px', fontWeight: '600' }}
+                    style={{ flex: 1, textAlign: 'center', fontSize: '14px', fontWeight: '600' }}
                   />
                   <button
                     type="button"
