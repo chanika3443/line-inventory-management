@@ -525,22 +525,20 @@ export default function Withdraw() {
                 <div className="product-name">{selectedProduct.name}</div>
               </div>
 
-              <div style={{ marginBottom: '12px', textAlign: 'right' }}>
-                <span style={{ 
-                  display: 'inline-block',
-                  padding: '4px 10px',
-                  background: 'rgba(255, 159, 10, 0.15)',
-                  color: '#ff9f0a',
-                  borderRadius: '6px',
-                  fontSize: '12px',
-                  fontWeight: '600'
-                }}>
-                  คงเหลือ {selectedProduct.quantity} {selectedProduct.unit}
-                </span>
-              </div>
-
               <div className="form-group">
-                <label>จำนวนที่ต้องการเบิก</label>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                  <label style={{ margin: 0 }}>จำนวนที่ต้องการเบิก</label>
+                  <span style={{ 
+                    padding: '4px 10px',
+                    background: 'rgba(255, 159, 10, 0.15)',
+                    color: '#ff9f0a',
+                    borderRadius: '6px',
+                    fontSize: '12px',
+                    fontWeight: '600'
+                  }}>
+                    คงเหลือ {selectedProduct.quantity} {selectedProduct.unit}
+                  </span>
+                </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <button
                     type="button"

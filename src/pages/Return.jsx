@@ -153,22 +153,20 @@ export default function Return() {
                 <div className="product-name">{selectedProduct.name}</div>
               </div>
 
-              <div style={{ marginBottom: '12px', textAlign: 'right' }}>
-                <span style={{ 
-                  display: 'inline-block',
-                  padding: '4px 10px',
-                  background: 'rgba(0, 122, 255, 0.15)',
-                  color: '#007aff',
-                  borderRadius: '6px',
-                  fontSize: '12px',
-                  fontWeight: '600'
-                }}>
-                  คงเหลือ {selectedProduct.quantity} {selectedProduct.unit}
-                </span>
-              </div>
-
               <div className="form-group">
-                <label>จำนวนที่คืน</label>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                  <label style={{ margin: 0 }}>จำนวนที่คืน</label>
+                  <span style={{ 
+                    padding: '4px 10px',
+                    background: 'rgba(0, 122, 255, 0.15)',
+                    color: '#007aff',
+                    borderRadius: '6px',
+                    fontSize: '12px',
+                    fontWeight: '600'
+                  }}>
+                    คงเหลือ {selectedProduct.quantity} {selectedProduct.unit}
+                  </span>
+                </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <button
                     type="button"
