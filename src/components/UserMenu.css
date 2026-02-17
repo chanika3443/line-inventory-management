@@ -95,11 +95,11 @@
   position: absolute;
   top: 48px;
   right: 0;
-  width: 240px;
+  width: 180px;
   background: var(--bg-elevated);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lg);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
   overflow: hidden;
   animation: slideDown 0.2s ease-out;
   z-index: 999;
@@ -117,31 +117,36 @@
 }
 
 .dropdown-header {
-  padding: 16px;
+  padding: 10px 12px;
   display: flex;
   gap: 10px;
   align-items: center;
   border-bottom: 1px solid var(--border);
+  background: linear-gradient(135deg, rgba(0, 122, 255, 0.05) 0%, rgba(88, 86, 214, 0.05) 100%);
 }
 
 .dropdown-avatar img {
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   object-fit: cover;
+  border: 2px solid white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .avatar-placeholder-large {
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   background: linear-gradient(135deg, var(--accent) 0%, #5856d6 100%);
   color: white;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 18px;
-  font-weight: 600;
+  font-size: 16px;
+  font-weight: 700;
+  border: 2px solid white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .dropdown-info {
@@ -150,18 +155,18 @@
 }
 
 .dropdown-name {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--text-primary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  margin-bottom: 2px;
 }
 
 .dropdown-status {
-  font-size: 12px;
+  font-size: 10px;
   color: var(--text-secondary);
-  margin-top: 2px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -173,14 +178,14 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
-  padding: 12px;
+  padding: 10px 12px;
   background: transparent;
   border: none;
   color: var(--danger);
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: all 0.2s;
   position: relative;
   z-index: 1000;
 }
@@ -197,6 +202,7 @@
 
 .logout-btn:active {
   opacity: 0.8;
+  transform: scale(0.98);
 }
 
 /* Login buttons group */
