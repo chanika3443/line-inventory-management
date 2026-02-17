@@ -526,7 +526,7 @@ export default function Withdraw() {
               </div>
 
               <div className="alert alert-warning">
-                คงเหลือ: {selectedProduct.quantity} {selectedProduct.unit}
+                คงเหลือ {selectedProduct.quantity} {selectedProduct.unit}
               </div>
 
               <div className="form-group">

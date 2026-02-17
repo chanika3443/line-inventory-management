@@ -141,7 +141,7 @@ export default function Receive() {
               </div>
 
               <div className="alert alert-info">
-                คงเหลือปัจจุบัน: {selectedProduct.quantity} {selectedProduct.unit}
+                คงเหลือ {selectedProduct.quantity} {selectedProduct.unit}
               </div>
 
               <div className="form-group">
