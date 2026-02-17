@@ -186,12 +186,12 @@ export default function Receive() {
         </div>
 
         <div className="container">
-          <div className="card" style={{ textAlign: 'center', padding: '40px 20px' }}>
-            <div style={{ fontSize: '64px', marginBottom: '16px' }}>🔒</div>
-            <h2 style={{ fontSize: '20px', fontWeight: '600', marginBottom: '12px', color: 'var(--text-primary)' }}>
+          <div className="card" style={{ textAlign: 'center', padding: '40px 20px', marginTop: '20px', boxShadow: 'var(--shadow-md)' }}>
+            <div style={{ fontSize: '64px', marginBottom: '16px', animation: 'shake 0.5s ease-in-out' }}>🔒</div>
+            <h2 style={{ fontSize: '24px', fontWeight: '700', marginBottom: '12px', color: 'var(--danger)' }}>
               ไม่มีสิทธิ์เข้าถึง
             </h2>
-            <p style={{ fontSize: '14px', color: 'var(--text-secondary)', marginBottom: '16px', lineHeight: '1.6' }}>
+            <p style={{ fontSize: '15px', color: 'var(--text-secondary)', marginBottom: '24px', lineHeight: '1.6' }}>
               {!isLineLogin ? (
                 <>
                   หน้านี้ต้อง Login with LINE เท่านั้น
@@ -208,13 +208,14 @@ export default function Receive() {
             </p>
             <div style={{ 
               background: 'var(--bg-secondary)', 
-              padding: '12px', 
+              padding: '16px', 
               borderRadius: 'var(--radius-md)',
-              fontSize: '13px',
-              color: 'var(--text-secondary)'
+              marginTop: '24px'
             }}>
-              <p>ผู้ใช้: {liffUserName}</p>
-              <p style={{ marginTop: '4px', fontSize: '12px', color: 'var(--text-tertiary)' }}>
+              <p style={{ fontSize: '13px', color: 'var(--text-secondary)', fontWeight: '500' }}>
+                ผู้ใช้: {liffUserName}
+              </p>
+              <p style={{ marginTop: '4px', fontSize: '13px', color: '#86868b' }}>
                 Login Mode: {isLineLogin ? 'LINE' : 'Manual'}
               </p>
             </div>

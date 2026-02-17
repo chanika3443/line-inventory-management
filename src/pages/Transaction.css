@@ -295,3 +295,10 @@ input[type="number"] {
   justify-content: center;
   margin-bottom: var(--space-3);
 }
+
+/* Shake animation for access denied icon */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-10px); }
+  75% { transform: translateX(10px); }
+}
