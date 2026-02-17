@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { LiffProvider } from './contexts/LiffContext'
 import { SheetsProvider } from './contexts/SheetsContext'
 import Layout from './components/Layout'
+import ScrollToTop from './components/ScrollToTop'
 import Home from './pages/Home'
 import Withdraw from './pages/Withdraw'
 import Receive from './pages/Receive'
@@ -14,6 +15,7 @@ import Products from './pages/Products'
 function App() {
   return (
     <BrowserRouter basename="/line-inventory-management">
+      <ScrollToTop />
       <LiffProvider>
         <SheetsProvider>
           <Routes>
