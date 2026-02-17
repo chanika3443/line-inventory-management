@@ -263,7 +263,7 @@ export default function Withdraw() {
             </div>
 
             {isMultiSelectMode && selectedItems.length > 0 && (
-              <div className="alert" style={{ background: 'var(--accent-light)', color: 'var(--accent)', marginBottom: '16px' }}>
+              <div className="selected-counter">
                 เลือกแล้ว {selectedItems.length} รายการ
               </div>
             )}
