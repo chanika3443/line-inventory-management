@@ -95,7 +95,7 @@
   position: absolute;
   top: 48px;
   right: 0;
-  width: 180px;
+  width: 160px;
   background: var(--bg-elevated);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
@@ -117,10 +117,11 @@
 }
 
 .dropdown-header {
-  padding: 10px 12px;
+  padding: 12px;
   display: flex;
-  gap: 10px;
+  flex-direction: column;
   align-items: center;
+  gap: 8px;
   border-bottom: 1px solid var(--border);
   background: linear-gradient(135deg, rgba(0, 122, 255, 0.05) 0%, rgba(88, 86, 214, 0.05) 100%);
 }
@@ -143,15 +144,15 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 16px;
-  font-weight: 700;
+  font-size: 14px;
+  font-weight: 600;
   border: 2px solid white;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .dropdown-info {
-  flex: 1;
-  min-width: 0;
+  width: 100%;
+  text-align: center;
 }
 
 .dropdown-name {
@@ -161,7 +162,6 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  margin-bottom: 2px;
 }
 
 .dropdown-status {
@@ -170,6 +170,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  margin-top: 2px;
 }
 
 .logout-btn {
