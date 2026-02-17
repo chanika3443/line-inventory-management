@@ -21,6 +21,7 @@ export default function Return() {
   // Multi-select mode
   const [selectedItems, setSelectedItems] = useState([]) // [{ product, quantity, note }]
   const [isMultiSelectMode, setIsMultiSelectMode] = useState(false)
+  const [isFooterExpanded, setIsFooterExpanded] = useState(false)
 
   useEffect(() => {
     fetchProducts()
@@ -56,6 +57,14 @@ export default function Return() {
       setSelectedItems([...selectedItems, { product, quantity: 1, note: '' }])
     }
     setIsMultiSelectMode(true)
+  }
+
+  const updateItemQuantity = (productCode, newQuantity) => {
+    setSelectedItems(selectedItems.map(item => 
+      item.product.code === productCode 
+        ? { ...item, quantity: parseInt(newQuantity) || 1 }
+        : item
+    ))
   }
 
   const handleMultiReturn = async () => {
@@ -225,32 +234,199 @@ export default function Return() {
                 left: '0', 
                 right: '0', 
                 background: 'white', 
-                padding: '12px 16px',
-                paddingBottom: 'calc(12px + env(safe-area-inset-bottom))',
+                padding: isFooterExpanded ? '16px' : '12px 16px',
+                paddingBottom: isFooterExpanded ? 'calc(16px + env(safe-area-inset-bottom))' : 'calc(12px + env(safe-area-inset-bottom))',
                 boxShadow: '0 -4px 12px rgba(0,0,0,0.08)',
                 borderTop: '1px solid #e5e5e7',
-                zIndex: 50
+                zIndex: 50,
+                maxHeight: isFooterExpanded ? '60vh' : 'auto',
+                overflowY: isFooterExpanded ? 'auto' : 'hidden',
+                transition: 'all 0.3s ease',
+                borderTopLeftRadius: '16px',
+                borderTopRightRadius: '16px'
               }}>
-                <div style={{ maxWidth: '500px', margin: '0 auto', display: 'flex', gap: '8px', alignItems: 'center' }}>
-                  <div style={{ flex: 1, fontSize: '14px', fontWeight: '600' }}>
-                    เลือกแล้ว {selectedItems.length} รายการ
+                <div style={{ maxWidth: '500px', margin: '0 auto' }}>
+                  {/* Header - Always visible */}
+                  <div 
+                    onClick={() => setIsFooterExpanded(!isFooterExpanded)}
+                    style={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      justifyContent: 'space-between',
+                      cursor: 'pointer',
+                      marginBottom: isFooterExpanded ? '16px' : '12px',
+                      padding: '8px 12px',
+                      background: isFooterExpanded ? 'transparent' : '#f5f5f7',
+                      borderRadius: '12px',
+                      transition: 'background 0.2s ease'
+                    }}
+                  >
+                    <div style={{ 
+                      fontSize: '17px', 
+                      fontWeight: '600', 
+                      color: '#1d1d1f',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px'
+                    }}>
+                      <span>{isFooterExpanded ? '📋' : '📦'}</span>
+                      <span>รายการที่เลือก</span>
+                      <span style={{
+                        background: '#ff9f0a',
+                        color: 'white',
+                        padding: '2px 10px',
+                        borderRadius: '12px',
+                        fontSize: '14px',
+                        fontWeight: '700'
+                      }}>
+                        {selectedItems.length}
+                      </span>
+                    </div>
+                    <div style={{ 
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      color: '#ff9f0a',
+                      fontSize: '14px',
+                      fontWeight: '500'
+                    }}>
+                      <span>{isFooterExpanded ? 'ย่อลง' : 'ดูรายการ'}</span>
+                      <div style={{
+                        transform: isFooterExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
+                        transition: 'transform 0.3s ease',
+                        fontSize: '12px'
+                      }}>
+                        ▼
+                      </div>
+                    </div>
                   </div>
-                  <button 
-                    onClick={handleMultiReturn} 
-                    className="btn btn-warning" 
-                    style={{ minWidth: '120px' }}
-                    disabled={loading}
-                  >
-                    <Icon name="return" size={20} color="white" />
-                    {loading ? 'กำลังบันทึก...' : `คืน ${selectedItems.length} รายการ`}
-                  </button>
-                  <button 
-                    onClick={cancelMultiSelect} 
-                    className="btn btn-secondary"
-                    style={{ minWidth: '70px' }}
-                  >
-                    ยกเลิก
-                  </button>
+
+                  {/* Expanded content */}
+                  {isFooterExpanded && (
+                    <div style={{ marginBottom: '16px' }}>
+                      {selectedItems.map((item) => (
+                        <div key={item.product.code} style={{ 
+                          background: 'var(--bg-secondary)', 
+                          padding: '12px', 
+                          borderRadius: 'var(--radius-md)', 
+                          marginBottom: '8px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '12px'
+                        }}>
+                          <div style={{ flex: 1 }}>
+                            <div style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-primary)' }}>
+                              {item.product.name}
+                            </div>
+                            <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
+                              คงเหลือ: {item.product.quantity} {item.product.unit}
+                            </div>
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                const newQty = Math.max(1, item.quantity - 1)
+                                updateItemQuantity(item.product.code, newQty)
+                              }}
+                              style={{
+                                width: '32px',
+                                height: '32px',
+                                border: '1.5px solid var(--border-strong)',
+                                borderRadius: 'var(--radius-sm)',
+                                background: 'var(--bg-primary)',
+                                color: 'var(--text-primary)',
+                                fontSize: '18px',
+                                fontWeight: '600',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center'
+                              }}
+                            >
+                              −
+                            </button>
+                            <input
+                              type="number"
+                              value={item.quantity}
+                              onChange={(e) => updateItemQuantity(item.product.code, e.target.value)}
+                              min="1"
+                              style={{
+                                width: '60px',
+                                padding: '8px',
+                                border: '1.5px solid var(--border-strong)',
+                                borderRadius: 'var(--radius-md)',
+                                fontSize: '14px',
+                                fontWeight: '600',
+                                textAlign: 'center',
+                                background: 'var(--bg-primary)'
+                              }}
+                              onClick={(e) => e.stopPropagation()}
+                            />
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                const newQty = item.quantity + 1
+                                updateItemQuantity(item.product.code, newQty)
+                              }}
+                              style={{
+                                width: '32px',
+                                height: '32px',
+                                border: '1.5px solid var(--border-strong)',
+                                borderRadius: 'var(--radius-sm)',
+                                background: 'var(--bg-primary)',
+                                color: 'var(--text-primary)',
+                                fontSize: '18px',
+                                fontWeight: '600',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center'
+                              }}
+                            >
+                              +
+                            </button>
+                          </div>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              toggleProductSelection(item.product)
+                            }}
+                            style={{
+                              background: 'transparent',
+                              border: 'none',
+                              color: 'var(--danger)',
+                              cursor: 'pointer',
+                              fontSize: '20px',
+                              padding: '4px 8px'
+                            }}
+                          >
+                            ×
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Buttons - Always visible */}
+                  <div style={{ display: 'flex', gap: '8px', marginTop: isFooterExpanded ? '0' : '12px' }}>
+                    <button 
+                      onClick={handleMultiReturn} 
+                      className="btn btn-warning" 
+                      style={{ flex: 1 }}
+                      disabled={loading}
+                    >
+                      <Icon name="return" size={20} color="white" />
+                      {loading ? 'กำลังบันทึก...' : `คืน ${selectedItems.length} รายการ`}
+                    </button>
+                    <button 
+                      onClick={cancelMultiSelect} 
+                      className="btn btn-secondary"
+                      style={{ minWidth: '80px' }}
+                    >
+                      ยกเลิก
+                    </button>
+                  </div>
                 </div>
               </div>
             )}
