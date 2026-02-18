@@ -585,7 +585,6 @@ export default function Withdraw() {
                     value={roomNumber}
                     onChange={(e) => setRoomNumber(e.target.value)}
                     placeholder="เช่น 101, 102, 103"
-                    required
                   />
                 </div>
               )}
