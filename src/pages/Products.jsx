@@ -3,7 +3,6 @@ import { useSheets } from '../contexts/SheetsContext'
 import { useLiff } from '../contexts/LiffContext'
 import * as sheetsService from '../services/sheetsService'
 import SkeletonLoader from '../components/SkeletonLoader'
-import LoadingButton from '../components/LoadingButton'
 import ConfirmDialog from '../components/ConfirmDialog'
 import { haptics } from '../utils/haptics'
 import './Products.css'
@@ -432,14 +431,13 @@ export default function Products() {
               </div>
 
               <div className="button-group">
-                <LoadingButton 
+                <button 
                   type="submit" 
                   className="btn btn-primary btn-block" 
-                  loading={submitting}
                   disabled={submitting}
                 >
-                  บันทึก
-                </LoadingButton>
+                  {submitting ? 'กำลังบันทึก...' : 'บันทึก'}
+                </button>
                 <button
                   type="button"
                   className="btn btn-secondary btn-block"
