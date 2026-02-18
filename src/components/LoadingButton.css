@@ -1,7 +1,6 @@
 .loading-button {
   position: relative;
   transition: all 0.2s ease;
-  overflow: hidden; /* Prevent content overflow */
 }
 
 .loading-button.loading {
@@ -16,12 +15,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1;
+  z-index: 2;
 }
 
 .spinner {
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
   border: 2px solid rgba(255, 255, 255, 0.3);
   border-top-color: white;
   border-radius: 50%;
@@ -29,8 +28,7 @@
 }
 
 .loading-text {
-  visibility: hidden;
-  /* Keep text in layout to maintain button size */
+  opacity: 0;
 }
 
 @keyframes spin {
