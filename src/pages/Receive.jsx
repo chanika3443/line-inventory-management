@@ -14,7 +14,7 @@ export default function Receive() {
 
   
   const [selectedProduct, setSelectedProduct] = useState(null)
-  const [quantity, setQuantity] = useState('')
+  const [quantity, setQuantity] = useState('1')
   const [userName, setLocalUserName] = useState(liffUserName || '')
   const [message, setMessage] = useState(null)
   
@@ -140,7 +140,7 @@ export default function Receive() {
       haptics.success()
       setMessage({ type: 'success', text: result.message })
       setSelectedProduct(null)
-      setQuantity('')
+      setQuantity('1')
     } else {
       haptics.error()
       setMessage({ type: 'error', text: result.message })

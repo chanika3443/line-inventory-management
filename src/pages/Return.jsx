@@ -13,7 +13,7 @@ export default function Return() {
 
   
   const [selectedProduct, setSelectedProduct] = useState(null)
-  const [quantity, setQuantity] = useState('')
+  const [quantity, setQuantity] = useState('1')
   const [note, setNote] = useState('')
   const [userName, setLocalUserName] = useState(liffUserName || '')
   const [message, setMessage] = useState(null)
@@ -124,7 +124,7 @@ export default function Return() {
       haptics.success()
       setMessage({ type: 'success', text: result.message })
       setSelectedProduct(null)
-      setQuantity('')
+      setQuantity('1')
       setNote('')
     } else {
       haptics.error()

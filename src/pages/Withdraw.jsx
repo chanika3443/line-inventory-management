@@ -14,7 +14,7 @@ export default function Withdraw() {
 
   
   const [selectedProduct, setSelectedProduct] = useState(null)
-  const [quantity, setQuantity] = useState('')
+  const [quantity, setQuantity] = useState('1')
   const [userName, setLocalUserName] = useState(liffUserName || '')
   const [roomNumber, setRoomNumber] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -187,7 +187,7 @@ export default function Withdraw() {
       setMessage({ type: 'success', text: result.message })
       
       setSelectedProduct(null)
-      setQuantity('')
+      setQuantity('1')
       setRoomNumber('')
       setPatientType(getDefaultPatientType())
     } else {
