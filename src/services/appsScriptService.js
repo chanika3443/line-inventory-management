@@ -146,3 +146,33 @@ export async function batchWithdraw(items, userName) {
     userName
   })
 }
+
+/**
+ * Import warehouse data from CSV
+ */
+export async function importWarehouseData(csvData, userName) {
+  return await callAppsScript({
+    action: 'importWarehouseData',
+    csvData,
+    userName
+  })
+}
+
+/**
+ * Get warehouse data
+ */
+export async function getWarehouseData() {
+  return await callAppsScript({
+    action: 'getWarehouseData'
+  })
+}
+
+/**
+ * Check warehouse access
+ */
+export async function checkWarehouseAccess(userName) {
+  return await callAppsScript({
+    action: 'checkWarehouseAccess',
+    userName
+  })
+}

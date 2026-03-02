@@ -1,25 +1,66 @@
 import { useState, useEffect } from 'react'
-import { useSheets } from '../contexts/SheetsContext'
+import { useLiff } from '../contexts/LiffContext'
+import * as appsScriptService from '../services/appsScriptService'
 import SkeletonLoader from '../components/SkeletonLoader'
 import './Warehouse.css'
 
 export default function Warehouse() {
-  const { loading } = useSheets()
+  const { userName, loginMode } = useLiff()
   const [warehouseData, setWarehouseData] = useState([])
   const [searchQuery, setSearchQuery] = useState('')
+  const [loading, setLoading] = useState(true)
+  const [hasAccess, setHasAccess] = useState(true)
+
+  const isLineLogin = loginMode === 'line'
 
   useEffect(() => {
-    // TODO: Fetch warehouse data from sheets
-    // For now, using dummy data
-    setWarehouseData([])
+    fetchWarehouseData()
   }, [])
+
+  const fetchWarehouseData = async () => {
+    setLoading(true)
+    try {
+      const result = await appsScriptService.getWarehouseData()
+      
+      if (result.success) {
+        // Parse the data - assuming CSV structure
+        const parsedData = result.data.map((row, index) => ({
+          no: row['No.'] || index + 1,
+          material: row['material'] || '',
+          description: row['Material Description'] || '',
+          plant: row['Plant'] || '',
+          batch: row['Batch'] || '',
+          unit: row['B.Un'] || '',
+          withdrawDate: row['วันที่'] || '',
+          withdrawQty: row['จำนวน'] || '',
+          mainStockOld: row['เดิม'] || '',
+          mainStockIn: row['รับเข้า'] || '',
+          mainStockOut: row['ออก'] || '',
+          mainStockRemain: row['คงเหลือ'] || '',
+          mainStockSystem: row['ระบบ'] || '',
+          mainStockExpiry: row['Exp.สต๊อกใหญ่'] || '',
+          subStockExpiry: row['Exp.สต๊อกเล็ก'] || '',
+          subStockOld: row['เดิม.1'] || '',
+          subStockIn: row['รับเข้า.1'] || '',
+          subStockRemain: row['คงเหลือ.1'] || '',
+          price: row['ราคา(บาท)'] || ''
+        }))
+        
+        setWarehouseData(parsedData)
+      }
+    } catch (error) {
+      console.error('Error fetching warehouse data:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const filteredData = warehouseData.filter(item =>
     item.material?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     item.description?.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
-  if (loading && warehouseData.length === 0) {
+  if (loading) {
     return (
       <div className="warehouse-page">
         <div className="header">

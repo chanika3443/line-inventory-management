@@ -53,6 +53,12 @@ function doPost(e) {
       case 'batchWithdraw':
         result = batchWithdraw(data.items, data.userName, deviceInfo);
         break;
+      case 'importWarehouseData':
+        result = importWarehouseData(data.csvData, data.userName, deviceInfo);
+        break;
+      case 'getWarehouseData':
+        result = getWarehouseData();
+        break;
       default:
         result = { success: false, message: 'Unknown action: ' + action };
     }
@@ -1270,4 +1276,144 @@ function getTransactionLogs(filters) {
   }
   
   return logs;
+}
+
+// ========================================
+// Warehouse Data Import Functions
+// ========================================
+
+/**
+ * Import warehouse data from CSV
+ * @param {Array} csvData - Parsed CSV data
+ * @param {String} userName - User who is importing
+ * @param {String} deviceInfo - Device information
+ */
+function importWarehouseData(csvData, userName, deviceInfo = '') {
+  try {
+    // Check user permission
+    const allowedUsers = getAllowedUsers();
+    if (!allowedUsers.includes(userName) && !allowedUsers.includes('ALL')) {
+      return { 
+        success: false, 
+        message: 'คุณไม่มีสิทธิ์นำเข้าข้อมูล กรุณาติดต่อผู้ดูแลระบบ' 
+      };
+    }
+    
+    const ss = getSpreadsheet();
+    let sheet = ss.getSheetByName('WarehouseData');
+    
+    // Create sheet if it doesn't exist
+    if (!sheet) {
+      sheet = ss.insertSheet('WarehouseData');
+      Logger.log('Created new WarehouseData sheet');
+    }
+    
+    // Clear existing data
+    sheet.clear();
+    
+    // Write CSV data to sheet
+    if (csvData && csvData.length > 0) {
+      sheet.getRange(1, 1, csvData.length, csvData[0].length).setValues(csvData);
+    }
+    
+    // Add audit log
+    addAuditLog(
+      'IMPORT_WAREHOUSE_DATA',
+      `นำเข้าข้อมูลคลังวัสดุ ${csvData.length} แถว`,
+      userName,
+      deviceInfo
+    );
+    
+    return { 
+      success: true, 
+      message: `นำเข้าข้อมูลสำเร็จ ${csvData.length} แถว`,
+      rowCount: csvData.length
+    };
+    
+  } catch (error) {
+    Logger.log('Error importing warehouse data: ' + error);
+    return { 
+      success: false, 
+      message: 'เกิดข้อผิดพลาด: ' + error.toString() 
+    };
+  }
+}
+
+/**
+ * Get warehouse data
+ */
+function getWarehouseData() {
+  try {
+    const ss = getSpreadsheet();
+    const sheet = ss.getSheetByName('WarehouseData');
+    
+    if (!sheet) {
+      return { 
+        success: true, 
+        data: [],
+        message: 'ไม่มีข้อมูล กรุณานำเข้าข้อมูลจากไฟล์ CSV'
+      };
+    }
+    
+    const data = sheet.getDataRange().getValues();
+    
+    // Convert to JSON format
+    if (data.length === 0) {
+      return { 
+        success: true, 
+        data: [],
+        message: 'ไม่มีข้อมูล'
+      };
+    }
+    
+    // First 2 rows are headers
+    const headers = data[1]; // Row 2 contains the actual column headers
+    const rows = [];
+    
+    for (let i = 2; i < data.length; i++) {
+      const row = {};
+      for (let j = 0; j < headers.length; j++) {
+        row[headers[j]] = data[i][j];
+      }
+      rows.push(row);
+    }
+    
+    return { 
+      success: true, 
+      data: rows,
+      rowCount: rows.length
+    };
+    
+  } catch (error) {
+    Logger.log('Error getting warehouse data: ' + error);
+    return { 
+      success: false, 
+      message: 'เกิดข้อผิดพลาด: ' + error.toString(),
+      data: []
+    };
+  }
+}
+
+/**
+ * Check if user has warehouse access
+ * @param {String} userName - User name to check
+ */
+function checkWarehouseAccess(userName) {
+  try {
+    const allowedUsers = getAllowedUsers();
+    const hasAccess = allowedUsers.includes(userName) || allowedUsers.includes('ALL');
+    
+    return {
+      success: true,
+      hasAccess: hasAccess,
+      userName: userName
+    };
+  } catch (error) {
+    Logger.log('Error checking warehouse access: ' + error);
+    return {
+      success: false,
+      hasAccess: false,
+      message: error.toString()
+    };
+  }
 }
