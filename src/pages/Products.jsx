@@ -5,7 +5,7 @@ import * as sheetsService from '../services/sheetsService'
 import SkeletonLoader from '../components/SkeletonLoader'
 import ConfirmDialog from '../components/ConfirmDialog'
 import { haptics } from '../utils/haptics'
-import { getExpiryStatus, getNearestExpiryDate, formatThaiDate } from '../utils/expiryDate'
+import { getExpiryStatus, getNearestExpiryDate } from '../utils/expiryDate'
 import './Products.css'
 
 export default function Products() {
