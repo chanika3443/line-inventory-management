@@ -36,6 +36,16 @@ async function fetchSheetData(range) {
  * Convert row data to Product object
  */
 function rowToProduct(row) {
+  // Parse expiry dates from JSON string
+  let expiryDates = []
+  if (row[11]) {
+    try {
+      expiryDates = JSON.parse(row[11])
+    } catch (e) {
+      console.error('Error parsing expiry dates:', e)
+    }
+  }
+  
   return {
     code: row[0] || '',
     name: row[1] || '',
@@ -47,7 +57,8 @@ function rowToProduct(row) {
     requireRoom: row[7] === 'TRUE' || row[7] === true,
     requirePatientType: row[8] === 'TRUE' || row[8] === true,
     createdAt: row[9] || '',
-    updatedAt: row[10] || ''
+    updatedAt: row[10] || '',
+    expiryDates: expiryDates
   }
 }
 
@@ -90,7 +101,7 @@ function rowToTransaction(row) {
  */
 export async function getAllProducts() {
   try {
-    const rows = await fetchSheetData('Products!A2:K')
+    const rows = await fetchSheetData('Products!A2:L')
     return rows.map(rowToProduct)
   } catch (error) {
     console.error('Error getting products:', error)

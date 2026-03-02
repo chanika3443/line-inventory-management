@@ -5,6 +5,7 @@ import * as sheetsService from '../services/sheetsService'
 import SkeletonLoader from '../components/SkeletonLoader'
 import ConfirmDialog from '../components/ConfirmDialog'
 import { haptics } from '../utils/haptics'
+import { getExpiryStatus, getNearestExpiryDate, formatThaiDate } from '../utils/expiryDate'
 import './Products.css'
 
 export default function Products() {
@@ -24,7 +25,8 @@ export default function Products() {
     category: '',
     returnable: false,
     requireRoom: false,
-    requirePatientType: false
+    requirePatientType: false,
+    expiryDates: []
   })
   const [message, setMessage] = useState(null)
   const [deleteConfirm, setDeleteConfirm] = useState({ show: false, product: null, input: '' })
@@ -78,7 +80,8 @@ export default function Products() {
       category: '',
       returnable: false,
       requireRoom: false,
-      requirePatientType: false
+      requirePatientType: false,
+      expiryDates: []
     })
     setShowModal(true)
   }
@@ -93,7 +96,8 @@ export default function Products() {
       category: product.category,
       returnable: product.returnable,
       requireRoom: product.requireRoom || false,
-      requirePatientType: product.requirePatientType || false
+      requirePatientType: product.requirePatientType || false,
+      expiryDates: product.expiryDates || []
     })
     setShowModal(true)
   }
@@ -272,12 +276,30 @@ export default function Products() {
       </div>
 
       <div className="product-list">
-        {filteredProducts.map((product) => (
+        {filteredProducts.map((product) => {
+          const nearestExpiry = getNearestExpiryDate(product.expiryDates)
+          const expiryStatus = nearestExpiry ? getExpiryStatus(nearestExpiry) : null
+          
+          return (
           <div key={product.code} className="product-card card">
             <div className="product-header">
               <div>
                 <div className="product-name" style={{ fontSize: '15px', fontWeight: '600', marginBottom: '2px' }}>{product.name}</div>
                 <div className="product-code" style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>{product.code}</div>
+                {expiryStatus && (
+                  <div style={{ 
+                    fontSize: '11px', 
+                    color: expiryStatus.color,
+                    fontWeight: '600',
+                    marginTop: '4px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px'
+                  }}>
+                    <span>📅</span>
+                    <span>{expiryStatus.text}</span>
+                  </div>
+                )}
               </div>
               <div className="product-actions">
                 <button onClick={() => handleEdit(product)} className="btn-icon">
@@ -325,7 +347,8 @@ export default function Products() {
               {product.returnable ? '✓ คืนได้' : '✗ คืนไม่ได้'}
             </div>
           </div>
-        ))}
+        )
+        })}
       </div>
       </div>
 
@@ -428,6 +451,72 @@ export default function Products() {
                   />
                   <span>ต้องระบุประเภทผู้ป่วยเมื่อเบิก</span>
                 </label>
+              </div>
+
+              <div className="input-group">
+                <label className="input-label">วันหมดอายุ</label>
+                <div style={{ marginBottom: '8px' }}>
+                  {formData.expiryDates && formData.expiryDates.map((date, index) => (
+                    <div key={index} style={{ 
+                      display: 'flex', 
+                      gap: '8px', 
+                      marginBottom: '8px',
+                      alignItems: 'center'
+                    }}>
+                      <input
+                        type="date"
+                        className="input"
+                        value={date}
+                        onChange={(e) => {
+                          const newDates = [...formData.expiryDates]
+                          newDates[index] = e.target.value
+                          setFormData({ ...formData, expiryDates: newDates })
+                        }}
+                        style={{ flex: 1 }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const newDates = formData.expiryDates.filter((_, i) => i !== index)
+                          setFormData({ ...formData, expiryDates: newDates })
+                        }}
+                        style={{
+                          padding: '8px 12px',
+                          background: '#ff3b30',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '8px',
+                          cursor: 'pointer',
+                          fontSize: '14px'
+                        }}
+                      >
+                        ลบ
+                      </button>
+                    </div>
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFormData({ 
+                      ...formData, 
+                      expiryDates: [...(formData.expiryDates || []), ''] 
+                    })
+                  }}
+                  style={{
+                    padding: '10px 16px',
+                    background: '#007aff',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '8px',
+                    cursor: 'pointer',
+                    fontSize: '14px',
+                    width: '100%',
+                    fontWeight: '600'
+                  }}
+                >
+                  + เพิ่มวันหมดอายุ
+                </button>
               </div>
 
               <div className="button-group">

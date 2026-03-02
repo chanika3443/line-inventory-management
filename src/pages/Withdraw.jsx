@@ -5,6 +5,7 @@ import Icon from '../components/Icon'
 import SkeletonLoader from '../components/SkeletonLoader'
 import { haptics } from '../utils/haptics'
 import { ERROR_MESSAGES } from '../utils/errorMessages'
+import { getExpiryStatus, getNearestExpiryDate, formatThaiDate } from '../utils/expiryDate'
 import './Transaction.css'
 
 export default function Withdraw() {
@@ -262,6 +263,9 @@ export default function Withdraw() {
             <div className="product-list">
               {products.map((product) => {
                 const isSelected = selectedItems.some(item => item.product.code === product.code)
+                const nearestExpiry = getNearestExpiryDate(product.expiryDates)
+                const expiryStatus = nearestExpiry ? getExpiryStatus(nearestExpiry) : null
+                
                 return (
                   <div
                     key={product.code}
@@ -288,6 +292,20 @@ export default function Withdraw() {
                     >
                       <div className="product-info">
                         <div className="product-name">{product.name}</div>
+                        {expiryStatus && (
+                          <div style={{ 
+                            fontSize: '12px', 
+                            color: expiryStatus.color,
+                            fontWeight: '600',
+                            marginTop: '4px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px'
+                          }}>
+                            <span>📅</span>
+                            <span>{expiryStatus.text} ({formatThaiDate(nearestExpiry)})</span>
+                          </div>
+                        )}
                       </div>
                       <div className="product-quantity">
                         {product.quantity} {product.unit}
@@ -379,7 +397,11 @@ export default function Withdraw() {
                   {isFooterExpanded && (
                     <>
                       <div style={{ marginBottom: '16px' }}>
-                        {selectedItems.map((item) => (
+                        {selectedItems.map((item) => {
+                          const nearestExpiry = getNearestExpiryDate(item.product.expiryDates)
+                          const expiryStatus = nearestExpiry ? getExpiryStatus(nearestExpiry) : null
+                          
+                          return (
                       <div key={item.product.code} style={{ 
                         background: 'var(--bg-secondary)', 
                         padding: '12px', 
@@ -396,6 +418,16 @@ export default function Withdraw() {
                           <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
                             คงเหลือ: {item.product.quantity} {item.product.unit}
                           </div>
+                          {expiryStatus && (
+                            <div style={{ 
+                              fontSize: '11px', 
+                              color: expiryStatus.color,
+                              fontWeight: '600',
+                              marginTop: '4px'
+                            }}>
+                              📅 {expiryStatus.text}
+                            </div>
+                          )}
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                           <button
@@ -480,7 +512,8 @@ export default function Withdraw() {
                           ×
                         </button>
                       </div>
-                    ))}
+                    )
+                        })}
                   </div>
 
 
@@ -516,6 +549,45 @@ export default function Withdraw() {
             <form onSubmit={handleWithdraw}>
               <div className="selected-product">
                 <div className="product-name">{selectedProduct.name}</div>
+                {(() => {
+                  const nearestExpiry = getNearestExpiryDate(selectedProduct.expiryDates)
+                  const expiryStatus = nearestExpiry ? getExpiryStatus(nearestExpiry) : null
+                  
+                  if (expiryStatus) {
+                    return (
+                      <div style={{ 
+                        marginTop: '8px',
+                        padding: '8px 12px',
+                        background: `${expiryStatus.color}15`,
+                        border: `1.5px solid ${expiryStatus.color}`,
+                        borderRadius: '8px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px'
+                      }}>
+                        <span style={{ fontSize: '16px' }}>📅</span>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ 
+                            fontSize: '13px', 
+                            fontWeight: '600',
+                            color: expiryStatus.color
+                          }}>
+                            {expiryStatus.text}
+                          </div>
+                          <div style={{ 
+                            fontSize: '12px', 
+                            color: expiryStatus.color,
+                            opacity: 0.8,
+                            marginTop: '2px'
+                          }}>
+                            หมดอายุ: {formatThaiDate(nearestExpiry)}
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  }
+                  return null
+                })()}
               </div>
 
               <div className="form-group">

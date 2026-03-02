@@ -105,7 +105,17 @@ function getProduct(code) {
   if (row === -1) return null;
   
   const sheet = getSheet(SHEETS.PRODUCTS);
-  const data = sheet.getRange(row, 1, 1, 11).getValues()[0];
+  const data = sheet.getRange(row, 1, 1, 12).getValues()[0];
+  
+  // Parse expiry dates from JSON string
+  let expiryDates = [];
+  if (data[11]) {
+    try {
+      expiryDates = JSON.parse(data[11]);
+    } catch (e) {
+      Logger.log('Error parsing expiry dates: ' + e);
+    }
+  }
   
   return {
     code: data[0],
@@ -118,7 +128,8 @@ function getProduct(code) {
     requireRoom: data[7],
     requirePatientType: data[8],
     createdAt: data[9],
-    updatedAt: data[10]
+    updatedAt: data[10],
+    expiryDates: expiryDates
   };
 }
 
@@ -184,6 +195,10 @@ function addProduct(product, deviceInfo = '') {
     }
     
     const timestamp = new Date();
+    
+    // Convert expiryDates array to JSON string
+    const expiryDatesJson = JSON.stringify(product.expiryDates || []);
+    
     sheet.appendRow([
       product.code,
       product.name,
@@ -195,7 +210,8 @@ function addProduct(product, deviceInfo = '') {
       product.requireRoom || false,
       product.requirePatientType || false,
       timestamp,
-      timestamp
+      timestamp,
+      expiryDatesJson
     ]);
     
     // Add audit log
@@ -261,6 +277,11 @@ function updateProduct(code, updates, deviceInfo = '') {
     if (updates.requirePatientType !== undefined && updates.requirePatientType !== oldProduct.requirePatientType) {
       sheet.getRange(row, 9).setValue(updates.requirePatientType);
       changes.push(`ต้องระบุประเภทผู้ป่วย: ${oldProduct.requirePatientType} → ${updates.requirePatientType}`);
+    }
+    if (updates.expiryDates !== undefined) {
+      const expiryDatesJson = JSON.stringify(updates.expiryDates || []);
+      sheet.getRange(row, 12).setValue(expiryDatesJson);
+      changes.push(`อัปเดตวันหมดอายุ`);
     }
     
     // Update timestamp
@@ -1172,6 +1193,16 @@ function getAllProducts() {
   
   for (let i = 1; i < data.length; i++) {
     if (data[i][0]) {
+      // Parse expiry dates from JSON string
+      let expiryDates = [];
+      if (data[i][11]) {
+        try {
+          expiryDates = JSON.parse(data[i][11]);
+        } catch (e) {
+          Logger.log('Error parsing expiry dates for ' + data[i][0] + ': ' + e);
+        }
+      }
+      
       products.push({
         code: data[i][0],
         name: data[i][1],
@@ -1183,7 +1214,8 @@ function getAllProducts() {
         requireRoom: data[i][7],
         requirePatientType: data[i][8],
         createdAt: data[i][9],
-        updatedAt: data[i][10]
+        updatedAt: data[i][10],
+        expiryDates: expiryDates
       });
     }
   }
