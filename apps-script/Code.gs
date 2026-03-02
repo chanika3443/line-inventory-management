@@ -1190,6 +1190,37 @@ function testWeeklySummarySimple() {
 // ========================================
 
 /**
+ * Get allowed users for product management
+ * Reads from "AllowedUsers" sheet with columns: Name
+ */
+function getAllowedUsers() {
+  try {
+    const ss = getSpreadsheet();
+    const sheet = ss.getSheetByName('AllowedUsers');
+    
+    if (!sheet) {
+      Logger.log('AllowedUsers sheet not found');
+      return [];
+    }
+    
+    const data = sheet.getDataRange().getValues();
+    const users = [];
+    
+    // Skip header row (row 0)
+    for (let i = 1; i < data.length; i++) {
+      if (data[i][0] && data[i][0].toString().trim()) {
+        users.push(data[i][0].toString().trim());
+      }
+    }
+    
+    return users;
+  } catch (error) {
+    Logger.log('Error getting allowed users: ' + error);
+    return [];
+  }
+}
+
+/**
  * Get all products from sheet
  */
 function getAllProducts() {
