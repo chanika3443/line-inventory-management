@@ -5,13 +5,9 @@ import SkeletonLoader from '../components/SkeletonLoader'
 import './Warehouse.css'
 
 export default function Warehouse() {
-  const { userName, loginMode } = useLiff()
   const [warehouseData, setWarehouseData] = useState([])
   const [searchQuery, setSearchQuery] = useState('')
   const [loading, setLoading] = useState(true)
-  const [hasAccess, setHasAccess] = useState(true)
-
-  const isLineLogin = loginMode === 'line'
 
   useEffect(() => {
     fetchWarehouseData()

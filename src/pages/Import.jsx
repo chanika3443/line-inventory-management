@@ -13,7 +13,12 @@ export default function Import() {
   const [importing, setImporting] = useState(false)
   const [hasAccess, setHasAccess] = useState(true)
 
+  // Check if running on localhost
+  const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
   const isLineLogin = loginMode === 'line'
+  
+  // On localhost, only check username. On production, require LINE login
+  const requiresLineLogin = !isLocalhost && !isLineLogin
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0]
@@ -43,7 +48,7 @@ export default function Import() {
       return
     }
 
-    if (!isLineLogin) {
+    if (requiresLineLogin) {
       setMessage({ type: 'error', text: 'ต้อง Login ด้วย LINE เท่านั้น' })
       return
     }
@@ -92,8 +97,8 @@ export default function Import() {
     })
   }
 
-  // Show access denied if not LINE login or no permission
-  if (!isLineLogin || !hasAccess) {
+  // Show access denied if requires LINE login or no permission
+  if (requiresLineLogin || !hasAccess) {
     return (
       <div className="import-page">
         <div className="header">
@@ -106,7 +111,7 @@ export default function Import() {
             <div className="access-denied-icon">🔒</div>
             <h2 className="access-denied-title">ไม่มีสิทธิ์เข้าถึง</h2>
             <p className="access-denied-message">
-              {!isLineLogin ? (
+              {requiresLineLogin ? (
                 <>
                   หน้านี้ต้อง Login with LINE เท่านั้น
                   <br />
@@ -125,6 +130,11 @@ export default function Import() {
               <p className="access-denied-user" style={{ fontSize: '13px', color: '#86868b', marginTop: '4px' }}>
                 Login mode: {isLineLogin ? 'LINE' : 'ชื่อเล่น'}
               </p>
+              {isLocalhost && (
+                <p className="access-denied-user" style={{ fontSize: '13px', color: '#34c759', marginTop: '4px' }}>
+                  🏠 Localhost mode - ไม่ต้อง LINE login
+                </p>
+              )}
             </div>
           </div>
         </div>
