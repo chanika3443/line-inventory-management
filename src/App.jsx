@@ -11,8 +11,6 @@ import Dashboard from './pages/Dashboard'
 import Reports from './pages/Reports'
 import Logs from './pages/Logs'
 import Products from './pages/Products'
-import Import from './pages/Import'
-import Warehouse from './pages/Warehouse'
 
 function App() {
   return (
@@ -30,8 +28,6 @@ function App() {
               <Route path="reports" element={<Reports />} />
               <Route path="logs" element={<Logs />} />
               <Route path="products" element={<Products />} />
-              <Route path="import" element={<Import />} />
-              <Route path="warehouse" element={<Warehouse />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Route>
           </Routes>

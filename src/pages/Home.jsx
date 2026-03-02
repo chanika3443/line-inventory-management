@@ -90,28 +90,6 @@ export default function Home() {
             </div>
             <Icon name="arrowRight" size={20} color="var(--color-text-tertiary)" />
           </Link>
-
-          <Link to="/warehouse" className="quick-action">
-            <div className="quick-action-icon" style={{ background: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)' }}>
-              <Icon name="products" size={22} color="white" />
-            </div>
-            <div className="quick-action-text">
-              <div className="quick-action-title">คลังวัสดุ</div>
-              <div className="quick-action-desc">ดูข้อมูลคลังรายเดือน</div>
-            </div>
-            <Icon name="arrowRight" size={20} color="var(--color-text-tertiary)" />
-          </Link>
-
-          <Link to="/import" className="quick-action">
-            <div className="quick-action-icon" style={{ background: 'linear-gradient(135deg, #30cfd0 0%, #330867 100%)' }}>
-              <Icon name="receive" size={22} color="white" />
-            </div>
-            <div className="quick-action-text">
-              <div className="quick-action-title">นำเข้าข้อมูล</div>
-              <div className="quick-action-desc">นำเข้าจากไฟล์ CSV</div>
-            </div>
-            <Icon name="arrowRight" size={20} color="var(--color-text-tertiary)" />
-          </Link>
         </div>
       </div>
     </div>

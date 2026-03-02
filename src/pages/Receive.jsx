@@ -39,10 +39,8 @@ export default function Receive() {
   }, [])
 
   // Check access: must login with LINE AND (name must be in allowed list OR "ALL" is in the list)
-  // On localhost, only check username
-  const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
   const isLineLogin = loginMode === 'line'
-  const hasAccess = (isLocalhost || isLineLogin) && (allowedUsers.includes(liffUserName) || allowedUsers.includes('ALL'))
+  const hasAccess = isLineLogin && (allowedUsers.includes(liffUserName) || allowedUsers.includes('ALL'))
 
   useEffect(() => {
     fetchProducts()
@@ -194,7 +192,7 @@ export default function Receive() {
               ไม่มีสิทธิ์เข้าถึง
             </h2>
             <p style={{ fontSize: '15px', color: 'var(--text-secondary)', marginBottom: '24px', lineHeight: '1.6' }}>
-              {!isLineLogin && !isLocalhost ? (
+              {!isLineLogin ? (
                 <>
                   หน้านี้ต้อง Login with LINE เท่านั้น
                   <br />
@@ -220,11 +218,6 @@ export default function Receive() {
               <p style={{ marginTop: '4px', fontSize: '13px', color: '#86868b' }}>
                 Login Mode: {isLineLogin ? 'LINE' : 'Manual'}
               </p>
-              {isLocalhost && (
-                <p style={{ marginTop: '4px', fontSize: '13px', color: '#34c759' }}>
-                  🏠 Localhost mode - ไม่ต้อง LINE login
-                </p>
-              )}
             </div>
           </div>
         </div>
