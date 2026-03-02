@@ -1314,8 +1314,9 @@ function getTransactionLogs(filters) {
 // ========================================
 
 /**
- * Import warehouse data from CSV
- * @param {Array} csvData - Parsed CSV data
+ * Import warehouse data from CSV/Excel
+ * Updates existing rows or adds new rows based on material code
+ * @param {Array} csvData - Parsed CSV/Excel data
  * @param {String} userName - User who is importing
  * @param {String} deviceInfo - Device information
  */
@@ -1337,28 +1338,96 @@ function importWarehouseData(csvData, userName, deviceInfo = '') {
     if (!sheet) {
       sheet = ss.insertSheet('WarehouseData');
       Logger.log('Created new WarehouseData sheet');
+      
+      // Write all data for new sheet
+      if (csvData && csvData.length > 0) {
+        sheet.getRange(1, 1, csvData.length, csvData[0].length).setValues(csvData);
+      }
+      
+      // Add audit log
+      addAuditLog(
+        'IMPORT_WAREHOUSE_DATA',
+        `สร้างชีตใหม่และนำเข้าข้อมูล ${csvData.length} แถว`,
+        userName,
+        deviceInfo
+      );
+      
+      return { 
+        success: true, 
+        message: `นำเข้าข้อมูลสำเร็จ ${csvData.length} แถว`,
+        rowCount: csvData.length
+      };
     }
     
-    // Clear existing data
-    sheet.clear();
+    // Get existing data
+    const existingData = sheet.getDataRange().getValues();
+    const headerRows = 2; // First 2 rows are headers
     
-    // Write CSV data to sheet
-    if (csvData && csvData.length > 0) {
-      sheet.getRange(1, 1, csvData.length, csvData[0].length).setValues(csvData);
+    if (existingData.length < headerRows) {
+      // No data yet, write all
+      if (csvData && csvData.length > 0) {
+        sheet.getRange(1, 1, csvData.length, csvData[0].length).setValues(csvData);
+      }
+      
+      addAuditLog(
+        'IMPORT_WAREHOUSE_DATA',
+        `นำเข้าข้อมูล ${csvData.length} แถว`,
+        userName,
+        deviceInfo
+      );
+      
+      return { 
+        success: true, 
+        message: `นำเข้าข้อมูลสำเร็จ ${csvData.length} แถว`,
+        rowCount: csvData.length
+      };
+    }
+    
+    // Build map of existing data by material code (column B, index 1)
+    const existingMap = {};
+    for (let i = headerRows; i < existingData.length; i++) {
+      const materialCode = existingData[i][1]; // Column B (material)
+      if (materialCode) {
+        existingMap[materialCode] = i + 1; // Store 1-based row number
+      }
+    }
+    
+    let updatedCount = 0;
+    let addedCount = 0;
+    
+    // Process new data (skip first 2 header rows)
+    for (let i = headerRows; i < csvData.length; i++) {
+      const row = csvData[i];
+      const materialCode = row[1]; // Column B (material)
+      
+      if (!materialCode) continue;
+      
+      if (existingMap[materialCode]) {
+        // Update existing row
+        const rowNumber = existingMap[materialCode];
+        sheet.getRange(rowNumber, 1, 1, row.length).setValues([row]);
+        updatedCount++;
+      } else {
+        // Add new row
+        sheet.appendRow(row);
+        addedCount++;
+      }
     }
     
     // Add audit log
     addAuditLog(
       'IMPORT_WAREHOUSE_DATA',
-      `นำเข้าข้อมูลคลังวัสดุ ${csvData.length} แถว`,
+      `อัปเดต ${updatedCount} แถว, เพิ่มใหม่ ${addedCount} แถว`,
       userName,
       deviceInfo
     );
     
     return { 
       success: true, 
-      message: `นำเข้าข้อมูลสำเร็จ ${csvData.length} แถว`,
-      rowCount: csvData.length
+      message: `นำเข้าข้อมูลสำเร็จ - อัปเดต ${updatedCount} แถว, เพิ่มใหม่ ${addedCount} แถว`,
+      rowCount: csvData.length,
+      updatedCount: updatedCount,
+      addedCount: addedCount
     };
     
   } catch (error) {

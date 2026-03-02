@@ -100,9 +100,13 @@ export default function Import() {
         
         if (result.success) {
           haptics.success()
+          let successMessage = result.message
+          if (result.updatedCount !== undefined && result.addedCount !== undefined) {
+            successMessage = `นำเข้าข้อมูลสำเร็จ\n• อัปเดต: ${result.updatedCount} แถว\n• เพิ่มใหม่: ${result.addedCount} แถว`
+          }
           setMessage({ 
             type: 'success', 
-            text: `นำเข้าข้อมูลสำเร็จ ${result.rowCount} แถว` 
+            text: successMessage
           })
           setFile(null)
           setPreview(null)
@@ -193,7 +197,7 @@ export default function Import() {
 
       <div className="container">
         {message && (
-          <div className={message.type === 'success' ? 'alert alert-success' : 'alert alert-danger'}>
+          <div className={message.type === 'success' ? 'alert alert-success' : 'alert alert-danger'} style={{ whiteSpace: 'pre-line' }}>
             {message.text}
           </div>
         )}
