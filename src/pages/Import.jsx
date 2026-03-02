@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useLiff } from '../contexts/LiffContext'
 import { haptics } from '../utils/haptics'
 import * as appsScriptService from '../services/appsScriptService'
-import Papa from 'papaparse'
+import * as XLSX from 'xlsx'
 import './Import.css'
 
 export default function Import() {
@@ -24,22 +24,42 @@ export default function Import() {
     const selectedFile = e.target.files[0]
     if (!selectedFile) return
 
-    if (!selectedFile.name.endsWith('.csv')) {
-      setMessage({ type: 'error', text: 'กรุณาเลือกไฟล์ CSV เท่านั้น' })
+    const fileExtension = selectedFile.name.split('.').pop().toLowerCase()
+    if (!['csv', 'xlsx', 'xls'].includes(fileExtension)) {
+      setMessage({ type: 'error', text: 'กรุณาเลือกไฟล์ CSV หรือ Excel เท่านั้น' })
       return
     }
 
     setFile(selectedFile)
     
-    // Parse CSV for preview
-    Papa.parse(selectedFile, {
-      complete: (results) => {
-        setPreview(results.data.slice(0, 10)) // Show first 10 rows
-      },
-      error: (error) => {
+    // Parse file for preview
+    const reader = new FileReader()
+    
+    reader.onload = (event) => {
+      try {
+        if (fileExtension === 'csv') {
+          // Parse CSV
+          const text = event.target.result
+          const rows = text.split('\n').map(row => row.split(','))
+          setPreview(rows.slice(0, 10))
+        } else {
+          // Parse Excel
+          const data = new Uint8Array(event.target.result)
+          const workbook = XLSX.read(data, { type: 'array' })
+          const firstSheet = workbook.Sheets[workbook.SheetNames[0]]
+          const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 })
+          setPreview(jsonData.slice(0, 10))
+        }
+      } catch (error) {
         setMessage({ type: 'error', text: 'ไม่สามารถอ่านไฟล์ได้: ' + error.message })
       }
-    })
+    }
+    
+    if (fileExtension === 'csv') {
+      reader.readAsText(selectedFile)
+    } else {
+      reader.readAsArrayBuffer(selectedFile)
+    }
   }
 
   const handleImport = async () => {
@@ -57,44 +77,66 @@ export default function Import() {
     setImporting(true)
     setMessage(null)
 
-    Papa.parse(file, {
-      complete: async (results) => {
-        try {
-          const result = await appsScriptService.importWarehouseData(results.data, userName)
-          
-          if (result.success) {
-            haptics.success()
-            setMessage({ 
-              type: 'success', 
-              text: `นำเข้าข้อมูลสำเร็จ ${result.rowCount} แถว` 
-            })
-            setFile(null)
-            setPreview(null)
-            
-            // Reset file input
-            document.getElementById('csv-file').value = ''
-          } else {
-            haptics.error()
-            setMessage({ type: 'error', text: result.message })
-            
-            // Check if access denied
-            if (result.message.includes('ไม่มีสิทธิ์')) {
-              setHasAccess(false)
-            }
-          }
-        } catch (error) {
-          haptics.error()
-          setMessage({ type: 'error', text: 'เกิดข้อผิดพลาด: ' + error.message })
-        } finally {
-          setImporting(false)
+    const reader = new FileReader()
+    const fileExtension = file.name.split('.').pop().toLowerCase()
+    
+    reader.onload = async (event) => {
+      try {
+        let parsedData
+        
+        if (fileExtension === 'csv') {
+          // Parse CSV
+          const text = event.target.result
+          parsedData = text.split('\n').map(row => row.split(','))
+        } else {
+          // Parse Excel
+          const data = new Uint8Array(event.target.result)
+          const workbook = XLSX.read(data, { type: 'array' })
+          const firstSheet = workbook.Sheets[workbook.SheetNames[0]]
+          parsedData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 })
         }
-      },
-      error: (error) => {
+        
+        const result = await appsScriptService.importWarehouseData(parsedData, userName)
+        
+        if (result.success) {
+          haptics.success()
+          setMessage({ 
+            type: 'success', 
+            text: `นำเข้าข้อมูลสำเร็จ ${result.rowCount} แถว` 
+          })
+          setFile(null)
+          setPreview(null)
+          
+          // Reset file input
+          document.getElementById('file-input').value = ''
+        } else {
+          haptics.error()
+          setMessage({ type: 'error', text: result.message })
+          
+          // Check if access denied
+          if (result.message.includes('ไม่มีสิทธิ์')) {
+            setHasAccess(false)
+          }
+        }
+      } catch (error) {
         haptics.error()
-        setMessage({ type: 'error', text: 'ไม่สามารถอ่านไฟล์ได้: ' + error.message })
+        setMessage({ type: 'error', text: 'เกิดข้อผิดพลาด: ' + error.message })
+      } finally {
         setImporting(false)
       }
-    })
+    }
+    
+    reader.onerror = () => {
+      haptics.error()
+      setMessage({ type: 'error', text: 'ไม่สามารถอ่านไฟล์ได้' })
+      setImporting(false)
+    }
+    
+    if (fileExtension === 'csv') {
+      reader.readAsText(file)
+    } else {
+      reader.readAsArrayBuffer(file)
+    }
   }
 
   // Show access denied if requires LINE login or no permission
@@ -103,7 +145,7 @@ export default function Import() {
       <div className="import-page">
         <div className="header">
           <h1>นำเข้าข้อมูล</h1>
-          <p className="header-subtitle">นำเข้าข้อมูลจากไฟล์ CSV</p>
+          <p className="header-subtitle">นำเข้าข้อมูลจากไฟล์ CSV หรือ Excel</p>
         </div>
 
         <div className="container">
@@ -146,7 +188,7 @@ export default function Import() {
     <div className="import-page">
       <div className="header">
         <h1>นำเข้าข้อมูล</h1>
-        <p className="header-subtitle">นำเข้าข้อมูลจากไฟล์ CSV</p>
+        <p className="header-subtitle">นำเข้าข้อมูลจากไฟล์ CSV หรือ Excel</p>
       </div>
 
       <div className="container">
@@ -157,19 +199,19 @@ export default function Import() {
         )}
 
         <div className="card">
-          <div className="card-title">เลือกไฟล์ CSV</div>
+          <div className="card-title">เลือกไฟล์ CSV หรือ Excel</div>
           
           <div className="file-input-wrapper">
             <input
               type="file"
-              accept=".csv"
+              accept=".csv,.xlsx,.xls"
               onChange={handleFileChange}
               className="file-input"
-              id="csv-file"
+              id="file-input"
             />
-            <label htmlFor="csv-file" className="file-label">
+            <label htmlFor="file-input" className="file-label">
               <span className="file-icon">📁</span>
-              <span>{file ? file.name : 'เลือกไฟล์ CSV'}</span>
+              <span>{file ? file.name : 'เลือกไฟล์ CSV หรือ Excel'}</span>
             </label>
           </div>
 
