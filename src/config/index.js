@@ -1,9 +1,14 @@
 export const config = {
-  // For READ operations - Google Sheets API
+  // Sheet 1: Material inventory (Google Sheet วัสดุและสต็อกรายเดือน)
   sheetsApi: {
     baseUrl: 'https://sheets.googleapis.com/v4/spreadsheets',
     spreadsheetId: (typeof import.meta !== 'undefined' && import.meta.env?.VITE_SPREADSHEET_ID) || '1wjqnycMAHWVKQIzZLnyjLboOj5GhiinuB_zENg1Ttuo',
     apiKey: (typeof import.meta !== 'undefined' && import.meta.env?.VITE_GOOGLE_API_KEY) || ''
+  },
+
+  // Sheet 2: Non-Material Sheet (ชีทเดิมสำหรับเก็บ Transactions, AuditLog, AllowedUsers, Users, Settings)
+  logSheet: {
+    spreadsheetId: (typeof import.meta !== 'undefined' && import.meta.env?.VITE_LOG_SPREADSHEET_ID) || '13231Zdy1BQbX0BDmCVGIAgsKRJx_7UdDvxVBNO8MUM8'
   },
   
   // For WRITE operations - Apps Script API

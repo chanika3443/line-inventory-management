@@ -19,6 +19,7 @@ import {
 
 const SHEETS_API_BASE = config.sheetsApi.baseUrl
 const SPREADSHEET_ID = config.sheetsApi.spreadsheetId
+const LOG_SPREADSHEET_ID = config.logSheet?.spreadsheetId || '13231Zdy1BQbX0BDmCVGIAgsKRJx_7UdDvxVBNO8MUM8'
 const API_KEY = config.sheetsApi.apiKey
 
 /**
@@ -352,21 +353,28 @@ export async function getDashboardData(tabName = null) {
 }
 
 /**
- * Get transaction logs from the Transactions tab
- * (This tab needs to be created manually in the real sheet)
+ * Get transaction logs from the Transactions tab in the Log sheet (ชีทเก่า)
  */
 export async function getTransactionLogs(filters = {}) {
   try {
     let rows = []
 
-    if (API_KEY) {
-      try {
-        rows = await fetchSheetData('Transactions!A2:J')
-      } catch (err) {
-        console.warn('Sheets API getTransactionLogs failed, trying Apps Script fallback...', err)
+    // 1. Fetch directly from the Log Sheet (ชีทเก่า) via GViz CSV
+    try {
+      const url = `https://docs.google.com/spreadsheets/d/${LOG_SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=Transactions`
+      const res = await fetch(url)
+      if (res.ok) {
+        const csv = await res.text()
+        const parsed = Papa.parse(csv, { skipEmptyLines: true })
+        if (parsed.data && parsed.data.length > 1) {
+          rows = parsed.data.slice(1)
+        }
       }
+    } catch (err) {
+      console.warn('GViz getTransactionLogs from log sheet failed, trying fallbacks...', err)
     }
 
+    // 2. Fallback to Apps Script
     if (!rows || rows.length === 0) {
       try {
         const res = await callAppsScript({ action: 'getTransactionLogs' })
@@ -375,6 +383,15 @@ export async function getTransactionLogs(filters = {}) {
         }
       } catch (err) {
         console.error('Apps Script getTransactionLogs error:', err)
+      }
+    }
+
+    // 3. Fallback to Google Sheets API
+    if ((!rows || rows.length === 0) && API_KEY) {
+      try {
+        rows = await fetchSheetData('Transactions!A2:J')
+      } catch (err) {
+        console.warn('Sheets API getTransactionLogs failed...', err)
       }
     }
 
@@ -401,8 +418,8 @@ export async function getTransactionLogs(filters = {}) {
         description: row[4] || '',
         productName: row[4] || '',
         quantity: parseInt(row[5]) || 0,
-        stockType: row[6] || '',
-        batch: row[7] || '',
+        beforeQuantity: row[6] || '',
+        afterQuantity: row[7] || '',
         userName: row[8] || '',
         note: row[9] || '',
         notes: row[9] || '',
@@ -421,7 +438,14 @@ export async function getTransactionLogs(filters = {}) {
       transactions = transactions.filter(t => new Date(t.timestamp) <= endDate)
     }
     if (filters.type) {
-      transactions = transactions.filter(t => t.type === filters.type)
+      const filterType = filters.type.toUpperCase()
+      transactions = transactions.filter(t => {
+        const tType = (t.type || '').toUpperCase()
+        if (filterType === 'WITHDRAW' && (tType === 'WITHDRAW' || tType === 'เบิก')) return true
+        if (filterType === 'RECEIVE' && (tType === 'RECEIVE' || tType === 'รับเข้า')) return true
+        if (filterType === 'RETURN' && (tType === 'RETURN' || tType === 'คืน')) return true
+        return tType === filterType
+      })
     }
     if (filters.materialCode) {
       transactions = transactions.filter(t => t.materialCode === filters.materialCode)
@@ -442,17 +466,46 @@ export async function getTransactionLogs(filters = {}) {
 }
 
 /**
- * Get allowed users for product management
- * Reads from "AllowedUsers" sheet with columns: Name
+ * Get allowed users for product management from the AllowedUsers tab in the Log sheet (ชีทเก่า)
  */
 export async function getAllowedUsers() {
+  // 1. Fetch directly from the Log Sheet (ชีทเก่า) via GViz CSV
   try {
-    const rows = await fetchSheetData('AllowedUsers!A2:A')
-    return rows.map(row => row[0]).filter(name => name && name.trim())
-  } catch (error) {
-    console.error('Error getting allowed users:', error)
-    return []
+    const url = `https://docs.google.com/spreadsheets/d/${LOG_SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=AllowedUsers`
+    const res = await fetch(url)
+    if (res.ok) {
+      const csv = await res.text()
+      const parsed = Papa.parse(csv, { skipEmptyLines: true })
+      if (parsed.data && parsed.data.length > 1) {
+        const users = parsed.data.slice(1).map(r => r[0]?.trim()).filter(Boolean)
+        if (users.length > 0) return users
+      }
+    }
+  } catch (err) {
+    console.warn('GViz getAllowedUsers from log sheet failed...', err)
   }
+
+  // 2. Apps Script fallback
+  try {
+    const res = await callAppsScript({ action: 'getAllowedUsers' })
+    if (res && res.success && Array.isArray(res.users) && res.users.length > 0) {
+      return res.users
+    }
+  } catch (e) {
+    console.warn('Apps Script getAllowedUsers failed:', e)
+  }
+
+  // 3. Fallback to Sheets API if API_KEY is set
+  if (API_KEY) {
+    try {
+      const rows = await fetchSheetData('AllowedUsers!A2:A')
+      return rows.map(row => row[0]).filter(name => name && name.trim())
+    } catch (error) {
+      console.error('Error getting allowed users:', error)
+    }
+  }
+
+  return ['ขิมขิมขิม', 'Mon Aekarin', 'ม่อน', 'admin']
 }
 
 // ============================================

@@ -1,12 +1,19 @@
 /**
  * LINE Inventory Management - Apps Script Backend
  * Handles WRITE operations to the real Google Sheet
- * Works with monthly stock count tabs
+ * Works with monthly stock count tabs (Material) and Log sheet (Transactions/Users/Audit)
  */
 
-const SPREADSHEET_ID = '1wjqnycMAHWVKQIzZLnyjLboOj5GhiinuB_zENg1Ttuo';
+// 1. Material Inventory & Monthly Stock Count Spreadsheet (ชีทสต็อกรายเดือน)
+const MATERIAL_SPREADSHEET_ID = '1wjqnycMAHWVKQIzZLnyjLboOj5GhiinuB_zENg1Ttuo';
 
-// Tab name prefix
+// 2. Non-Material Spreadsheet (ชีทเดิมสำหรับเก็บ Transactions, AuditLog, AllowedUsers, Users, Settings)
+const LOG_SPREADSHEET_ID = '13231Zdy1BQbX0BDmCVGIAgsKRJx_7UdDvxVBNO8MUM8';
+
+// Default alias for compatibility
+const SPREADSHEET_ID = MATERIAL_SPREADSHEET_ID;
+
+// Tab name prefix for monthly material stock count
 const TAB_PREFIX = 'Display Warehouse Stocks of Material (For Monthly Count) ';
 
 // Month names for tab matching
@@ -55,10 +62,16 @@ function doGet(e) {
       result = getMaterialsAction(e.parameter.tabName);
     } else if (action === 'getTransactionLogs') {
       result = getTransactionLogsAction();
+    } else if (action === 'getAllowedUsers') {
+      result = getAllowedUsersAction();
+    } else if (action === 'getUsers') {
+      result = getUsersAction();
+    } else if (action === 'getSettings') {
+      result = getSettingsAction();
     } else {
       result = {
         success: true,
-        message: 'Apps Script is running. Use POST for operations or GET with action.'
+        message: 'Apps Script is running. Dual-sheet configured (Material + Log/Non-material).'
       };
     }
     return ContentService.createTextOutput(JSON.stringify(result))
@@ -109,6 +122,19 @@ function doPost(e) {
       case 'getTransactionLogs':
         result = getTransactionLogsAction();
         break;
+      case 'getAllowedUsers':
+        result = getAllowedUsersAction();
+        break;
+      case 'getUsers':
+        result = getUsersAction();
+        break;
+      case 'getSettings':
+        result = getSettingsAction();
+        break;
+      case 'addAuditLog':
+        addAuditLog(data.auditAction || 'INFO', data.details || '', data.userName || 'System', deviceInfo);
+        result = { success: true };
+        break;
       default:
         result = { success: false, message: 'Unknown action: ' + action };
     }
@@ -126,7 +152,7 @@ function doPost(e) {
 
 function getAvailableTabsAction() {
   try {
-    const ss = getSpreadsheet();
+    const ss = getMaterialSpreadsheet();
     const sheets = ss.getSheets();
     const tabs = [];
     const monthRegex = /(January|February|March|April|May|June|July|August|September|October|November|December)\s*(\d{2,4})/i;
@@ -154,9 +180,12 @@ function getMaterialsAction(tabName) {
   }
 }
 
+/**
+ * Read transactions from the Non-Material spreadsheet (ชีทเก่า)
+ */
 function getTransactionLogsAction() {
   try {
-    const ss = getSpreadsheet();
+    const ss = getLogSpreadsheet();
     const sheet = ss.getSheetByName('Transactions');
     if (!sheet) return { success: true, rows: [] };
     const data = sheet.getDataRange().getValues();
@@ -166,18 +195,103 @@ function getTransactionLogsAction() {
   }
 }
 
+/**
+ * Read allowed users from the Non-Material spreadsheet (ชีทเก่า)
+ */
+function getAllowedUsersAction() {
+  try {
+    const ss = getLogSpreadsheet();
+    const sheet = ss.getSheetByName('AllowedUsers');
+    if (!sheet) return { success: true, users: ['ขิมขิมขิม', 'Mon Aekarin', 'ม่อน', 'admin'] };
+    const data = sheet.getDataRange().getValues();
+    const users = [];
+    for (let i = 1; i < data.length; i++) {
+      const name = String(data[i][0] || '').trim();
+      if (name) users.push(name);
+    }
+    return { success: true, users: users };
+  } catch (error) {
+    return { success: false, message: error.toString(), users: [] };
+  }
+}
+
+/**
+ * Read users from the Non-Material spreadsheet (ชีทเก่า)
+ */
+function getUsersAction() {
+  try {
+    const ss = getLogSpreadsheet();
+    const sheet = ss.getSheetByName('Users');
+    if (!sheet) return { success: true, users: [] };
+    const data = sheet.getDataRange().getValues();
+    const users = [];
+    for (let i = 1; i < data.length; i++) {
+      const username = String(data[i][0] || '').trim();
+      const created = String(data[i][2] || '').trim();
+      if (username) users.push({ username, created });
+    }
+    return { success: true, users: users };
+  } catch (error) {
+    return { success: false, message: error.toString(), users: [] };
+  }
+}
+
+/**
+ * Read settings from the Non-Material spreadsheet (ชีทเก่า)
+ */
+function getSettingsAction() {
+  try {
+    const ss = getLogSpreadsheet();
+    const sheet = ss.getSheetByName('Settings');
+    if (!sheet) return { success: true, settings: {} };
+    const data = sheet.getDataRange().getValues();
+    const settings = {};
+    for (let i = 0; i < data.length; i++) {
+      const key = String(data[i][0] || '').trim();
+      const val = String(data[i][1] || '').trim();
+      if (key) settings[key] = val;
+    }
+    return { success: true, settings: settings };
+  } catch (error) {
+    return { success: false, message: error.toString(), settings: {} };
+  }
+}
+
 // ========================================
-// Helper Functions
+// Helper Functions - Dual Spreadsheet Management
 // ========================================
 
-function getSpreadsheet() {
+/**
+ * Get Material inventory spreadsheet (ชีทใหม่)
+ */
+function getMaterialSpreadsheet() {
   try {
     const active = SpreadsheetApp.getActiveSpreadsheet();
-    if (active) return active;
+    if (active && active.getId() === MATERIAL_SPREADSHEET_ID) return active;
   } catch (e) {
-    // Not container-bound, fallback to openById
+    // Not container-bound
   }
-  return SpreadsheetApp.openById(SPREADSHEET_ID);
+  return SpreadsheetApp.openById(MATERIAL_SPREADSHEET_ID);
+}
+
+/**
+ * Get Non-Material Log spreadsheet (ชีทเก่า: Transactions, AuditLog, AllowedUsers, Users, Settings)
+ */
+function getLogSpreadsheet() {
+  try {
+    const active = SpreadsheetApp.getActiveSpreadsheet();
+    if (active && active.getId() === LOG_SPREADSHEET_ID) return active;
+  } catch (e) {
+    // Not container-bound
+  }
+  return SpreadsheetApp.openById(LOG_SPREADSHEET_ID);
+}
+
+/**
+ * Default spreadsheet alias (points to Material spreadsheet)
+ */
+function getSpreadsheet() {
+  return getMaterialSpreadsheet();
 }
 
 /**
@@ -319,50 +433,68 @@ function getMaterialAtRow(sheet, row) {
 }
 
 /**
- * Add transaction log to the Transactions sheet
+ * Add transaction log to the Transactions sheet in the Non-Material spreadsheet (ชีทเก่า)
+ * Columns in old sheet:
+ * [id, timestamp, type, productCode, productName, quantity, beforeQuantity, afterQuantity, userName, note]
  */
-function addTransaction(type, materialCode, description, quantity, stockType, batch, userName, note) {
-  const ss = getSpreadsheet();
-  let sheet = ss.getSheetByName('Transactions');
+function addTransaction(type, materialCode, description, quantity, beforeQuantity, afterQuantity, userName, note) {
+  try {
+    const ss = getLogSpreadsheet();
+    let sheet = ss.getSheetByName('Transactions');
 
-  // Create Transactions sheet if it doesn't exist
-  if (!sheet) {
-    sheet = ss.insertSheet('Transactions');
+    // Create Transactions sheet if it doesn't exist
+    if (!sheet) {
+      sheet = ss.insertSheet('Transactions');
+      sheet.appendRow([
+        'id', 'timestamp', 'type', 'productCode', 'productName',
+        'quantity', 'beforeQuantity', 'afterQuantity', 'userName', 'note'
+      ]);
+    }
+
+    const now = new Date();
+    const id = 'TXN' + now.getTime() + Math.floor(Math.random() * 1000);
+    const timestampStr = Utilities.formatDate(now, 'Asia/Bangkok', 'd/M/yyyy, H:mm:ss');
+
     sheet.appendRow([
-      'ID', 'Timestamp', 'Type', 'MaterialCode', 'Description',
-      'Quantity', 'StockType', 'Batch', 'UserName', 'Note'
+      id,
+      timestampStr,
+      type,
+      materialCode,
+      description,
+      quantity,
+      beforeQuantity !== undefined && beforeQuantity !== null ? beforeQuantity : '',
+      afterQuantity !== undefined && afterQuantity !== null ? afterQuantity : '',
+      userName || '',
+      note || ''
     ]);
+  } catch (error) {
+    console.error('Error in addTransaction:', error);
   }
-
-  const timestamp = new Date();
-  const id = 'TXN' + timestamp.getTime();
-
-  sheet.appendRow([
-    id, timestamp, type, materialCode, description,
-    quantity, stockType, batch, userName, note
-  ]);
 }
 
 /**
- * Add audit log entry
+ * Add audit log entry to the AuditLog sheet in the Non-Material spreadsheet (ชีทเก่า)
+ * Columns in old sheet:
+ * [Timestamp, Action, Details, UserName, Device Info]
  */
 function addAuditLog(action, details, userName, deviceInfo) {
   try {
-    const ss = getSpreadsheet();
+    const ss = getLogSpreadsheet();
     let sheet = ss.getSheetByName('AuditLog');
     if (!sheet) {
       sheet = ss.insertSheet('AuditLog');
       sheet.appendRow(['Timestamp', 'Action', 'Details', 'UserName', 'Device Info']);
     }
-    sheet.appendRow([new Date(), action, details, userName, deviceInfo || '']);
+    const now = new Date();
+    const timestampStr = Utilities.formatDate(now, 'Asia/Bangkok', 'd/M/yyyy, H:mm:ss');
+    sheet.appendRow([timestampStr, action, details, userName || '', deviceInfo || '']);
   } catch (error) {
-    // Silently fail
     console.error('Audit log error:', error);
   }
 }
 
 // ========================================
-// Write Operations
+// Write Operations (on Material spreadsheet)
 // ========================================
 
 /**
@@ -392,6 +524,8 @@ function withdraw(materialCode, quantity, userName, note, stockType, batch, shee
     }
 
     const material = getMaterialAtRow(sheet, row);
+    let beforeQty = 0;
+    let afterQty = 0;
 
     if (stockType === 'sub') {
       // Withdraw from sub stock (สต๊อกเล็ก)
@@ -400,6 +534,8 @@ function withdraw(materialCode, quantity, userName, note, stockType, batch, shee
         return { success: false, message: 'สต๊อกเล็กไม่เพียงพอ (คงเหลือ ' + currentRemaining + ')' };
       }
       const newRemaining = currentRemaining - quantity;
+      beforeQty = currentRemaining;
+      afterQty = newRemaining;
       sheet.getRange(row, COL.SUB_REM).setValue(newRemaining);
     } else {
       // Withdraw from main stock (สต๊อกใหญ่)
@@ -409,14 +545,14 @@ function withdraw(materialCode, quantity, userName, note, stockType, batch, shee
       }
       const newIssued = material.mainStock.issued + quantity;
       const newRemaining = material.mainStock.previous + material.mainStock.received - newIssued;
+      beforeQty = currentRemaining;
+      afterQty = newRemaining;
 
       sheet.getRange(row, COL.MAIN_OUT).setValue(newIssued);
       sheet.getRange(row, COL.MAIN_REM).setValue(newRemaining);
 
       // Update withdraw info
       const now = new Date();
-      const thaiMonth = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.',
-        'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'][now.getMonth()];
       const dateStr = now.getDate() + '/' + (now.getMonth() + 1) + '/' + now.getFullYear();
 
       // Append to existing withdraw date/qty
@@ -431,10 +567,19 @@ function withdraw(materialCode, quantity, userName, note, stockType, batch, shee
       }
     }
 
-    // Transaction log
-    addTransaction('เบิก', materialCode, material.description, quantity, stockType || 'main', material.batch, userName, note || 'เบิกวัสดุ');
+    // Transaction log in Non-Material Sheet (ชีทเก่า)
+    addTransaction(
+      'WITHDRAW',
+      materialCode,
+      material.description,
+      quantity,
+      beforeQty,
+      afterQty,
+      userName,
+      (stockType === 'sub' ? '[สต๊อกเล็ก] ' : '[สต๊อกใหญ่] ') + (note || 'เบิกวัสดุ')
+    );
 
-    // Audit log
+    // Audit log in Non-Material Sheet (ชีทเก่า)
     addAuditLog(
       'WITHDRAW',
       'เบิก: ' + material.description + ' (' + materialCode + ') จำนวน ' + quantity + ' ' + material.unit + ' จาก' + (stockType === 'sub' ? 'สต๊อกเล็ก' : 'สต๊อกใหญ่') + ' | ' + (note || ''),
@@ -468,23 +613,42 @@ function receive(materialCode, quantity, userName, stockType, batch, sheetRow, t
     }
 
     const material = getMaterialAtRow(sheet, row);
+    let beforeQty = 0;
+    let afterQty = 0;
 
     if (stockType === 'sub') {
       // Receive into sub stock
+      const currentRemaining = material.subStock.remaining;
       const newReceived = material.subStock.received + quantity;
       const newRemaining = material.subStock.previous + newReceived;
+      beforeQty = currentRemaining;
+      afterQty = newRemaining;
       sheet.getRange(row, COL.SUB_IN).setValue(newReceived);
       sheet.getRange(row, COL.SUB_REM).setValue(newRemaining);
     } else {
       // Receive into main stock
+      const currentRemaining = material.mainStock.remaining;
       const newReceived = material.mainStock.received + quantity;
       const newRemaining = material.mainStock.previous + newReceived - material.mainStock.issued;
+      beforeQty = currentRemaining;
+      afterQty = newRemaining;
       sheet.getRange(row, COL.MAIN_IN).setValue(newReceived);
       sheet.getRange(row, COL.MAIN_REM).setValue(newRemaining);
     }
 
-    addTransaction('รับเข้า', materialCode, material.description, quantity, stockType || 'main', material.batch, userName, 'รับเข้าวัสดุ');
+    // Transaction log in Non-Material Sheet (ชีทเก่า)
+    addTransaction(
+      'RECEIVE',
+      materialCode,
+      material.description,
+      quantity,
+      beforeQty,
+      afterQty,
+      userName,
+      (stockType === 'sub' ? '[สต๊อกเล็ก] ' : '[สต๊อกใหญ่] ') + 'รับเข้าวัสดุ'
+    );
 
+    // Audit log in Non-Material Sheet (ชีทเก่า)
     addAuditLog(
       'RECEIVE',
       'รับเข้า: ' + material.description + ' (' + materialCode + ') จำนวน ' + quantity + ' ' + material.unit + ' เข้า' + (stockType === 'sub' ? 'สต๊อกเล็ก' : 'สต๊อกใหญ่'),
@@ -515,23 +679,42 @@ function returnMaterial(materialCode, quantity, userName, note, stockType, batch
     }
 
     const material = getMaterialAtRow(sheet, row);
+    let beforeQty = 0;
+    let afterQty = 0;
 
     if (stockType === 'sub') {
-      const newRemaining = material.subStock.remaining + quantity;
+      const currentRemaining = material.subStock.remaining;
+      const newRemaining = currentRemaining + quantity;
+      beforeQty = currentRemaining;
+      afterQty = newRemaining;
       sheet.getRange(row, COL.SUB_REM).setValue(newRemaining);
     } else {
       // Return to main stock — reduce issued count, increase remaining
+      const currentRemaining = material.mainStock.remaining;
       const newIssued = Math.max(0, material.mainStock.issued - quantity);
       const newRemaining = material.mainStock.previous + material.mainStock.received - newIssued;
+      beforeQty = currentRemaining;
+      afterQty = newRemaining;
       sheet.getRange(row, COL.MAIN_OUT).setValue(newIssued);
       sheet.getRange(row, COL.MAIN_REM).setValue(newRemaining);
     }
 
-    addTransaction('คืน', materialCode, material.description, quantity, stockType || 'main', material.batch, userName, note);
+    // Transaction log in Non-Material Sheet (ชีทเก่า)
+    addTransaction(
+      'RETURN',
+      materialCode,
+      material.description,
+      quantity,
+      beforeQty,
+      afterQty,
+      userName,
+      (stockType === 'sub' ? '[สต๊อกเล็ก] ' : '[สต๊อกใหญ่] ') + (note || 'คืนวัสดุ')
+    );
 
+    // Audit log in Non-Material Sheet (ชีทเก่า)
     addAuditLog(
       'RETURN',
-      'คืน: ' + material.description + ' (' + materialCode + ') จำนวน ' + quantity + ' ' + material.unit + ' | ' + note,
+      'คืน: ' + material.description + ' (' + materialCode + ') จำนวน ' + quantity + ' ' + material.unit + ' | ' + (note || ''),
       userName,
       deviceInfo
     );
@@ -581,8 +764,10 @@ function addMaterial(material, tabName, deviceInfo) {
     sheet.getRange(newRow, COL.SUB_REM).setValue(parseInt(material.subQuantity) || 0);
     if (material.price) sheet.getRange(newRow, COL.PRICE).setValue(material.price);
 
+    const initialQty = parseInt(material.mainQuantity) || 0;
+    // Log to Non-Material sheet (ชีทเก่า)
+    addTransaction('ADD', material.materialCode, material.description, initialQty, 0, initialQty, material.userName || 'System', 'เพิ่มรายการใหม่');
     addAuditLog('ADD_MATERIAL', 'เพิ่มวัสดุ: ' + material.materialCode + ' - ' + material.description, material.userName || 'System', deviceInfo);
-    addTransaction('เพิ่ม', material.materialCode, material.description, 0, 'main', material.batch || '', material.userName || 'System', 'เพิ่มรายการใหม่');
 
     return { success: true, message: 'เพิ่มวัสดุสำเร็จ' };
   } catch (error) {
@@ -659,8 +844,11 @@ function deleteMaterial(sheetRow, tabName, userName, deviceInfo) {
     }
 
     const material = getMaterialAtRow(sheet, sheetRow);
+    const remainingQty = (material.mainStock ? material.mainStock.remaining : 0) + (material.subStock ? material.subStock.remaining : 0);
     sheet.deleteRow(sheetRow);
 
+    // Log to Non-Material sheet (ชีทเก่า)
+    addTransaction('DELETE', material.materialCode, material.description, 0, remainingQty, 0, userName || 'System', 'ลบรายการวัสดุ');
     addAuditLog('DELETE_MATERIAL', 'ลบวัสดุ: ' + material.materialCode + ' - ' + material.description, userName || 'System', deviceInfo);
 
     return { success: true, message: 'ลบวัสดุสำเร็จ' };
