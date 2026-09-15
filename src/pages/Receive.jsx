@@ -18,6 +18,7 @@ export default function Receive() {
   const [stockType, setStockType] = useState('main')
   const [quantity, setQuantity] = useState('1')
   const [userName, setLocalUserName] = useState(liffUserName || '')
+  const [searchQuery, setSearchQuery] = useState('')
   const [message, setMessage] = useState(null)
   
   // Multi-select mode
@@ -41,7 +42,7 @@ export default function Receive() {
   }, [])
 
   // Check access: name must be in allowed list OR "ALL" is in the list OR admin
-  const hasAccess = allowedUsers.includes(liffUserName) || allowedUsers.includes('ALL') || liffUserName === 'admin'
+  const hasAccess = allowedUsers.length === 0 || allowedUsers.includes(liffUserName) || allowedUsers.includes(userName) || allowedUsers.includes('ALL') || liffUserName === 'admin' || userName === 'admin'
 
   useEffect(() => {
     fetchProducts()
@@ -65,11 +66,20 @@ export default function Receive() {
     }
   }, [liffUserName])
 
+  const filteredProducts = (products || []).filter(product => {
+    if (!searchQuery.trim()) return true
+    const q = searchQuery.toLowerCase().trim()
+    const code = String(product.materialCode || product.code || '').toLowerCase()
+    const name = String(product.description || product.name || '').toLowerCase()
+    return code.includes(q) || name.includes(q)
+  })
+
   const toggleProductSelection = (product) => {
     haptics.selection()
-    const isSelected = selectedItems.some(item => item.product.code === product.code)
+    const pCode = product.materialCode || product.code
+    const isSelected = selectedItems.some(item => (item.product.materialCode || item.product.code) === pCode)
     if (isSelected) {
-      setSelectedItems(selectedItems.filter(item => item.product.code !== product.code))
+      setSelectedItems(selectedItems.filter(item => (item.product.materialCode || item.product.code) !== pCode))
     } else {
       setSelectedItems([...selectedItems, { product, quantity: 1 }])
     }
@@ -78,7 +88,7 @@ export default function Receive() {
 
   const updateItemQuantity = (productCode, newQuantity) => {
     setSelectedItems(selectedItems.map(item => 
-      item.product.code === productCode 
+      (item.product.materialCode || item.product.code) === productCode 
         ? { ...item, quantity: parseInt(newQuantity) || 1 }
         : item
     ))
@@ -95,7 +105,9 @@ export default function Receive() {
     let failCount = 0
 
     for (const item of selectedItems) {
-      const result = await receive(item.product.code, item.quantity, userName)
+      const code = item.product.materialCode || item.product.code
+      const batch = item.product.batches?.[0] || {}
+      const result = await receive(code, item.quantity, userName, 'main', batch.batch || '', batch.sheetRow || null)
       if (result.success) {
         successCount++
       } else {
@@ -226,31 +238,6 @@ export default function Receive() {
     )
   }
 
-  const [searchQuery, setSearchQuery] = useState('')
-
-  const filteredProducts = products.filter(product => {
-    if (!searchQuery.trim()) return true
-    const q = searchQuery.toLowerCase().trim()
-    return (
-      (product.code && product.code.toLowerCase().includes(q)) ||
-      (product.name && product.name.toLowerCase().includes(q))
-    )
-  })
-
-  if (loading && products.length === 0) {
-    return (
-      <div className="transaction-page">
-        <div className="header">
-          <h1>รับเข้าวัสดุ</h1>
-          <p className="header-subtitle">รับวัสดุเข้าคลัง</p>
-        </div>
-        <div className="container">
-          <SkeletonLoader type="list" count={5} />
-        </div>
-      </div>
-    )
-  }
-
   return (
     <div className="transaction-page">
       <div className="header">
@@ -327,10 +314,12 @@ export default function Receive() {
 
             <div className="product-list">
               {filteredProducts.map((product) => {
-                const isSelected = selectedItems.some(item => item.product.code === product.code)
+                const pCode = product.materialCode || product.code
+                const pName = product.description || product.name
+                const isSelected = selectedItems.some(item => (item.product.materialCode || item.product.code) === pCode)
                 return (
                   <div
-                    key={product.code}
+                    key={pCode}
                     className={`product-item ${isSelected ? 'selected' : ''}`}
                     style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}
                     onClick={() => {
@@ -338,6 +327,7 @@ export default function Receive() {
                         toggleProductSelection(product)
                       } else {
                         setSelectedProduct(product)
+                        setSelectedBatch(product.batches?.[0] || null)
                       }
                     }}
                   >
@@ -351,7 +341,10 @@ export default function Receive() {
                     )}
                     <div style={{ flex: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <div className="product-info">
-                        <div className="product-name">{product.name}</div>
+                        <div className="product-name">{pName}</div>
+                        <div className="product-code" style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>
+                          รหัส: {pCode}
+                        </div>
                       </div>
                       <div className="product-quantity">
                         {product.quantity} {product.unit}

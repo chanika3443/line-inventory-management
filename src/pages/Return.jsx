@@ -18,6 +18,7 @@ export default function Return() {
   const [quantity, setQuantity] = useState('1')
   const [note, setNote] = useState('')
   const [userName, setLocalUserName] = useState(liffUserName || '')
+  const [searchQuery, setSearchQuery] = useState('')
   const [message, setMessage] = useState(null)
   
   // Multi-select mode
@@ -28,8 +29,6 @@ export default function Return() {
   useEffect(() => {
     fetchProducts()
   }, [fetchProducts])
-
-
 
   // Refresh products when page becomes visible
   useEffect(() => {
@@ -49,11 +48,21 @@ export default function Return() {
     }
   }, [liffUserName])
 
+  const returnableProducts = (products || []).filter(p => {
+    if (p.returnable === false) return false
+    if (!searchQuery.trim()) return true
+    const q = searchQuery.toLowerCase().trim()
+    const code = String(p.materialCode || p.code || '').toLowerCase()
+    const name = String(p.description || p.name || '').toLowerCase()
+    return code.includes(q) || name.includes(q)
+  })
+
   const toggleProductSelection = (product) => {
     haptics.selection()
-    const isSelected = selectedItems.some(item => item.product.code === product.code)
+    const pCode = product.materialCode || product.code
+    const isSelected = selectedItems.some(item => (item.product.materialCode || item.product.code) === pCode)
     if (isSelected) {
-      setSelectedItems(selectedItems.filter(item => item.product.code !== product.code))
+      setSelectedItems(selectedItems.filter(item => (item.product.materialCode || item.product.code) !== pCode))
     } else {
       setSelectedItems([...selectedItems, { product, quantity: 1, note: '' }])
     }
@@ -62,7 +71,7 @@ export default function Return() {
 
   const updateItemQuantity = (productCode, newQuantity) => {
     setSelectedItems(selectedItems.map(item => 
-      item.product.code === productCode 
+      (item.product.materialCode || item.product.code) === productCode 
         ? { ...item, quantity: parseInt(newQuantity) || 1 }
         : item
     ))
@@ -79,7 +88,17 @@ export default function Return() {
     let failCount = 0
 
     for (const item of selectedItems) {
-      const result = await returnProduct(item.product.code, item.quantity, userName, item.note)
+      const code = item.product.materialCode || item.product.code
+      const batch = item.product.batches?.[0] || {}
+      const result = await returnProduct(
+        code,
+        item.quantity,
+        userName,
+        item.note || '',
+        'main',
+        batch.batch || '',
+        batch.sheetRow || null
+      )
       if (result.success) {
         successCount++
       } else {
@@ -143,33 +162,6 @@ export default function Return() {
       setMessage({ type: 'error', text: result.message })
     }
   }
-
-  if (loading && products.length === 0) {
-    return (
-      <div className="transaction-page">
-        <div className="header">
-          <h1>คืนวัสดุ</h1>
-          <p className="header-subtitle">คืนวัสดุเข้าคลัง</p>
-        </div>
-        <div className="container">
-          <SkeletonLoader type="list" count={5} />
-        </div>
-      </div>
-    )
-  }
-
-  const [searchQuery, setSearchQuery] = useState('')
-
-  // In the real sheet, all active materials can be returned
-  const returnableProducts = products.filter(p => {
-    if (p.returnable === false) return false
-    if (!searchQuery.trim()) return true
-    const q = searchQuery.toLowerCase().trim()
-    return (
-      (p.code && p.code.toLowerCase().includes(q)) ||
-      (p.name && p.name.toLowerCase().includes(q))
-    )
-  })
 
   if (loading && products.length === 0) {
     return (
@@ -267,10 +259,12 @@ export default function Return() {
             ) : (
               <div className="product-list">
                 {returnableProducts.map((product) => {
-                  const isSelected = selectedItems.some(item => item.product.code === product.code)
+                  const pCode = product.materialCode || product.code
+                  const pName = product.description || product.name
+                  const isSelected = selectedItems.some(item => (item.product.materialCode || item.product.code) === pCode)
                   return (
                     <div
-                      key={product.code}
+                      key={pCode}
                       className={`product-item ${isSelected ? 'selected' : ''}`}
                       style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}
                       onClick={() => {
@@ -278,6 +272,7 @@ export default function Return() {
                           toggleProductSelection(product)
                         } else {
                           setSelectedProduct(product)
+                          setSelectedBatch(product.batches?.[0] || null)
                         }
                       }}
                     >
@@ -291,7 +286,10 @@ export default function Return() {
                       )}
                       <div style={{ flex: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <div className="product-info">
-                          <div className="product-name">{product.name}</div>
+                          <div className="product-name">{pName}</div>
+                          <div className="product-code" style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>
+                            รหัส: {pCode}
+                          </div>
                         </div>
                         <div className="product-quantity">
                           {product.quantity} {product.unit}
@@ -381,107 +379,111 @@ export default function Return() {
                   {/* Expanded content */}
                   {isFooterExpanded && (
                     <div style={{ marginBottom: '16px' }}>
-                      {selectedItems.map((item) => (
-                        <div key={item.product.code} style={{ 
-                          background: 'var(--bg-secondary)', 
-                          padding: '12px', 
-                          borderRadius: 'var(--radius-md)', 
-                          marginBottom: '8px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '12px'
-                        }}>
-                          <div style={{ flex: 1 }}>
-                            <div style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-primary)' }}>
-                              {item.product.name}
+                      {selectedItems.map((item) => {
+                        const itemCode = item.product.materialCode || item.product.code
+                        const itemName = item.product.description || item.product.name
+                        return (
+                          <div key={itemCode} style={{ 
+                            background: 'var(--bg-secondary)', 
+                            padding: '12px', 
+                            borderRadius: 'var(--radius-md)', 
+                            marginBottom: '8px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '12px'
+                          }}>
+                            <div style={{ flex: 1 }}>
+                              <div style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-primary)' }}>
+                                {itemName}
+                              </div>
+                              <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
+                                รหัส: {itemCode} · คงเหลือ: {item.product.quantity} {item.product.unit}
+                              </div>
                             </div>
-                            <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
-                              คงเหลือ: {item.product.quantity} {item.product.unit}
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  const newQty = Math.max(1, item.quantity - 1)
+                                  updateItemQuantity(itemCode, newQty)
+                                }}
+                                style={{
+                                  width: '32px',
+                                  height: '32px',
+                                  border: '1.5px solid var(--border-strong)',
+                                  borderRadius: 'var(--radius-sm)',
+                                  background: 'var(--bg-primary)',
+                                  color: 'var(--text-primary)',
+                                  fontSize: '18px',
+                                  fontWeight: '600',
+                                  cursor: 'pointer',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center'
+                                }}
+                              >
+                                −
+                              </button>
+                              <input
+                                type="number"
+                                value={item.quantity}
+                                onChange={(e) => updateItemQuantity(itemCode, e.target.value)}
+                                min="1"
+                                style={{
+                                  width: '60px',
+                                  padding: '8px',
+                                  border: '1.5px solid var(--border-strong)',
+                                  borderRadius: 'var(--radius-md)',
+                                  fontSize: '14px',
+                                  fontWeight: '600',
+                                  textAlign: 'center',
+                                  background: 'var(--bg-primary)'
+                                }}
+                                onClick={(e) => e.stopPropagation()}
+                              />
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  const newQty = item.quantity + 1
+                                  updateItemQuantity(itemCode, newQty)
+                                }}
+                                style={{
+                                  width: '32px',
+                                  height: '32px',
+                                  border: '1.5px solid var(--border-strong)',
+                                  borderRadius: 'var(--radius-sm)',
+                                  background: 'var(--bg-primary)',
+                                  color: 'var(--text-primary)',
+                                  fontSize: '18px',
+                                  fontWeight: '600',
+                                  cursor: 'pointer',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center'
+                                }}
+                              >
+                                +
+                              </button>
                             </div>
-                          </div>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                             <button
                               onClick={(e) => {
                                 e.stopPropagation()
-                                const newQty = Math.max(1, item.quantity - 1)
-                                updateItemQuantity(item.product.code, newQty)
+                                toggleProductSelection(item.product)
                               }}
                               style={{
-                                width: '32px',
-                                height: '32px',
-                                border: '1.5px solid var(--border-strong)',
-                                borderRadius: 'var(--radius-sm)',
-                                background: 'var(--bg-primary)',
-                                color: 'var(--text-primary)',
-                                fontSize: '18px',
-                                fontWeight: '600',
+                                background: 'transparent',
+                                border: 'none',
+                                color: 'var(--danger)',
                                 cursor: 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center'
+                                fontSize: '20px',
+                                padding: '4px 8px'
                               }}
                             >
-                              −
-                            </button>
-                            <input
-                              type="number"
-                              value={item.quantity}
-                              onChange={(e) => updateItemQuantity(item.product.code, e.target.value)}
-                              min="1"
-                              style={{
-                                width: '60px',
-                                padding: '8px',
-                                border: '1.5px solid var(--border-strong)',
-                                borderRadius: 'var(--radius-md)',
-                                fontSize: '14px',
-                                fontWeight: '600',
-                                textAlign: 'center',
-                                background: 'var(--bg-primary)'
-                              }}
-                              onClick={(e) => e.stopPropagation()}
-                            />
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                const newQty = item.quantity + 1
-                                updateItemQuantity(item.product.code, newQty)
-                              }}
-                              style={{
-                                width: '32px',
-                                height: '32px',
-                                border: '1.5px solid var(--border-strong)',
-                                borderRadius: 'var(--radius-sm)',
-                                background: 'var(--bg-primary)',
-                                color: 'var(--text-primary)',
-                                fontSize: '18px',
-                                fontWeight: '600',
-                                cursor: 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center'
-                              }}
-                            >
-                              +
+                              ✕
                             </button>
                           </div>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              toggleProductSelection(item.product)
-                            }}
-                            style={{
-                              background: 'transparent',
-                              border: 'none',
-                              color: 'var(--danger)',
-                              cursor: 'pointer',
-                              fontSize: '20px',
-                              padding: '4px 8px'
-                            }}
-                          >
-                            ×
-                          </button>
-                        </div>
-                      ))}
+                        )
+                      })}
                     </div>
                   )}
 
@@ -513,7 +515,10 @@ export default function Return() {
             <div className="card-title">รายละเอียดการคืน</div>
             <form onSubmit={handleReturn}>
               <div className="selected-product">
-                <div className="product-name">{selectedProduct.name}</div>
+                <div className="product-name">{selectedProduct.description || selectedProduct.name}</div>
+                <div className="product-code" style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>
+                  รหัส: {selectedProduct.materialCode || selectedProduct.code}
+                </div>
               </div>
 
               {/* Batch selection if multiple batches exist */}
