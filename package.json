@@ -28,6 +28,8 @@
     "deploy": "npm run build && gh-pages -d dist",
     "lint": "eslint src --ext .js,.jsx",
     "lint:fix": "eslint src --ext .js,.jsx --fix",
+    "test": "node scripts/engineering-team-qa.mjs",
+    "test:qa": "node scripts/engineering-team-qa.mjs",
     "prepare": "husky"
   }
 }
