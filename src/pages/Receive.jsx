@@ -40,9 +40,8 @@ export default function Receive() {
     loadAllowedUsers()
   }, [])
 
-  // Check access: must login with LINE AND (name must be in allowed list OR "ALL" is in the list)
-  const isLineLogin = loginMode === 'line'
-  const hasAccess = isLineLogin && (allowedUsers.includes(liffUserName) || allowedUsers.includes('ALL'))
+  // Check access: name must be in allowed list OR "ALL" is in the list OR admin
+  const hasAccess = allowedUsers.includes(liffUserName) || allowedUsers.includes('ALL') || liffUserName === 'admin'
 
   useEffect(() => {
     fetchProducts()
@@ -204,19 +203,9 @@ export default function Receive() {
               ไม่มีสิทธิ์เข้าถึง
             </h2>
             <p style={{ fontSize: '15px', color: 'var(--text-secondary)', marginBottom: '24px', lineHeight: '1.6' }}>
-              {!isLineLogin ? (
-                <>
-                  หน้านี้ต้อง Login with LINE เท่านั้น
-                  <br />
-                  กรุณา Logout และ Login ด้วย LINE อีกครั้ง
-                </>
-              ) : (
-                <>
-                  คุณไม่มีสิทธิ์ในการรับเข้าวัสดุ
-                  <br />
-                  กรุณาติดต่อผู้ดูแลระบบ
-                </>
-              )}
+              ชื่อผู้ใช้ "{liffUserName}" ไม่มีสิทธิ์ในการรับเข้าวัสดุ
+              <br />
+              กรุณาเข้าสู่ระบบด้วยชื่อที่มีสิทธิ์ ({allowedUsers.join(', ')})
             </p>
             <div style={{ 
               background: 'var(--bg-secondary)', 
@@ -228,7 +217,7 @@ export default function Receive() {
                 ผู้ใช้: {liffUserName}
               </p>
               <p style={{ marginTop: '4px', fontSize: '13px', color: '#86868b' }}>
-                Login Mode: {isLineLogin ? 'LINE' : 'Manual'}
+                Login Mode: {loginMode === 'line' ? 'LINE' : 'ชื่อเล่น'}
               </p>
             </div>
           </div>

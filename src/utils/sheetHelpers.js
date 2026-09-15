@@ -3,6 +3,7 @@
  * Utility functions for working with the real Google Sheet's column layout
  * and monthly tab structure
  */
+import { cleanDateStr } from './expiryDate.js'
 
 /**
  * Month names for matching tab names
@@ -138,7 +139,7 @@ export function rowToMaterial(row, sheetRowIndex, tabName = '') {
     unit: String(row[COL.UNIT] || '').trim(),
 
     // Withdraw info
-    withdrawDate: String(row[COL.WD_DATE] || '').trim(),
+    withdrawDate: cleanDateStr(row[COL.WD_DATE]),
     withdrawQty: parseInt(row[COL.WD_QTY]) || 0,
 
     // Main stock (สต๊อกใหญ่)
@@ -149,10 +150,10 @@ export function rowToMaterial(row, sheetRowIndex, tabName = '') {
       remaining: parseInt(row[COL.MAIN_REM]) || 0,
       system: parseInt(row[COL.MAIN_SYS]) || 0,
     },
-    mainStockExpiry: String(row[COL.MAIN_EXP] || '').trim(),
+    mainStockExpiry: cleanDateStr(row[COL.MAIN_EXP]),
 
     // Sub stock (สต๊อกเล็ก)
-    subStockExpiry: String(row[COL.SUB_EXP] || '').trim(),
+    subStockExpiry: cleanDateStr(row[COL.SUB_EXP]),
     subStock: {
       previous: parseInt(row[COL.SUB_PREV]) || 0,
       received: parseInt(row[COL.SUB_IN]) || 0,
@@ -168,7 +169,7 @@ export function rowToMaterial(row, sheetRowIndex, tabName = '') {
     quantity: (parseInt(row[COL.MAIN_REM]) || 0) + (parseInt(row[COL.SUB_REM]) || 0),
     minStock: 5,
     category: 'วัสดุ',
-    expiryDates: [String(row[COL.MAIN_EXP] || '').trim(), String(row[COL.SUB_EXP] || '').trim()].filter(Boolean),
+    expiryDates: [cleanDateStr(row[COL.MAIN_EXP]), cleanDateStr(row[COL.SUB_EXP])].filter(Boolean),
   }
 }
 

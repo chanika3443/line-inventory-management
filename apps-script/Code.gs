@@ -174,6 +174,14 @@ function getMaterialsAction(tabName) {
     const { sheet, tabName: resolvedTab } = getSheetByTab(tabName);
     const data = sheet.getDataRange().getValues();
     const rows = data.slice(HEADER_ROWS);
+    // Convert Date objects to clean dd/MM/yyyy strings so they never serialize to long ISO timestamps
+    for (let r = 0; r < rows.length; r++) {
+      for (let c = 0; c < rows[r].length; c++) {
+        if (rows[r][c] instanceof Date) {
+          rows[r][c] = Utilities.formatDate(rows[r][c], 'Asia/Bangkok', 'dd/MM/yyyy');
+        }
+      }
+    }
     return { success: true, rows: rows, tabName: resolvedTab };
   } catch (error) {
     return { success: false, message: error.toString(), rows: [] };
@@ -400,6 +408,13 @@ function findMaterialRow(sheet, materialCode, batch) {
   return -1;
 }
 
+function formatCellDate(val) {
+  if (val instanceof Date) {
+    return Utilities.formatDate(val, 'Asia/Bangkok', 'dd/MM/yyyy');
+  }
+  return String(val || '').trim();
+}
+
 /**
  * Get material data at a specific row
  */
@@ -412,7 +427,7 @@ function getMaterialAtRow(sheet, row) {
     plant: String(data[COL.PLANT - 1] || '').trim(),
     batch: String(data[COL.BATCH - 1] || '').trim(),
     unit: String(data[COL.UNIT - 1] || '').trim(),
-    withdrawDate: String(data[COL.WD_DATE - 1] || '').trim(),
+    withdrawDate: formatCellDate(data[COL.WD_DATE - 1]),
     withdrawQty: parseInt(data[COL.WD_QTY - 1]) || 0,
     mainStock: {
       previous: parseInt(data[COL.MAIN_PREV - 1]) || 0,
@@ -421,8 +436,8 @@ function getMaterialAtRow(sheet, row) {
       remaining: parseInt(data[COL.MAIN_REM - 1]) || 0,
       system: parseInt(data[COL.MAIN_SYS - 1]) || 0,
     },
-    mainStockExpiry: String(data[COL.MAIN_EXP - 1] || '').trim(),
-    subStockExpiry: String(data[COL.SUB_EXP - 1] || '').trim(),
+    mainStockExpiry: formatCellDate(data[COL.MAIN_EXP - 1]),
+    subStockExpiry: formatCellDate(data[COL.SUB_EXP - 1]),
     subStock: {
       previous: parseInt(data[COL.SUB_PREV - 1]) || 0,
       received: parseInt(data[COL.SUB_IN - 1]) || 0,

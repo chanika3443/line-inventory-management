@@ -60,12 +60,24 @@ export function isLoggedIn() {
 }
 
 /**
- * Login with LINE
+ * Login with LINE (works on both mobile LINE app and PC web browsers)
  */
-export function login() {
-  // Save current page to return after login
-  const currentPath = window.location.pathname + window.location.search
-  liff.login({ redirectUri: window.location.origin + currentPath })
+export async function login() {
+  try {
+    if (!isInitialized) {
+      await initializeLiff()
+    }
+    const baseUrl = window.location.origin + window.location.pathname
+    const redirectUri = baseUrl.endsWith('/') ? baseUrl : baseUrl + '/'
+    liff.login({ redirectUri })
+  } catch (err) {
+    console.warn('LIFF login with redirectUri error, falling back:', err)
+    try {
+      liff.login()
+    } catch (e) {
+      console.error('LIFF login failed:', e)
+    }
+  }
 }
 
 /**

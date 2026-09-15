@@ -45,9 +45,8 @@ export default function Products() {
     loadAllowedUsers()
   }, [])
 
-  // Check access: must login with LINE AND (name must be in allowed list OR "ALL" is in the list)
-  const isLineLogin = loginMode === 'line'
-  const hasAccess = isLineLogin && (allowedUsers.includes(userName) || allowedUsers.includes('ALL'))
+  // Check access: name must be in allowed list OR "ALL" is in the list OR admin
+  const hasAccess = allowedUsers.includes(userName) || allowedUsers.includes('ALL') || userName === 'admin'
 
   useEffect(() => {
     fetchProducts()
@@ -204,24 +203,14 @@ export default function Products() {
             <div className="access-denied-icon">🔒</div>
             <h2 className="access-denied-title">ไม่มีสิทธิ์เข้าถึง</h2>
             <p className="access-denied-message">
-              {!isLineLogin ? (
-                <>
-                  หน้านี้ต้อง Login with LINE เท่านั้น
-                  <br />
-                  กรุณา Logout และ Login ด้วย LINE อีกครั้ง
-                </>
-              ) : (
-                <>
-                  คุณไม่มีสิทธิ์ในการจัดการวัสดุ
-                  <br />
-                  กรุณาติดต่อผู้ดูแลระบบ
-                </>
-              )}
+              ชื่อผู้ใช้ "{userName}" ไม่มีสิทธิ์ในการจัดการวัสดุ
+              <br />
+              กรุณาเข้าสู่ระบบด้วยชื่อที่มีสิทธิ์ ({allowedUsers.join(', ')})
             </p>
             <div className="access-denied-info">
               <p className="access-denied-user">ผู้ใช้: {userName}</p>
               <p className="access-denied-user" style={{ fontSize: '13px', color: '#86868b', marginTop: '4px' }}>
-                Login mode: {isLineLogin ? 'LINE' : 'ชื่อเล่น'}
+                Login mode: {loginMode === 'line' ? 'LINE' : 'ชื่อเล่น'}
               </p>
             </div>
           </div>
