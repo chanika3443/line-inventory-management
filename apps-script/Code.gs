@@ -46,10 +46,29 @@ const HEADER_ROWS = 3;
 // ========================================
 
 function doGet(e) {
-  return ContentService.createTextOutput(JSON.stringify({
-    success: true,
-    message: 'Apps Script is running. Use POST for operations.'
-  })).setMimeType(ContentService.MimeType.JSON);
+  try {
+    const action = e && e.parameter ? e.parameter.action : null;
+    let result;
+    if (action === 'getAvailableTabs') {
+      result = getAvailableTabsAction();
+    } else if (action === 'getMaterials') {
+      result = getMaterialsAction(e.parameter.tabName);
+    } else if (action === 'getTransactionLogs') {
+      result = getTransactionLogsAction();
+    } else {
+      result = {
+        success: true,
+        message: 'Apps Script is running. Use POST for operations or GET with action.'
+      };
+    }
+    return ContentService.createTextOutput(JSON.stringify(result))
+      .setMimeType(ContentService.MimeType.JSON);
+  } catch (err) {
+    return ContentService.createTextOutput(JSON.stringify({
+      success: false,
+      message: err.toString()
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
 }
 
 function doPost(e) {
@@ -81,6 +100,15 @@ function doPost(e) {
       case 'batchWithdraw':
         result = batchWithdraw(data.items, data.userName, data.tabName, deviceInfo);
         break;
+      case 'getAvailableTabs':
+        result = getAvailableTabsAction();
+        break;
+      case 'getMaterials':
+        result = getMaterialsAction(data.tabName);
+        break;
+      case 'getTransactionLogs':
+        result = getTransactionLogsAction();
+        break;
       default:
         result = { success: false, message: 'Unknown action: ' + action };
     }
@@ -93,6 +121,47 @@ function doPost(e) {
       success: false,
       message: error.toString()
     })).setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+function getAvailableTabsAction() {
+  try {
+    const ss = getSpreadsheet();
+    const sheets = ss.getSheets();
+    const tabs = [];
+    for (let i = 0; i < sheets.length; i++) {
+      const title = sheets[i].getName();
+      if (title.indexOf(TAB_PREFIX) === 0) {
+        tabs.push({ title: title, sheetId: sheets[i].getSheetId(), index: i });
+      }
+    }
+    tabs.sort((a, b) => b.index - a.index);
+    return { success: true, tabs: tabs };
+  } catch (error) {
+    return { success: false, message: error.toString(), tabs: [] };
+  }
+}
+
+function getMaterialsAction(tabName) {
+  try {
+    const { sheet, tabName: resolvedTab } = getSheetByTab(tabName);
+    const data = sheet.getDataRange().getValues();
+    const rows = data.slice(HEADER_ROWS);
+    return { success: true, rows: rows, tabName: resolvedTab };
+  } catch (error) {
+    return { success: false, message: error.toString(), rows: [] };
+  }
+}
+
+function getTransactionLogsAction() {
+  try {
+    const ss = getSpreadsheet();
+    const sheet = ss.getSheetByName('Transactions');
+    if (!sheet) return { success: true, rows: [] };
+    const data = sheet.getDataRange().getValues();
+    return { success: true, rows: data.slice(1) };
+  } catch (error) {
+    return { success: false, message: error.toString(), rows: [] };
   }
 }
 

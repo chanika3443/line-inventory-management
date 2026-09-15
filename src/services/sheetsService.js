@@ -5,6 +5,7 @@
  */
 
 import { config } from '../config'
+import { callAppsScript } from './appsScriptService'
 import {
   rowToMaterial,
   mergeBatches,
@@ -71,18 +72,28 @@ async function fetchSpreadsheetMeta() {
  * @returns {Promise<Array>} Array of { title, sheetId, index } for monthly tabs, sorted newest first
  */
 export async function getAvailableTabs() {
-  try {
-    const allTabs = await fetchSpreadsheetMeta()
-    const monthlyTabs = allTabs.filter(tab => isMonthlyStockTab(tab.title))
-
-    // Sort by index (newest tabs are typically last, but we reverse for UI)
-    monthlyTabs.sort((a, b) => b.index - a.index)
-
-    return monthlyTabs
-  } catch (error) {
-    console.error('Error getting available tabs:', error)
-    return []
+  if (API_KEY) {
+    try {
+      const allTabs = await fetchSpreadsheetMeta()
+      const monthlyTabs = allTabs.filter(tab => isMonthlyStockTab(tab.title))
+      monthlyTabs.sort((a, b) => b.index - a.index)
+      if (monthlyTabs.length > 0) return monthlyTabs
+    } catch (error) {
+      console.warn('Sheets API tabs fetch failed, trying Apps Script fallback...', error)
+    }
   }
+
+  // Fallback to Apps Script
+  try {
+    const res = await callAppsScript({ action: 'getAvailableTabs' })
+    if (res && res.success && Array.isArray(res.tabs) && res.tabs.length > 0) {
+      return res.tabs
+    }
+  } catch (err) {
+    console.error('Apps Script getAvailableTabs error:', err)
+  }
+
+  return []
 }
 
 /**
@@ -91,21 +102,38 @@ export async function getAvailableTabs() {
  * @returns {Promise<Array>} Array of Material objects
  */
 export async function getAllMaterials(tabName = null) {
-  try {
-    const tab = tabName || getCurrentMonthTabName()
-    // Read from row 4 onward (skip 3 header rows), columns A through S
-    const range = `'${tab}'!A${HEADER_ROWS + 1}:S`
-    const rows = await fetchSheetData(range)
+  const tab = tabName || getCurrentMonthTabName()
 
-    const materials = rows
-      .map((row, index) => rowToMaterial(row, index, tab))
-      .filter(m => m !== null)
+  // 1. Try Google Sheets API if API_KEY is available
+  if (API_KEY) {
+    try {
+      const range = `'${tab}'!A${HEADER_ROWS + 1}:S`
+      const rows = await fetchSheetData(range)
+      const materials = rows
+        .map((row, index) => rowToMaterial(row, index, tab))
+        .filter(m => m !== null)
 
-    return filterActiveMaterials(materials)
-  } catch (error) {
-    console.error('Error getting materials:', error)
-    return []
+      return filterActiveMaterials(materials)
+    } catch (error) {
+      console.warn('Sheets API getAllMaterials failed, trying Apps Script fallback...', error)
+    }
   }
+
+  // 2. Fallback to Apps Script
+  try {
+    const res = await callAppsScript({ action: 'getMaterials', tabName: tab })
+    if (res && res.success && Array.isArray(res.rows)) {
+      const materials = res.rows
+        .map((row, index) => rowToMaterial(row, index, res.tabName || tab))
+        .filter(m => m !== null)
+
+      return filterActiveMaterials(materials)
+    }
+  } catch (err) {
+    console.error('Apps Script getMaterials error:', err)
+  }
+
+  return []
 }
 
 /**
@@ -244,8 +272,28 @@ export async function getDashboardData(tabName = null) {
  */
 export async function getTransactionLogs(filters = {}) {
   try {
-    const rows = await fetchSheetData('Transactions!A2:J')
-    let transactions = rows.map((row) => {
+    let rows = []
+
+    if (API_KEY) {
+      try {
+        rows = await fetchSheetData('Transactions!A2:J')
+      } catch (err) {
+        console.warn('Sheets API getTransactionLogs failed, trying Apps Script fallback...', err)
+      }
+    }
+
+    if (!rows || rows.length === 0) {
+      try {
+        const res = await callAppsScript({ action: 'getTransactionLogs' })
+        if (res && res.success && Array.isArray(res.rows)) {
+          rows = res.rows
+        }
+      } catch (err) {
+        console.error('Apps Script getTransactionLogs error:', err)
+      }
+    }
+
+    let transactions = (rows || []).map((row) => {
       // Parse timestamp
       let timestamp = row[1] || ''
       if (timestamp && timestamp.includes('/')) {

@@ -15,7 +15,7 @@ const APPS_SCRIPT_URL = config.appsScript.url
  * @param {Object} data - Request data
  * @returns {Promise<Object>} Response data
  */
-async function callAppsScript(data) {
+export async function callAppsScript(data) {
   if (!APPS_SCRIPT_URL) {
     console.error('Apps Script URL not configured')
     return {
