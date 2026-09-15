@@ -663,16 +663,7 @@ export default function Return() {
                 </div>
               </div>
 
-              <div className="form-group">
-                <label>หมายเหตุ (ถ้ามี)</label>
-                <input
-                  type="text"
-                  className="input"
-                  value={note}
-                  onChange={(e) => setNote(e.target.value)}
-                  placeholder="เช่น สภาพดี, ชำรุด, ฯลฯ"
-                />
-              </div>
+
 
 
 
