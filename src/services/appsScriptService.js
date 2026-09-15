@@ -173,3 +173,13 @@ export const addProduct = (product, userName) => addMaterial({ ...product, userN
 export const updateProduct = (code, updates, userName) => updateMaterial(null, { ...updates, userName })
 export const deleteProduct = (code, userName) => deleteMaterial(null, userName)
 export const returnProduct = returnMaterial
+
+/**
+ * Clean up obsolete tabs from Non-Material Log spreadsheet
+ */
+export async function cleanupOldSheet() {
+  return await callAppsScript({
+    action: 'cleanupOldSheet'
+  })
+}
+

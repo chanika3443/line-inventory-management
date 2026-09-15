@@ -515,3 +515,5 @@ export const getAllProducts = getAllMaterials
 export const getProductByCode = getMaterialByCode
 export const searchProducts = searchMaterials
 export const getLowStockProducts = getLowStockMaterials
+export { cleanupOldSheet } from './appsScriptService.js'
+

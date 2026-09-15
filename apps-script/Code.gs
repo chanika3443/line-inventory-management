@@ -68,6 +68,8 @@ function doGet(e) {
       result = getUsersAction();
     } else if (action === 'getSettings') {
       result = getSettingsAction();
+    } else if (action === 'cleanupOldSheet') {
+      result = cleanupOldSheetAction();
     } else {
       result = {
         success: true,
@@ -130,6 +132,9 @@ function doPost(e) {
         break;
       case 'getSettings':
         result = getSettingsAction();
+        break;
+      case 'cleanupOldSheet':
+        result = cleanupOldSheetAction();
         break;
       case 'addAuditLog':
         addAuditLog(data.auditAction || 'INFO', data.details || '', data.userName || 'System', deviceInfo);
@@ -262,6 +267,51 @@ function getSettingsAction() {
     return { success: true, settings: settings };
   } catch (error) {
     return { success: false, message: error.toString(), settings: {} };
+  }
+}
+
+/**
+ * Clean up obsolete tabs from Non-Material Log spreadsheet (ชีทเดิม)
+ * Deletes unused 'Products' and 'February26' tabs
+ * Strictly preserves: Transactions, AuditLog, AllowedUsers, Users, Settings
+ */
+function cleanupOldSheetAction() {
+  try {
+    const ss = getLogSpreadsheet();
+    const toDelete = ['Products', 'February26'];
+    const deleted = [];
+    const kept = [];
+    const notFound = [];
+
+    toDelete.forEach(function(tabName) {
+      const sheet = ss.getSheetByName(tabName);
+      if (sheet) {
+        ss.deleteSheet(sheet);
+        deleted.push(tabName);
+      } else {
+        notFound.push(tabName);
+      }
+    });
+
+    const currentSheets = ss.getSheets();
+    for (let i = 0; i < currentSheets.length; i++) {
+      kept.push(currentSheets[i].getName());
+    }
+
+    return {
+      success: true,
+      message: deleted.length > 0
+        ? 'ลบแท็บเก่าที่ไม่จำเป็น (' + deleted.join(', ') + ') เรียบร้อยแล้ว'
+        : 'ไม่พบแท็บ Products หรือ February26 (อาจถูกลบไปแล้ว)',
+      deleted: deleted,
+      kept: kept,
+      notFound: notFound
+    };
+  } catch (error) {
+    return {
+      success: false,
+      message: 'เกิดข้อผิดพลาดในการลบแท็บ: ' + error.toString()
+    };
   }
 }
 
