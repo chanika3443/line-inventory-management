@@ -4,9 +4,9 @@
  * Works with the real monthly stock count sheet
  */
 
-import { config } from '../config'
-import { getDeviceInfoString } from '../utils/deviceInfo'
-import { getCurrentMonthTabName } from '../utils/sheetHelpers'
+import { config } from '../config/index.js'
+import { getDeviceInfoString } from '../utils/deviceInfo.js'
+import { getCurrentMonthTabName } from '../utils/sheetHelpers.js'
 
 const APPS_SCRIPT_URL = config.appsScript.url
 

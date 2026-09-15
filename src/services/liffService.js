@@ -4,7 +4,7 @@
  */
 
 import liff from '@line/liff'
-import { config } from '../config'
+import { config } from '../config/index.js'
 
 let isInitialized = false
 let userProfile = null

@@ -2,17 +2,17 @@ export const config = {
   // For READ operations - Google Sheets API
   sheetsApi: {
     baseUrl: 'https://sheets.googleapis.com/v4/spreadsheets',
-    spreadsheetId: import.meta.env.VITE_SPREADSHEET_ID || '1wjqnycMAHWVKQIzZLnyjLboOj5GhiinuB_zENg1Ttuo',
-    apiKey: import.meta.env.VITE_GOOGLE_API_KEY || ''
+    spreadsheetId: (typeof import.meta !== 'undefined' && import.meta.env?.VITE_SPREADSHEET_ID) || '1wjqnycMAHWVKQIzZLnyjLboOj5GhiinuB_zENg1Ttuo',
+    apiKey: (typeof import.meta !== 'undefined' && import.meta.env?.VITE_GOOGLE_API_KEY) || ''
   },
   
   // For WRITE operations - Apps Script API
   appsScript: {
-    url: import.meta.env.VITE_APPS_SCRIPT_URL || 'https://script.google.com/macros/s/AKfycbx485xIyUla9r78h6rxgwbr0JHlCt4skYjsXdxwPgHwjjwshVqhYI9OOVWY9fjVpYT0/exec'
+    url: (typeof import.meta !== 'undefined' && import.meta.env?.VITE_APPS_SCRIPT_URL) || 'https://script.google.com/macros/s/AKfycbx485xIyUla9r78h6rxgwbr0JHlCt4skYjsXdxwPgHwjjwshVqhYI9OOVWY9fjVpYT0/exec'
   },
   
   // LINE LIFF
   liff: {
-    id: import.meta.env.VITE_LIFF_ID || '2008893142-t04JvNpe'
+    id: (typeof import.meta !== 'undefined' && import.meta.env?.VITE_LIFF_ID) || '2008893142-t04JvNpe'
   }
 }

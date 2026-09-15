@@ -5,46 +5,50 @@
  */
 
 /**
- * Month names in Thai (for matching tab names)
+ * Month names for matching tab names
  */
-const THAI_MONTHS = [
+const MONTH_NAMES = [
   'January', 'February', 'March', 'April', 'May', 'June',
   'July', 'August', 'September', 'October', 'November', 'December'
 ]
 
 /**
- * Tab name prefix used in the real sheet
+ * Legacy tab name prefix used in cell headers
  */
-const TAB_PREFIX = 'Display Warehouse Stocks of Material (For Monthly Count) '
+export const TAB_PREFIX = 'Display Warehouse Stocks of Material (For Monthly Count) '
 
 /**
  * Get the tab name for the current month
- * e.g., "Display Warehouse Stocks of Material (For Monthly Count) September 2026"
+ * Matches real Google Sheet tabs like "September26" (Month + 2-digit year)
  */
 export function getCurrentMonthTabName() {
   const now = new Date()
-  const month = THAI_MONTHS[now.getMonth()]
-  const year = now.getFullYear()
-  return `${TAB_PREFIX}${month} ${year}`
+  const month = MONTH_NAMES[now.getMonth()]
+  const yy = String(now.getFullYear()).slice(-2)
+  return `${month}${yy}`
 }
 
 /**
  * Parse month/year from a tab name
+ * Supports: "September26", "September 2026", "Display Warehouse Stocks of Material... September 2026"
  * @param {string} tabName
- * @returns {{ month: string, year: number, date: Date } | null}
+ * @returns {{ month: string, year: number, monthIndex: number, date: Date } | null}
  */
 export function parseMonthFromTabName(tabName) {
-  if (!tabName.startsWith(TAB_PREFIX)) return null
+  if (!tabName || typeof tabName !== 'string') return null
 
-  const suffix = tabName.replace(TAB_PREFIX, '').trim()
-  const parts = suffix.split(' ')
-  if (parts.length < 2) return null
+  const match = tabName.match(/(January|February|March|April|May|June|July|August|September|October|November|December)\s*(\d{2,4})/i)
+  if (!match) return null
 
-  const monthName = parts[0]
-  const year = parseInt(parts[1])
-  const monthIndex = THAI_MONTHS.indexOf(monthName)
+  const matchedName = match[1]
+  const monthName = MONTH_NAMES.find(m => m.toLowerCase() === matchedName.toLowerCase())
+  if (!monthName) return null
 
-  if (monthIndex === -1 || isNaN(year)) return null
+  const monthIndex = MONTH_NAMES.indexOf(monthName)
+  let year = parseInt(match[2], 10)
+  if (year < 100) {
+    year += 2000
+  }
 
   return {
     month: monthName,

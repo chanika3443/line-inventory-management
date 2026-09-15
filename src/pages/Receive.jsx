@@ -237,6 +237,17 @@ export default function Receive() {
     )
   }
 
+  const [searchQuery, setSearchQuery] = useState('')
+
+  const filteredProducts = products.filter(product => {
+    if (!searchQuery.trim()) return true
+    const q = searchQuery.toLowerCase().trim()
+    return (
+      (product.code && product.code.toLowerCase().includes(q)) ||
+      (product.name && product.name.toLowerCase().includes(q))
+    )
+  })
+
   if (loading && products.length === 0) {
     return (
       <div className="transaction-page">
@@ -267,7 +278,7 @@ export default function Receive() {
 
         {!selectedProduct ? (
           <>
-            <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
               <button
                 onClick={() => {
                   setIsMultiSelectMode(false)
@@ -287,8 +298,46 @@ export default function Receive() {
               </button>
             </div>
 
+            {/* Search Input */}
+            <div style={{ marginBottom: '14px', position: 'relative' }}>
+              <input
+                type="text"
+                placeholder="🔍 ค้นหารหัส หรือ ชื่อวัสดุ..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '10px 36px 10px 12px',
+                  borderRadius: '10px',
+                  border: '1px solid #d1d1d6',
+                  fontSize: '14px',
+                  boxSizing: 'border-box',
+                  outline: 'none',
+                  background: 'white'
+                }}
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  style={{
+                    position: 'absolute',
+                    right: '10px',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    background: 'none',
+                    border: 'none',
+                    color: '#86868b',
+                    fontSize: '16px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+
             <div className="product-list">
-              {products.map((product) => {
+              {filteredProducts.map((product) => {
                 const isSelected = selectedItems.some(item => item.product.code === product.code)
                 return (
                   <div

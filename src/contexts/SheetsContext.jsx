@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useCallback } from 'react'
 import * as sheetsService from '../services/sheetsService'
 import * as appsScriptService from '../services/appsScriptService'
-import { getCurrentMonthTabName } from '../utils/sheetHelpers'
+import { getCurrentMonthTabName, mergeBatches } from '../utils/sheetHelpers'
 
 const SheetsContext = createContext()
 
@@ -38,7 +38,7 @@ export function SheetsProvider({ children }) {
       const rawData = await sheetsService.getAllMaterials(tab)
       setMaterials(rawData)
 
-      const merged = await sheetsService.getMergedMaterials(tab)
+      const merged = mergeBatches(rawData)
       setMergedMaterials(merged)
 
       return merged

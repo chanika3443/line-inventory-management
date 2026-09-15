@@ -6,13 +6,21 @@ import SkeletonLoader from '../components/SkeletonLoader'
 import { haptics } from '../utils/haptics'
 import { ERROR_MESSAGES } from '../utils/errorMessages'
 import { getNearestExpiryDate, getExpiryStatus } from '../utils/expiryDate'
+import { getTabShortLabel } from '../utils/sheetHelpers'
 import './Transaction.css'
 
 export default function Withdraw() {
-  const { mergedMaterials, fetchMaterials, withdraw, loading } = useSheets()
+  const {
+    mergedMaterials,
+    fetchMaterials,
+    withdraw,
+    loading,
+    currentTab,
+    availableTabs,
+    switchTab,
+    fetchTabs
+  } = useSheets()
   const { userName: liffUserName } = useLiff()
-  
-
   
   const [selectedProduct, setSelectedProduct] = useState(null)
   const [selectedBatch, setSelectedBatch] = useState(null) // selected batch entry
@@ -21,6 +29,7 @@ export default function Withdraw() {
   const [userName, setLocalUserName] = useState(liffUserName || '')
   const [roomNumber, setRoomNumber] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
   
   // Get default patient type based on current time
   const getDefaultPatientType = () => {
@@ -48,21 +57,9 @@ export default function Withdraw() {
   const [isFooterExpanded, setIsFooterExpanded] = useState(false)
 
   useEffect(() => {
+    fetchTabs()
     fetchMaterials()
-  }, [fetchMaterials])
-
-  // Lock scroll on mount, unlock on unmount
-  useEffect(() => {
-    document.body.style.overflow = 'hidden'
-    document.body.style.position = 'fixed'
-    document.body.style.width = '100%'
-    
-    return () => {
-      document.body.style.overflow = ''
-      document.body.style.position = ''
-      document.body.style.width = ''
-    }
-  }, [])
+  }, [fetchTabs, fetchMaterials])
 
   // Refresh materials when page becomes visible
   useEffect(() => {
@@ -222,6 +219,15 @@ export default function Withdraw() {
     }
   }
 
+  const filteredMaterials = mergedMaterials.filter(material => {
+    if (!searchQuery.trim()) return true
+    const q = searchQuery.toLowerCase().trim()
+    return (
+      (material.materialCode && material.materialCode.toLowerCase().includes(q)) ||
+      (material.description && material.description.toLowerCase().includes(q))
+    )
+  })
+
   if (loading && mergedMaterials.length === 0) {
     return (
       <div className="transaction-page">
@@ -230,7 +236,7 @@ export default function Withdraw() {
           <p className="header-subtitle">เบิกวัสดุออกจากคลัง</p>
         </div>
         <div className="container">
-          <SkeletonLoader type="list" count={5} />
+          <SkeletonLoader type="list" count={6} />
         </div>
       </div>
     )
@@ -252,7 +258,48 @@ export default function Withdraw() {
 
         {!selectedProduct ? (
           <>
-            <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
+            {/* Tab / Month Selector */}
+            {availableTabs.length > 0 && (
+              <div style={{
+                background: 'var(--bg-card, #ffffff)',
+                borderRadius: 'var(--radius-md, 12px)',
+                padding: '10px 14px',
+                marginBottom: '12px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                boxShadow: 'var(--shadow-sm, 0 1px 3px rgba(0,0,0,0.05))',
+                border: '1px solid #f0f0f2'
+              }}>
+                <span style={{ fontSize: '13px', color: 'var(--text-secondary, #86868b)', fontWeight: '600' }}>
+                  📅 รอบเดือนสต็อก:
+                </span>
+                <select
+                  value={currentTab}
+                  onChange={(e) => switchTab(e.target.value)}
+                  style={{
+                    border: '1px solid #d1d1d6',
+                    borderRadius: '8px',
+                    padding: '6px 12px',
+                    fontSize: '13px',
+                    fontWeight: '600',
+                    color: '#007aff',
+                    background: '#f9f9fb',
+                    outline: 'none',
+                    cursor: 'pointer'
+                  }}
+                >
+                  {availableTabs.map(tab => (
+                    <option key={tab.title} value={tab.title}>
+                      {getTabShortLabel(tab.title)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {/* Mode selection buttons */}
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
               <button
                 onClick={() => {
                   setIsMultiSelectMode(false)
@@ -272,8 +319,64 @@ export default function Withdraw() {
               </button>
             </div>
 
-            <div className="product-list">
-              {mergedMaterials.map((material) => {
+            {/* Search Input */}
+            <div style={{ marginBottom: '14px', position: 'relative' }}>
+              <input
+                type="text"
+                placeholder="🔍 ค้นหารหัส หรือ ชื่อวัสดุ..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '10px 36px 10px 12px',
+                  borderRadius: '10px',
+                  border: '1px solid #d1d1d6',
+                  fontSize: '14px',
+                  boxSizing: 'border-box',
+                  outline: 'none',
+                  background: 'white'
+                }}
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  style={{
+                    position: 'absolute',
+                    right: '10px',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    background: 'none',
+                    border: 'none',
+                    color: '#86868b',
+                    fontSize: '16px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+
+            {filteredMaterials.length === 0 ? (
+              <div className="card text-center" style={{ padding: '36px 16px', textAlign: 'center', background: 'white', borderRadius: '16px' }}>
+                <p style={{ fontSize: '36px', margin: '0 0 10px 0' }}>📦</p>
+                <p style={{ color: '#1d1d1f', fontWeight: '600', fontSize: '15px', marginBottom: '6px' }}>
+                  {searchQuery ? `ไม่พบวัสดุที่ค้นหา "${searchQuery}"` : 'ไม่พบรายการวัสดุในรอบเดือนนี้'}
+                </p>
+                <p style={{ color: '#86868b', fontSize: '13px', marginBottom: '16px' }}>
+                  {searchQuery ? 'ลองพิมพ์คำค้นหาอื่น เช่น กรรไกร หรือรหัสวัสดุ' : 'ลองเลือกเดือนอื่น หรือกดปุ่มรีเฟรช'}
+                </p>
+                <button
+                  onClick={() => fetchMaterials()}
+                  className="btn btn-outline"
+                  style={{ display: 'inline-block', fontSize: '13px', padding: '8px 16px' }}
+                >
+                  🔄 รีเฟรชข้อมูล
+                </button>
+              </div>
+            ) : (
+              <div className="product-list">
+                {filteredMaterials.map((material) => {
                 const isSelected = selectedItems.some(item => item.product.materialCode === material.materialCode)
                 const totalStock = material.totalMainRemaining + material.totalSubRemaining
                 
@@ -327,6 +430,7 @@ export default function Withdraw() {
                 )
               })}
             </div>
+            )}
 
             {isMultiSelectMode && selectedItems.length > 0 && (
               <div className="multi-select-footer" style={{ 

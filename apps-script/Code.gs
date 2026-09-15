@@ -129,9 +129,10 @@ function getAvailableTabsAction() {
     const ss = getSpreadsheet();
     const sheets = ss.getSheets();
     const tabs = [];
+    const monthRegex = /(January|February|March|April|May|June|July|August|September|October|November|December)\s*(\d{2,4})/i;
     for (let i = 0; i < sheets.length; i++) {
       const title = sheets[i].getName();
-      if (title.indexOf(TAB_PREFIX) === 0) {
+      if (monthRegex.test(title)) {
         tabs.push({ title: title, sheetId: sheets[i].getSheetId(), index: i });
       }
     }
@@ -179,32 +180,84 @@ function getSpreadsheet() {
 function getCurrentMonthSheet() {
   const now = new Date();
   const monthName = MONTHS[now.getMonth()];
-  const year = now.getFullYear();
-  const tabName = TAB_PREFIX + monthName + ' ' + year;
+  const yy = String(now.getFullYear()).slice(-2);
+  const primaryTab = monthName + yy; // e.g. "September26"
 
   const ss = getSpreadsheet();
-  const sheet = ss.getSheetByName(tabName);
+  let sheet = ss.getSheetByName(primaryTab);
+  let tabName = primaryTab;
 
   if (!sheet) {
-    throw new Error('ไม่พบ tab เดือนปัจจุบัน: ' + tabName);
+    // Try with full year (e.g. "September2026")
+    const fullYearTab = monthName + now.getFullYear();
+    sheet = ss.getSheetByName(fullYearTab);
+    if (sheet) tabName = fullYearTab;
+  }
+
+  if (!sheet) {
+    // Try prefixed name
+    const prefixedTab = TAB_PREFIX + monthName + ' ' + now.getFullYear();
+    sheet = ss.getSheetByName(prefixedTab);
+    if (sheet) tabName = prefixedTab;
+  }
+
+  if (!sheet) {
+    // Search any tab matching month
+    const sheets = ss.getSheets();
+    for (let i = 0; i < sheets.length; i++) {
+      const name = sheets[i].getName();
+      if (name.toLowerCase().indexOf(monthName.toLowerCase()) !== -1) {
+        sheet = sheets[i];
+        tabName = name;
+        break;
+      }
+    }
+  }
+
+  if (!sheet) {
+    // Ultimate fallback: first sheet
+    sheet = ss.getSheets()[0];
+    tabName = sheet ? sheet.getName() : primaryTab;
   }
 
   return { sheet, tabName };
 }
 
 /**
- * Get sheet by tab name
+ * Get sheet by tab name (flexible matching)
  */
 function getSheetByTab(tabName) {
   if (!tabName) {
     return getCurrentMonthSheet();
   }
   const ss = getSpreadsheet();
-  const sheet = ss.getSheetByName(tabName);
-  if (!sheet) {
-    throw new Error('ไม่พบ tab: ' + tabName);
+  let sheet = ss.getSheetByName(tabName);
+  if (sheet) {
+    return { sheet, tabName };
   }
-  return { sheet, tabName };
+
+  // Case-insensitive or trimmed match
+  const sheets = ss.getSheets();
+  const lowerSearch = tabName.trim().toLowerCase();
+  for (let i = 0; i < sheets.length; i++) {
+    const sName = sheets[i].getName().trim();
+    if (sName.toLowerCase() === lowerSearch) {
+      return { sheet: sheets[i], tabName: sName };
+    }
+  }
+
+  // If still not found, check if it matches a month name
+  for (let i = 0; i < sheets.length; i++) {
+    const sName = sheets[i].getName().trim();
+    for (let m = 0; m < MONTHS.length; m++) {
+      if (lowerSearch.indexOf(MONTHS[m].toLowerCase()) !== -1 && sName.toLowerCase().indexOf(MONTHS[m].toLowerCase()) !== -1) {
+        return { sheet: sheets[i], tabName: sName };
+      }
+    }
+  }
+
+  // Fallback to current month sheet
+  return getCurrentMonthSheet();
 }
 
 /**

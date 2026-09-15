@@ -4,23 +4,42 @@
  * Reads from the real monthly stock count sheet
  */
 
-import { config } from '../config'
-import { callAppsScript } from './appsScriptService'
+import Papa from 'papaparse'
+import { config } from '../config/index.js'
+import { callAppsScript } from './appsScriptService.js'
 import {
   rowToMaterial,
   mergeBatches,
   filterActiveMaterials,
   getCurrentMonthTabName,
   isMonthlyStockTab,
+  parseMonthFromTabName,
   HEADER_ROWS
-} from '../utils/sheetHelpers'
+} from '../utils/sheetHelpers.js'
 
 const SHEETS_API_BASE = config.sheetsApi.baseUrl
 const SPREADSHEET_ID = config.sheetsApi.spreadsheetId
 const API_KEY = config.sheetsApi.apiKey
 
 /**
- * Fetch data from Google Sheets
+ * Fetch sheet data via Google Sheets GViz CSV export
+ * Instant, public, zero API key required, full CORS support from browser
+ * @param {string} tabName
+ * @returns {Promise<Array>} Array of rows
+ */
+export async function fetchSheetDataViaGviz(tabName) {
+  const url = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(tabName)}`
+  const response = await fetch(url)
+  if (!response.ok) {
+    throw new Error(`GViz CSV error: ${response.status}`)
+  }
+  const csvText = await response.text()
+  const parsed = Papa.parse(csvText, { skipEmptyLines: false })
+  return parsed.data || []
+}
+
+/**
+ * Fetch data from Google Sheets API
  * @param {string} range - Sheet range (e.g., "TabName!A4:S")
  * @returns {Promise<Array>} Array of rows
  */
@@ -72,6 +91,34 @@ async function fetchSpreadsheetMeta() {
  * @returns {Promise<Array>} Array of { title, sheetId, index } for monthly tabs, sorted newest first
  */
 export async function getAvailableTabs() {
+  // 1. Fetch from htmlview (instant, CORS supported, public)
+  try {
+    const url = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/htmlview`
+    const response = await fetch(url)
+    if (response.ok) {
+      const html = await response.text()
+      const matches = [...html.matchAll(/items\.push\({\s*name:\s*"([^"]+)",[^}]*gid:\s*"([^"]+)"/g)]
+      if (matches.length > 0) {
+        const tabs = matches
+          .map((m, idx) => ({ title: m[1], sheetId: m[2], index: idx }))
+          .filter(t => isMonthlyStockTab(t.title))
+
+        if (tabs.length > 0) {
+          // Sort newest month first
+          tabs.sort((a, b) => {
+            const dateA = parseMonthFromTabName(a.title)?.date || 0
+            const dateB = parseMonthFromTabName(b.title)?.date || 0
+            return dateB - dateA
+          })
+          return tabs
+        }
+      }
+    }
+  } catch (err) {
+    console.warn('htmlview tabs fetch failed:', err)
+  }
+
+  // 2. Google Sheets API metadata if API_KEY is available
   if (API_KEY) {
     try {
       const allTabs = await fetchSpreadsheetMeta()
@@ -83,7 +130,7 @@ export async function getAvailableTabs() {
     }
   }
 
-  // Fallback to Apps Script
+  // 3. Fallback to Apps Script
   try {
     const res = await callAppsScript({ action: 'getAvailableTabs' })
     if (res && res.success && Array.isArray(res.tabs) && res.tabs.length > 0) {
@@ -93,7 +140,24 @@ export async function getAvailableTabs() {
     console.error('Apps Script getAvailableTabs error:', err)
   }
 
-  return []
+  // 4. Fallback: generate default tabs for recent months
+  const MONTH_NAMES = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
+  ]
+  const now = new Date()
+  const fallbackTabs = []
+  for (let i = 0; i < 12; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
+    const month = MONTH_NAMES[d.getMonth()]
+    const yy = String(d.getFullYear()).slice(-2)
+    fallbackTabs.push({
+      title: `${month}${yy}`,
+      sheetId: 0,
+      index: 11 - i
+    })
+  }
+  return fallbackTabs
 }
 
 /**
@@ -104,7 +168,26 @@ export async function getAvailableTabs() {
 export async function getAllMaterials(tabName = null) {
   const tab = tabName || getCurrentMonthTabName()
 
-  // 1. Try Google Sheets API if API_KEY is available
+  // 1. First priority: Google Sheets GViz CSV export
+  // Instant, public, zero API key required, full CORS support, ~200ms
+  try {
+    const rows = await fetchSheetDataViaGviz(tab)
+    if (Array.isArray(rows) && rows.length > 1) {
+      // Row 0 is the table headers in GViz CSV; data rows start from index 1 (sheetRow 4)
+      const dataRows = rows.slice(1)
+      const materials = dataRows
+        .map((row, index) => rowToMaterial(row, index, tab))
+        .filter(m => m !== null)
+
+      if (materials.length > 0) {
+        return filterActiveMaterials(materials)
+      }
+    }
+  } catch (gvizError) {
+    console.warn('GViz CSV fetch failed, trying fallbacks...', gvizError)
+  }
+
+  // 2. Try Google Sheets API if API_KEY is available
   if (API_KEY) {
     try {
       const range = `'${tab}'!A${HEADER_ROWS + 1}:S`
@@ -113,13 +196,15 @@ export async function getAllMaterials(tabName = null) {
         .map((row, index) => rowToMaterial(row, index, tab))
         .filter(m => m !== null)
 
-      return filterActiveMaterials(materials)
+      if (materials.length > 0) {
+        return filterActiveMaterials(materials)
+      }
     } catch (error) {
       console.warn('Sheets API getAllMaterials failed, trying Apps Script fallback...', error)
     }
   }
 
-  // 2. Fallback to Apps Script
+  // 3. Fallback to Apps Script
   try {
     const res = await callAppsScript({ action: 'getMaterials', tabName: tab })
     if (res && res.success && Array.isArray(res.rows)) {

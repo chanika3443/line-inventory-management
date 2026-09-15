@@ -49,9 +49,6 @@ export default function Return() {
     }
   }, [liffUserName])
 
-  // In the real sheet, all active materials can be returned
-  const returnableProducts = products.filter(p => p.returnable !== false)
-
   const toggleProductSelection = (product) => {
     haptics.selection()
     const isSelected = selectedItems.some(item => item.product.code === product.code)
@@ -161,6 +158,33 @@ export default function Return() {
     )
   }
 
+  const [searchQuery, setSearchQuery] = useState('')
+
+  // In the real sheet, all active materials can be returned
+  const returnableProducts = products.filter(p => {
+    if (p.returnable === false) return false
+    if (!searchQuery.trim()) return true
+    const q = searchQuery.toLowerCase().trim()
+    return (
+      (p.code && p.code.toLowerCase().includes(q)) ||
+      (p.name && p.name.toLowerCase().includes(q))
+    )
+  })
+
+  if (loading && products.length === 0) {
+    return (
+      <div className="transaction-page">
+        <div className="header">
+          <h1>คืนวัสดุ</h1>
+          <p className="header-subtitle">คืนวัสดุเข้าคลัง</p>
+        </div>
+        <div className="container">
+          <SkeletonLoader type="list" count={5} />
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="transaction-page">
       <div className="header">
@@ -177,7 +201,7 @@ export default function Return() {
 
         {!selectedProduct ? (
           <>
-            <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
               <button
                 onClick={() => {
                   setIsMultiSelectMode(false)
@@ -197,10 +221,48 @@ export default function Return() {
               </button>
             </div>
 
+            {/* Search Input */}
+            <div style={{ marginBottom: '14px', position: 'relative' }}>
+              <input
+                type="text"
+                placeholder="🔍 ค้นหารหัส หรือ ชื่อวัสดุ..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '10px 36px 10px 12px',
+                  borderRadius: '10px',
+                  border: '1px solid #d1d1d6',
+                  fontSize: '14px',
+                  boxSizing: 'border-box',
+                  outline: 'none',
+                  background: 'white'
+                }}
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  style={{
+                    position: 'absolute',
+                    right: '10px',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    background: 'none',
+                    border: 'none',
+                    color: '#86868b',
+                    fontSize: '16px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+
             {returnableProducts.length === 0 ? (
               <div className="empty-state">
                 <div className="empty-state-icon">📦</div>
-                <p>ไม่พบวัสดุที่สามารถคืนได้</p>
+                <p>{searchQuery ? `ไม่พบวัสดุที่ตรงกับ "${searchQuery}"` : 'ไม่พบวัสดุที่สามารถคืนได้'}</p>
               </div>
             ) : (
               <div className="product-list">
