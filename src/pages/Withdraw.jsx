@@ -199,7 +199,8 @@ export default function Withdraw() {
     setIsSubmitting(true)
     const result = await withdraw(
       selectedProduct.materialCode, quantity, userName, note,
-      stockType, batch.batch || '', batch.sheetRow || null
+      stockType, batch.batch || '', batch.sheetRow || null,
+      roomNumber.trim(), patientType
     )
     setIsSubmitting(false)
     

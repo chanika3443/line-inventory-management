@@ -495,7 +495,22 @@ export default function Logs() {
                       </div>
                     </td>
                     <td style={{ padding: '8px 6px', color: 'var(--text-primary)', fontSize: 'var(--text-xs)', textAlign: 'center' }}>
-                      {transaction.userName}
+                      <div>{transaction.userName}</div>
+                      {transaction.roomNumber && (
+                        <div style={{ marginTop: '2px' }}>
+                          <span style={{ 
+                            display: 'inline-block', 
+                            fontSize: '10px', 
+                            padding: '1px 5px', 
+                            borderRadius: '4px', 
+                            background: 'rgba(6, 199, 85, 0.1)', 
+                            color: '#059669',
+                            fontWeight: '500'
+                          }}>
+                            ห้อง {transaction.roomNumber}{transaction.patientType ? ` (${transaction.patientType})` : ''}
+                          </span>
+                        </div>
+                      )}
                     </td>
                     <td style={{ padding: '8px 6px', color: 'var(--text-secondary)', fontSize: 'var(--text-xs)', whiteSpace: 'nowrap', textAlign: 'center' }}>
                       {formatDate(transaction.timestamp)}

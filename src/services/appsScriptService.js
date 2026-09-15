@@ -72,7 +72,7 @@ export async function callAppsScript(data) {
  * @param {number} sheetRow - 1-based row number in the sheet
  * @param {string} tabName - tab name (defaults to current month)
  */
-export async function withdraw(materialCode, quantity, userName, note = '', stockType = 'main', batch = '', sheetRow = null, tabName = null) {
+export async function withdraw(materialCode, quantity, userName, note = '', stockType = 'main', batch = '', sheetRow = null, tabName = null, roomNumber = '', patientType = '') {
   return await callAppsScript({
     action: 'withdraw',
     materialCode,
@@ -82,7 +82,9 @@ export async function withdraw(materialCode, quantity, userName, note = '', stoc
     stockType,
     batch,
     sheetRow,
-    tabName: tabName || getCurrentMonthTabName()
+    tabName: tabName || getCurrentMonthTabName(),
+    roomNumber,
+    patientType
   })
 }
 
@@ -105,7 +107,7 @@ export async function receive(materialCode, quantity, userName, stockType = 'mai
 /**
  * Return material
  */
-export async function returnMaterial(materialCode, quantity, userName, note = '', stockType = 'main', batch = '', sheetRow = null, tabName = null) {
+export async function returnMaterial(materialCode, quantity, userName, note = '', stockType = 'main', batch = '', sheetRow = null, tabName = null, roomNumber = '', patientType = '') {
   return await callAppsScript({
     action: 'return',
     materialCode,
@@ -115,7 +117,9 @@ export async function returnMaterial(materialCode, quantity, userName, note = ''
     stockType,
     batch,
     sheetRow,
-    tabName: tabName || getCurrentMonthTabName()
+    tabName: tabName || getCurrentMonthTabName(),
+    roomNumber,
+    patientType
   })
 }
 
@@ -180,6 +184,15 @@ export const returnProduct = returnMaterial
 export async function cleanupOldSheet() {
   return await callAppsScript({
     action: 'cleanupOldSheet'
+  })
+}
+
+/**
+ * Split existing historical transactions into monthly tabs in Non-Material spreadsheet
+ */
+export async function splitTransactionsToMonthlyTabs() {
+  return await callAppsScript({
+    action: 'splitTransactionsToMonthlyTabs'
   })
 }
 

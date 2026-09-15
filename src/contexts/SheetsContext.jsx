@@ -73,12 +73,12 @@ export function SheetsProvider({ children }) {
   }, [])
 
   // Withdraw
-  const withdraw = useCallback(async (materialCode, quantity, userName, note = '', stockType = 'main', batch = '', sheetRow = null) => {
+  const withdraw = useCallback(async (materialCode, quantity, userName, note = '', stockType = 'main', batch = '', sheetRow = null, roomNumber = '', patientType = '') => {
     setLoading(true)
     setError(null)
     try {
       const result = await appsScriptService.withdraw(
-        materialCode, quantity, userName, note, stockType, batch, sheetRow, currentTab
+        materialCode, quantity, userName, note, stockType, batch, sheetRow, currentTab, roomNumber, patientType
       )
       if (result.success) {
         await fetchMaterials(currentTab)
@@ -113,12 +113,12 @@ export function SheetsProvider({ children }) {
   }, [currentTab, fetchMaterials])
 
   // Return material
-  const returnMaterial = useCallback(async (materialCode, quantity, userName, note = '', stockType = 'main', batch = '', sheetRow = null) => {
+  const returnMaterial = useCallback(async (materialCode, quantity, userName, note = '', stockType = 'main', batch = '', sheetRow = null, roomNumber = '', patientType = '') => {
     setLoading(true)
     setError(null)
     try {
       const result = await appsScriptService.returnMaterial(
-        materialCode, quantity, userName, note, stockType, batch, sheetRow, currentTab
+        materialCode, quantity, userName, note, stockType, batch, sheetRow, currentTab, roomNumber, patientType
       )
       if (result.success) {
         await fetchMaterials(currentTab)

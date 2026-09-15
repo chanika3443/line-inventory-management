@@ -70,6 +70,8 @@ function doGet(e) {
       result = getSettingsAction();
     } else if (action === 'cleanupOldSheet') {
       result = cleanupOldSheetAction();
+    } else if (action === 'splitTransactionsToMonthlyTabs') {
+      result = splitTransactionsToMonthlyTabsAction();
     } else {
       result = {
         success: true,
@@ -95,13 +97,21 @@ function doPost(e) {
     let result;
     switch (action) {
       case 'withdraw':
-        result = withdraw(data.materialCode, data.quantity, data.userName, data.note || '', data.stockType, data.batch, data.sheetRow, data.tabName, deviceInfo);
+        result = withdraw(
+          data.materialCode, data.quantity, data.userName, data.note || '',
+          data.stockType, data.batch, data.sheetRow, data.tabName, deviceInfo,
+          data.roomNumber || data.room || '', data.patientType || ''
+        );
         break;
       case 'receive':
         result = receive(data.materialCode, data.quantity, data.userName, data.stockType, data.batch, data.sheetRow, data.tabName, deviceInfo);
         break;
       case 'return':
-        result = returnMaterial(data.materialCode, data.quantity, data.userName, data.note || '', data.stockType, data.batch, data.sheetRow, data.tabName, deviceInfo);
+        result = returnMaterial(
+          data.materialCode, data.quantity, data.userName, data.note || '',
+          data.stockType, data.batch, data.sheetRow, data.tabName, deviceInfo,
+          data.roomNumber || data.room || '', data.patientType || ''
+        );
         break;
       case 'addMaterial':
         result = addMaterial(data.material, data.tabName, deviceInfo);
@@ -135,6 +145,9 @@ function doPost(e) {
         break;
       case 'cleanupOldSheet':
         result = cleanupOldSheetAction();
+        break;
+      case 'splitTransactionsToMonthlyTabs':
+        result = splitTransactionsToMonthlyTabsAction();
         break;
       case 'addAuditLog':
         addAuditLog(data.auditAction || 'INFO', data.details || '', data.userName || 'System', deviceInfo);
@@ -312,6 +325,131 @@ function cleanupOldSheetAction() {
       success: false,
       message: 'เกิดข้อผิดพลาดในการลบแท็บ: ' + error.toString()
     };
+  }
+}
+
+/**
+ * One-time or on-demand migration tool:
+ * Read all historical transactions from 'Transactions' sheet
+ * and distribute them into their respective monthly tabs (e.g. 'January 2026', 'February 2026', 'March 2026')
+ */
+function splitTransactionsToMonthlyTabsAction() {
+  try {
+    const ss = getLogSpreadsheet();
+    const masterSheet = ss.getSheetByName('Transactions');
+    if (!masterSheet) {
+      return { success: false, message: 'ไม่พบแท็บ Transactions ในชีท' };
+    }
+
+    const data = masterSheet.getDataRange().getValues();
+    if (data.length <= 1) {
+      return { success: true, message: 'ไม่มีข้อมูลรายการใน Transactions' };
+    }
+
+    const monthNames = [
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'
+    ];
+
+    const monthlyGroups = {};
+
+    // Skip header row
+    for (let i = 1; i < data.length; i++) {
+      const row = data[i];
+      const id = row[0] || '';
+      const timestamp = String(row[1] || '');
+      const type = row[2] || '';
+      const materialCode = row[3] || '';
+      const description = row[4] || '';
+      const quantity = row[5] !== undefined ? row[5] : '';
+      const beforeQty = row[6] !== undefined ? row[6] : '';
+      const afterQty = row[7] !== undefined ? row[7] : '';
+      const userName = row[8] || '';
+      const note = String(row[9] || '');
+      let room = String(row[10] || '');
+      let patientType = String(row[11] || '');
+
+      // Auto parse room and patientType from note if empty
+      if (!room && note) {
+        const mRoom = note.match(/ห้อง:\s*([^,]+)/);
+        if (mRoom) room = mRoom[1].trim();
+      }
+      if (!patientType && note) {
+        const mType = note.match(/ประเภท:\s*([^,]+)/);
+        if (mType) patientType = mType[1].trim();
+      }
+
+      // Parse month and year from timestamp e.g. "15/1/2026, 0:23:39"
+      let tabName = '';
+      const matchDate = timestamp.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+      if (matchDate) {
+        const mIdx = parseInt(matchDate[2], 10) - 1;
+        const year = matchDate[3];
+        if (mIdx >= 0 && mIdx < 12) {
+          tabName = monthNames[mIdx] + ' ' + year;
+        }
+      }
+
+      if (!tabName) {
+        tabName = 'Transactions_Other';
+      }
+
+      if (!monthlyGroups[tabName]) {
+        monthlyGroups[tabName] = [];
+      }
+
+      monthlyGroups[tabName].push([
+        id,
+        timestamp,
+        type,
+        materialCode,
+        description,
+        quantity,
+        beforeQty,
+        afterQty,
+        userName,
+        room,
+        patientType,
+        note
+      ]);
+    }
+
+    const headers = [
+      'ID', 'วันที่-เวลา', 'ประเภทรายการ', 'รหัสวัสดุ', 'ชื่อวัสดุ',
+      'จำนวน', 'สต็อกก่อนทำรายการ', 'สต็อกคงเหลือ', 'ผู้ทำรายการ',
+      'ห้องผู้ป่วย', 'ประเภทผู้ป่วย', 'หมายเหตุ'
+    ];
+
+    const resultSummary = [];
+
+    for (const tabName in monthlyGroups) {
+      let sheet = ss.getSheetByName(tabName);
+      if (!sheet) {
+        sheet = ss.insertSheet(tabName);
+      } else {
+        sheet.clear();
+      }
+
+      sheet.appendRow(headers);
+      const headerRange = sheet.getRange(1, 1, 1, headers.length);
+      headerRange.setFontWeight('bold');
+      headerRange.setBackground('#e8f0fe');
+      sheet.setFrozenRows(1);
+
+      const rows = monthlyGroups[tabName];
+      if (rows.length > 0) {
+        sheet.getRange(2, 1, rows.length, headers.length).setValues(rows);
+      }
+      resultSummary.push(tabName + ' (' + rows.length + ' รายการ)');
+    }
+
+    return {
+      success: true,
+      message: 'แยกแท็บรายเดือนสำเร็จ: ' + resultSummary.join(', '),
+      groups: resultSummary
+    };
+  } catch (error) {
+    return { success: false, message: error.toString() };
   }
 }
 
@@ -498,29 +636,49 @@ function getMaterialAtRow(sheet, row) {
 }
 
 /**
- * Add transaction log to the Transactions sheet in the Non-Material spreadsheet (ชีทเก่า)
- * Columns in old sheet:
- * [id, timestamp, type, productCode, productName, quantity, beforeQuantity, afterQuantity, userName, note]
+ * Add transaction log to both master Transactions sheet and Monthly tab in the Non-Material spreadsheet (ชีทเก่า)
+ * Columns in monthly tabs:
+ * [ID, วันที่-เวลา, ประเภทรายการ, รหัสวัสดุ, ชื่อวัสดุ, จำนวน, สต็อกก่อนทำรายการ, สต็อกคงเหลือ, ผู้ทำรายการ, ห้องผู้ป่วย, ประเภทผู้ป่วย, หมายเหตุ]
  */
-function addTransaction(type, materialCode, description, quantity, beforeQuantity, afterQuantity, userName, note) {
+function addTransaction(type, materialCode, description, quantity, beforeQuantity, afterQuantity, userName, note, roomNumber, patientType) {
   try {
     const ss = getLogSpreadsheet();
-    let sheet = ss.getSheetByName('Transactions');
 
-    // Create Transactions sheet if it doesn't exist
-    if (!sheet) {
-      sheet = ss.insertSheet('Transactions');
-      sheet.appendRow([
-        'id', 'timestamp', 'type', 'productCode', 'productName',
-        'quantity', 'beforeQuantity', 'afterQuantity', 'userName', 'note'
-      ]);
+    // Auto extract roomNumber and patientType from note if not provided
+    if (!roomNumber && note) {
+      const matchRoom = String(note).match(/ห้อง:\s*([^,]+)/);
+      if (matchRoom) roomNumber = matchRoom[1].trim();
     }
+    if (!patientType && note) {
+      const matchType = String(note).match(/ประเภท:\s*([^,]+)/);
+      if (matchType) patientType = matchType[1].trim();
+    }
+    roomNumber = roomNumber || '';
+    patientType = patientType || '';
 
     const now = new Date();
     const id = 'TXN' + now.getTime() + Math.floor(Math.random() * 1000);
     const timestampStr = Utilities.formatDate(now, 'Asia/Bangkok', 'd/M/yyyy, H:mm:ss');
 
-    sheet.appendRow([
+    // 1. Master Transactions Sheet (ชีทเดิมรวมทุกรายการ)
+    let masterSheet = ss.getSheetByName('Transactions');
+    if (!masterSheet) {
+      masterSheet = ss.insertSheet('Transactions');
+      masterSheet.appendRow([
+        'id', 'timestamp', 'type', 'productCode', 'productName',
+        'quantity', 'beforeQuantity', 'afterQuantity', 'userName', 'note',
+        'roomNumber', 'patientType'
+      ]);
+    } else {
+      // If header row has only 10 columns, expand headers to include roomNumber and patientType
+      const lastCol = masterSheet.getLastColumn();
+      if (lastCol < 12) {
+        masterSheet.getRange(1, 11).setValue('roomNumber');
+        masterSheet.getRange(1, 12).setValue('patientType');
+      }
+    }
+
+    masterSheet.appendRow([
       id,
       timestampStr,
       type,
@@ -530,8 +688,47 @@ function addTransaction(type, materialCode, description, quantity, beforeQuantit
       beforeQuantity !== undefined && beforeQuantity !== null ? beforeQuantity : '',
       afterQuantity !== undefined && afterQuantity !== null ? afterQuantity : '',
       userName || '',
+      note || '',
+      roomNumber,
+      patientType
+    ]);
+
+    // 2. Monthly Tab (แท็บแยกตามเดือน เช่น "March 2026")
+    const monthNames = [
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'
+    ];
+    const monthTabName = monthNames[now.getMonth()] + ' ' + now.getFullYear();
+    let monthSheet = ss.getSheetByName(monthTabName);
+    if (!monthSheet) {
+      monthSheet = ss.insertSheet(monthTabName);
+      const headers = [
+        'ID', 'วันที่-เวลา', 'ประเภทรายการ', 'รหัสวัสดุ', 'ชื่อวัสดุ',
+        'จำนวน', 'สต็อกก่อนทำรายการ', 'สต็อกคงเหลือ', 'ผู้ทำรายการ',
+        'ห้องผู้ป่วย', 'ประเภทผู้ป่วย', 'หมายเหตุ'
+      ];
+      monthSheet.appendRow(headers);
+      const headerRange = monthSheet.getRange(1, 1, 1, headers.length);
+      headerRange.setFontWeight('bold');
+      headerRange.setBackground('#e8f0fe');
+      monthSheet.setFrozenRows(1);
+    }
+
+    monthSheet.appendRow([
+      id,
+      timestampStr,
+      type,
+      materialCode,
+      description,
+      quantity,
+      beforeQuantity !== undefined && beforeQuantity !== null ? beforeQuantity : '',
+      afterQuantity !== undefined && afterQuantity !== null ? afterQuantity : '',
+      userName || '',
+      roomNumber,
+      patientType,
       note || ''
     ]);
+
   } catch (error) {
     console.error('Error in addTransaction:', error);
   }
@@ -574,7 +771,7 @@ function addAuditLog(action, details, userName, deviceInfo) {
  * @param {string} tabName - tab name (optional)
  * @param {string} deviceInfo
  */
-function withdraw(materialCode, quantity, userName, note, stockType, batch, sheetRow, tabName, deviceInfo) {
+function withdraw(materialCode, quantity, userName, note, stockType, batch, sheetRow, tabName, deviceInfo, roomNumber, patientType) {
   try {
     const { sheet } = getSheetByTab(tabName);
     quantity = parseInt(quantity);
@@ -641,7 +838,9 @@ function withdraw(materialCode, quantity, userName, note, stockType, batch, shee
       beforeQty,
       afterQty,
       userName,
-      (stockType === 'sub' ? '[สต๊อกเล็ก] ' : '[สต๊อกใหญ่] ') + (note || 'เบิกวัสดุ')
+      (stockType === 'sub' ? '[สต๊อกเล็ก] ' : '[สต๊อกใหญ่] ') + (note || 'เบิกวัสดุ'),
+      roomNumber,
+      patientType
     );
 
     // Audit log in Non-Material Sheet (ชีทเก่า)
@@ -730,7 +929,7 @@ function receive(materialCode, quantity, userName, stockType, batch, sheetRow, t
 /**
  * Return material
  */
-function returnMaterial(materialCode, quantity, userName, note, stockType, batch, sheetRow, tabName, deviceInfo) {
+function returnMaterial(materialCode, quantity, userName, note, stockType, batch, sheetRow, tabName, deviceInfo, roomNumber, patientType) {
   try {
     const { sheet } = getSheetByTab(tabName);
     quantity = parseInt(quantity);
@@ -773,7 +972,9 @@ function returnMaterial(materialCode, quantity, userName, note, stockType, batch
       beforeQty,
       afterQty,
       userName,
-      (stockType === 'sub' ? '[สต๊อกเล็ก] ' : '[สต๊อกใหญ่] ') + (note || 'คืนวัสดุ')
+      (stockType === 'sub' ? '[สต๊อกเล็ก] ' : '[สต๊อกใหญ่] ') + (note || 'คืนวัสดุ'),
+      roomNumber,
+      patientType
     );
 
     // Audit log in Non-Material Sheet (ชีทเก่า)
@@ -933,7 +1134,8 @@ function batchWithdraw(items, userName, tabName, deviceInfo) {
       const result = withdraw(
         item.materialCode, item.quantity, userName,
         item.note || '', item.stockType || 'main', item.batch || '',
-        item.sheetRow, tabName, deviceInfo
+        item.sheetRow, tabName, deviceInfo,
+        item.roomNumber || item.room || '', item.patientType || ''
       );
       results.push({
         materialCode: item.materialCode,

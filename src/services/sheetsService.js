@@ -409,6 +409,20 @@ export async function getTransactionLogs(filters = {}) {
         }
       }
 
+      const noteStr = row[9] || ''
+      let roomNumber = row[10] || ''
+      let patientType = row[11] || ''
+
+      // Auto parse from note if not in dedicated columns
+      if (!roomNumber && noteStr) {
+        const mRoom = String(noteStr).match(/ห้อง:\s*([^,]+)/)
+        if (mRoom) roomNumber = mRoom[1].trim()
+      }
+      if (!patientType && noteStr) {
+        const mType = String(noteStr).match(/ประเภท:\s*([^,]+)/)
+        if (mType) patientType = mType[1].trim()
+      }
+
       return {
         id: row[0] || '',
         timestamp,
@@ -421,8 +435,10 @@ export async function getTransactionLogs(filters = {}) {
         beforeQuantity: row[6] || '',
         afterQuantity: row[7] || '',
         userName: row[8] || '',
-        note: row[9] || '',
-        notes: row[9] || '',
+        note: noteStr,
+        notes: noteStr,
+        roomNumber,
+        patientType,
       }
     })
 
@@ -515,5 +531,6 @@ export const getAllProducts = getAllMaterials
 export const getProductByCode = getMaterialByCode
 export const searchProducts = searchMaterials
 export const getLowStockProducts = getLowStockMaterials
-export { cleanupOldSheet } from './appsScriptService.js'
+export { cleanupOldSheet, splitTransactionsToMonthlyTabs } from './appsScriptService.js'
+
 
