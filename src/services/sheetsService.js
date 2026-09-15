@@ -397,13 +397,20 @@ export async function getTransactionLogs(filters = {}) {
 
     let transactions = (rows || []).map((row) => {
       // Parse timestamp
-      let timestamp = row[1] || ''
-      if (timestamp && timestamp.includes('/')) {
+      let timestamp = String(row[1] || '').trim()
+      if (timestamp && (timestamp.includes('/') || timestamp.includes('-'))) {
         try {
-          const [datePart, timePart] = timestamp.split(', ')
-          const [day, month, year] = datePart.split('/')
-          const [hour, minute, second] = (timePart || '0:0:0').split(':')
-          timestamp = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}T${(hour || '0').padStart(2, '0')}:${(minute || '0').padStart(2, '0')}:${(second || '0').padStart(2, '0')}`
+          const m = timestamp.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{2,4})(?:[,\s]+(\d{1,2}):(\d{1,2})(?::(\d{1,2}))?)?/)
+          if (m) {
+            const day = m[1].padStart(2, '0')
+            const month = m[2].padStart(2, '0')
+            let year = m[3]
+            if (year.length === 2) year = '20' + year
+            const hour = (m[4] || '00').padStart(2, '0')
+            const minute = (m[5] || '00').padStart(2, '0')
+            const second = (m[6] || '00').padStart(2, '0')
+            timestamp = `${year}-${month}-${day}T${hour}:${minute}:${second}`
+          }
         } catch (e) {
           console.error('Error parsing timestamp:', row[1], e)
         }

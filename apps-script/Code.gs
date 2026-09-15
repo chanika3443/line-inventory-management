@@ -1048,8 +1048,14 @@ function updateMaterial(sheetRow, updates, tabName, deviceInfo) {
   try {
     const { sheet } = getSheetByTab(tabName);
 
-    if (!sheetRow || sheetRow <= HEADER_ROWS) {
-      return { success: false, message: 'ไม่ระบุแถวที่ต้องการแก้ไข' };
+    if (!sheetRow || isNaN(parseInt(sheetRow)) || parseInt(sheetRow) <= HEADER_ROWS) {
+      if (updates && (updates.materialCode || updates.code)) {
+        sheetRow = findMaterialRow(sheet, updates.materialCode || updates.code);
+      }
+    }
+    sheetRow = parseInt(sheetRow);
+    if (!sheetRow || isNaN(sheetRow) || sheetRow <= HEADER_ROWS) {
+      return { success: false, message: 'ไม่ระบุแถวหรือรหัสวัสดุที่ต้องการแก้ไข' };
     }
 
     const oldMaterial = getMaterialAtRow(sheet, sheetRow);
@@ -1105,8 +1111,12 @@ function deleteMaterial(sheetRow, tabName, userName, deviceInfo) {
   try {
     const { sheet } = getSheetByTab(tabName);
 
-    if (!sheetRow || sheetRow <= HEADER_ROWS) {
-      return { success: false, message: 'ไม่ระบุแถวที่ต้องการลบ' };
+    if (!sheetRow || isNaN(parseInt(sheetRow)) || parseInt(sheetRow) <= HEADER_ROWS) {
+      sheetRow = findMaterialRow(sheet, String(sheetRow || ''));
+    }
+    sheetRow = parseInt(sheetRow);
+    if (!sheetRow || isNaN(sheetRow) || sheetRow <= HEADER_ROWS) {
+      return { success: false, message: 'ไม่ระบุแถวหรือรหัสวัสดุที่ต้องการลบ' };
     }
 
     const material = getMaterialAtRow(sheet, sheetRow);

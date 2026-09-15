@@ -183,7 +183,7 @@ export default function Reports() {
     // Transactions sheet with detailed information
     if (report.transactions.length > 0) {
       const transactionData = report.transactions.map(t => {
-        const type = t.type.toUpperCase()
+        const type = (t.type || '').toUpperCase()
         let typeLabel = t.type
         if (type === 'WITHDRAW' || type === 'เบิก') typeLabel = 'เบิก'
         else if (type === 'RETURN' || type === 'คืน') typeLabel = 'คืน'
@@ -192,20 +192,35 @@ export default function Reports() {
         else if (type === 'EDIT') typeLabel = 'แก้ไข'
         else if (type === 'DELETE') typeLabel = 'ลบ'
         
+        let dateStr = '-'
+        let timeStr = '-'
         const date = new Date(t.timestamp)
+        if (!isNaN(date.getTime())) {
+          dateStr = date.toLocaleDateString('th-TH')
+          timeStr = date.toLocaleTimeString('th-TH')
+        } else if (t.timestamp) {
+          const m = String(t.timestamp).match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{2,4})(?:[,\s]+(\d{1,2}):(\d{1,2}))?/)
+          if (m) {
+            dateStr = `${m[1]}/${m[2]}/${m[3]}`
+            timeStr = `${m[4] || '00'}:${m[5] || '00'}`
+          } else {
+            dateStr = String(t.timestamp).slice(0, 10)
+            timeStr = String(t.timestamp).slice(11) || '-'
+          }
+        }
         
         return {
-          'วันที่': date.toLocaleDateString('th-TH'),
-          'เวลา': date.toLocaleTimeString('th-TH'),
-          'วัสดุ': t.productName,
-          'รหัสวัสดุ': t.productCode || '-',
+          'วันที่': dateStr,
+          'เวลา': timeStr,
+          'วัสดุ': t.description || t.productName || '-',
+          'รหัสวัสดุ': t.materialCode || t.productCode || '-',
           'ประเภท': typeLabel,
           'จำนวน': t.quantity,
           'หน่วย': t.unit || '-',
           'ผู้ทำรายการ': t.userName || '-',
           'ห้องผู้ป่วย': t.roomNumber || '-',
           'ประเภทผู้ป่วย': t.patientType || '-',
-          'หมายเหตุ': t.notes || '-'
+          'หมายเหตุ': t.note || t.notes || '-'
         }
       })
       
@@ -258,7 +273,7 @@ export default function Reports() {
       csvContent += 'วันที่,เวลา,วัสดุ,รหัสวัสดุ,ประเภท,จำนวน,หน่วย,ผู้ทำรายการ,ห้องผู้ป่วย,ประเภทผู้ป่วย,หมายเหตุ\n'
       
       report.transactions.forEach(t => {
-        const type = t.type.toUpperCase()
+        const type = (t.type || '').toUpperCase()
         let typeLabel = t.type
         if (type === 'WITHDRAW' || type === 'เบิก') typeLabel = 'เบิก'
         else if (type === 'RETURN' || type === 'คืน') typeLabel = 'คืน'
@@ -267,17 +282,32 @@ export default function Reports() {
         else if (type === 'EDIT') typeLabel = 'แก้ไข'
         else if (type === 'DELETE') typeLabel = 'ลบ'
         
+        let dateStr = '-'
+        let timeStr = '-'
         const date = new Date(t.timestamp)
-        const dateStr = date.toLocaleDateString('th-TH')
-        const timeStr = date.toLocaleTimeString('th-TH')
-        const productCode = t.productCode || '-'
+        if (!isNaN(date.getTime())) {
+          dateStr = date.toLocaleDateString('th-TH')
+          timeStr = date.toLocaleTimeString('th-TH')
+        } else if (t.timestamp) {
+          const m = String(t.timestamp).match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{2,4})(?:[,\s]+(\d{1,2}):(\d{1,2}))?/)
+          if (m) {
+            dateStr = `${m[1]}/${m[2]}/${m[3]}`
+            timeStr = `${m[4] || '00'}:${m[5] || '00'}`
+          } else {
+            dateStr = String(t.timestamp).slice(0, 10)
+            timeStr = String(t.timestamp).slice(11) || '-'
+          }
+        }
+
+        const pName = t.description || t.productName || '-'
+        const productCode = t.materialCode || t.productCode || '-'
         const unit = t.unit || '-'
         const userName = t.userName || '-'
         const roomNumber = t.roomNumber || '-'
         const patientType = t.patientType || '-'
-        const notes = (t.notes || '-').replace(/,/g, ';') // Replace commas in notes
+        const notes = (t.note || t.notes || '-').replace(/,/g, ';') // Replace commas in notes
         
-        csvContent += `${dateStr},${timeStr},${t.productName},${productCode},${typeLabel},${t.quantity},${unit},${userName},${roomNumber},${patientType},${notes}\n`
+        csvContent += `${dateStr},${timeStr},${pName},${productCode},${typeLabel},${t.quantity},${unit},${userName},${roomNumber},${patientType},${notes}\n`
       })
     }
     

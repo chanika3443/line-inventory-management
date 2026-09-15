@@ -111,6 +111,16 @@ export default function Withdraw() {
       return
     }
 
+    // Create note with room and/or patient type (if provided)
+    let noteParts = []
+    if (roomNumber.trim()) {
+      noteParts.push(`ห้อง: ${roomNumber}`)
+    }
+    if (patientType) {
+      noteParts.push(`ประเภท: ${patientType}`)
+    }
+    const note = noteParts.join(', ')
+
     // Withdraw each item
     let successCount = 0
     let failCount = 0
@@ -118,8 +128,9 @@ export default function Withdraw() {
     for (const item of selectedItems) {
       const batch = item.batch || item.product.batches[0]
       const result = await withdraw(
-        item.product.materialCode, item.quantity, userName, '',
-        item.stockType || 'main', batch.batch || '', batch.sheetRow || null
+        item.product.materialCode, item.quantity, userName, note,
+        item.stockType || 'main', batch.batch || '', batch.sheetRow || null,
+        roomNumber.trim(), patientType
       )
       if (result.success) {
         successCount++
@@ -133,6 +144,8 @@ export default function Withdraw() {
       setMessage({ type: 'success', text: `เบิกสำเร็จ ${successCount} รายการ` })
       setSelectedItems([])
       setIsMultiSelectMode(false)
+      setRoomNumber('')
+      setPatientType(getDefaultPatientType())
     } else {
       haptics.error()
       setMessage({ type: 'error', text: `เบิกสำเร็จ ${successCount} รายการ, ล้มเหลว ${failCount} รายการ` })
@@ -633,10 +646,63 @@ export default function Withdraw() {
                       </div>
                     )
                         })}
-                  </div>
+                      </div>
 
-
-                  </>
+                      {/* Room & Patient Type input for multi-withdraw */}
+                      <div style={{
+                        background: '#f5f5f7',
+                        padding: '12px',
+                        borderRadius: '12px',
+                        marginBottom: '14px',
+                        display: 'grid',
+                        gridTemplateColumns: '1fr 1fr',
+                        gap: '10px'
+                      }}>
+                        <div>
+                          <label style={{ display: 'block', fontSize: '11px', fontWeight: '600', color: '#86868b', marginBottom: '4px' }}>
+                            ห้องผู้ป่วย (ถ้ามี)
+                          </label>
+                          <input
+                            type="text"
+                            value={roomNumber}
+                            onChange={(e) => setRoomNumber(e.target.value)}
+                            placeholder="เช่น 101, 102"
+                            style={{
+                              width: '100%',
+                              padding: '8px 10px',
+                              borderRadius: '8px',
+                              border: '1px solid #d1d1d6',
+                              fontSize: '13px',
+                              background: 'white',
+                              boxSizing: 'border-box'
+                            }}
+                          />
+                        </div>
+                        <div>
+                          <label style={{ display: 'block', fontSize: '11px', fontWeight: '600', color: '#86868b', marginBottom: '4px' }}>
+                            ประเภทผู้ป่วย
+                          </label>
+                          <select
+                            value={patientType}
+                            onChange={(e) => setPatientType(e.target.value)}
+                            style={{
+                              width: '100%',
+                              padding: '8px 10px',
+                              borderRadius: '8px',
+                              border: '1px solid #d1d1d6',
+                              fontSize: '13px',
+                              background: 'white',
+                              boxSizing: 'border-box'
+                            }}
+                          >
+                            <option value="รับใหม่">รับใหม่</option>
+                            <option value="ดึก">ดึก</option>
+                            <option value="พิเศษ">พิเศษ</option>
+                            <option value="ทั่วไป">ทั่วไป</option>
+                          </select>
+                        </div>
+                      </div>
+                    </>
                   )}
 
                   {/* Buttons - Always visible */}

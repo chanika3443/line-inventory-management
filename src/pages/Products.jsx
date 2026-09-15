@@ -46,7 +46,7 @@ export default function Products() {
   }, [])
 
   // Check access: name must be in allowed list OR "ALL" is in the list OR admin
-  const hasAccess = allowedUsers.includes(userName) || allowedUsers.includes('ALL') || userName === 'admin'
+  const hasAccess = allowedUsers.length === 0 || allowedUsers.includes(userName) || allowedUsers.includes('ALL') || userName === 'admin'
 
   useEffect(() => {
     fetchProducts()
@@ -64,10 +64,13 @@ export default function Products() {
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
   }, [fetchProducts])
 
-  const filteredProducts = products.filter(p =>
-    p.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    p.name.toLowerCase().includes(searchQuery.toLowerCase())
-  )
+  const filteredProducts = (products || []).filter(p => {
+    if (!searchQuery.trim()) return true
+    const q = searchQuery.toLowerCase().trim()
+    const code = String(p.materialCode || p.code || '').toLowerCase()
+    const name = String(p.description || p.name || '').toLowerCase()
+    return code.includes(q) || name.includes(q)
+  })
 
   function handleAdd() {
     setEditingProduct(null)
@@ -88,12 +91,12 @@ export default function Products() {
   function handleEdit(product) {
     setEditingProduct(product)
     setFormData({
-      name: product.name,
-      unit: product.unit,
-      quantity: product.quantity,
-      lowStockThreshold: product.lowStockThreshold,
-      category: product.category,
-      returnable: product.returnable,
+      name: product.description || product.name || '',
+      unit: product.unit || '',
+      quantity: product.quantity ?? (product.totalMainRemaining != null ? product.totalMainRemaining + product.totalSubRemaining : ''),
+      lowStockThreshold: product.lowStockThreshold ?? 5,
+      category: product.category || 'วัสดุ',
+      returnable: product.returnable ?? false,
       requireRoom: product.requireRoom || false,
       requirePatientType: product.requirePatientType || false,
       expiryDates: product.expiryDates || []
@@ -115,7 +118,8 @@ export default function Products() {
 
     let result
     if (editingProduct) {
-      result = await updateProduct(editingProduct.code, submitData, userName)
+      const row = editingProduct.sheetRow || editingProduct.batches?.[0]?.sheetRow || null
+      result = await updateProduct(row || editingProduct.materialCode || editingProduct.code, submitData, userName)
     } else {
       result = await addProduct(submitData, userName)
     }
@@ -146,7 +150,8 @@ export default function Products() {
 
     haptics.medium()
     setSubmitting(true)
-    const result = await deleteProduct(deleteConfirm.product.code, userName)
+    const row = deleteConfirm.product.sheetRow || deleteConfirm.product.batches?.[0]?.sheetRow || null
+    const result = await deleteProduct(row || deleteConfirm.product.materialCode || deleteConfirm.product.code, userName)
     setSubmitting(false)
     
     if (result.success) {
@@ -266,15 +271,17 @@ export default function Products() {
 
       <div className="product-list">
         {filteredProducts.map((product) => {
+          const pCode = product.materialCode || product.code
+          const pName = product.description || product.name
           const nearestExpiry = getNearestExpiryDate(product.expiryDates)
           const expiryStatus = nearestExpiry ? getExpiryStatus(nearestExpiry) : null
           
           return (
-          <div key={product.code} className="product-card card">
+          <div key={pCode} className="product-card card">
             <div className="product-header">
               <div>
-                <div className="product-name" style={{ fontSize: '15px', fontWeight: '600', marginBottom: '2px' }}>{product.name}</div>
-                <div className="product-code" style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>{product.code}</div>
+                <div className="product-name" style={{ fontSize: '15px', fontWeight: '600', marginBottom: '2px' }}>{pName}</div>
+                <div className="product-code" style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>รหัส: {pCode}</div>
                 {expiryStatus && (
                   <div style={{ 
                     fontSize: '11px', 

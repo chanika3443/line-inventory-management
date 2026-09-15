@@ -147,10 +147,23 @@ export default function Logs() {
         bVal = b.userName
         break
       case 'timestamp':
-      default:
-        aVal = new Date(a.timestamp)
-        bVal = new Date(b.timestamp)
+      default: {
+        const parseTs = (str) => {
+          if (!str) return 0
+          const d = new Date(str)
+          if (!isNaN(d.getTime())) return d.getTime()
+          const m = String(str).match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{2,4})(?:[,\s]+(\d{1,2}):(\d{1,2})(?::(\d{1,2}))?)?/)
+          if (m) {
+            let yr = parseInt(m[3])
+            if (yr < 100) yr += 2000
+            return new Date(yr, parseInt(m[2]) - 1, parseInt(m[1]), parseInt(m[4] || 0), parseInt(m[5] || 0), parseInt(m[6] || 0)).getTime()
+          }
+          return 0
+        }
+        aVal = parseTs(a.timestamp)
+        bVal = parseTs(b.timestamp)
         break
+      }
     }
     
     if (aVal < bVal) return sortDirection === 'asc' ? -1 : 1
@@ -197,13 +210,24 @@ export default function Logs() {
   }
 
   function formatDate(dateString) {
+    if (!dateString) return '-'
     const date = new Date(dateString)
-    const day = date.getDate().toString().padStart(2, '0')
-    const month = (date.getMonth() + 1).toString().padStart(2, '0')
-    const hour = date.getHours().toString().padStart(2, '0')
-    const minute = date.getMinutes().toString().padStart(2, '0')
-    
-    return `${day}/${month} ${hour}:${minute}`
+    if (!isNaN(date.getTime())) {
+      const day = date.getDate().toString().padStart(2, '0')
+      const month = (date.getMonth() + 1).toString().padStart(2, '0')
+      const hour = date.getHours().toString().padStart(2, '0')
+      const minute = date.getMinutes().toString().padStart(2, '0')
+      return `${day}/${month} ${hour}:${minute}`
+    }
+    const match = String(dateString).match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{2,4})(?:[,\s]+(\d{1,2}):(\d{1,2}))?/)
+    if (match) {
+      const day = match[1].padStart(2, '0')
+      const month = match[2].padStart(2, '0')
+      const hour = (match[4] || '00').padStart(2, '0')
+      const minute = (match[5] || '00').padStart(2, '0')
+      return `${day}/${month} ${hour}:${minute}`
+    }
+    return String(dateString).slice(0, 16)
   }
 
   if (loading) {
