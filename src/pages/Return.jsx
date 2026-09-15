@@ -13,6 +13,8 @@ export default function Return() {
 
   
   const [selectedProduct, setSelectedProduct] = useState(null)
+  const [selectedBatch, setSelectedBatch] = useState(null)
+  const [stockType, setStockType] = useState('main')
   const [quantity, setQuantity] = useState('1')
   const [note, setNote] = useState('')
   const [userName, setLocalUserName] = useState(liffUserName || '')
@@ -27,18 +29,7 @@ export default function Return() {
     fetchProducts()
   }, [fetchProducts])
 
-  // Lock scroll on mount, unlock on unmount
-  useEffect(() => {
-    document.body.style.overflow = 'hidden'
-    document.body.style.position = 'fixed'
-    document.body.style.width = '100%'
-    
-    return () => {
-      document.body.style.overflow = ''
-      document.body.style.position = ''
-      document.body.style.width = ''
-    }
-  }, [])
+
 
   // Refresh products when page becomes visible
   useEffect(() => {
@@ -58,8 +49,8 @@ export default function Return() {
     }
   }, [liffUserName])
 
-  // Filter only returnable products
-  const returnableProducts = products.filter(p => p.returnable)
+  // In the real sheet, all active materials can be returned
+  const returnableProducts = products.filter(p => p.returnable !== false)
 
   const toggleProductSelection = (product) => {
     haptics.selection()
@@ -131,12 +122,23 @@ export default function Return() {
       return
     }
 
-    const result = await returnProduct(selectedProduct.code, quantity, userName, note)
+    const batch = selectedBatch || (selectedProduct.batches && selectedProduct.batches[0]) || {}
+    const result = await returnProduct(
+      selectedProduct.materialCode || selectedProduct.code,
+      quantity,
+      userName,
+      note,
+      stockType,
+      batch.batch || '',
+      batch.sheetRow || null
+    )
     
     if (result.success) {
       haptics.success()
       setMessage({ type: 'success', text: result.message })
       setSelectedProduct(null)
+      setSelectedBatch(null)
+      setStockType('main')
       setQuantity('1')
       setNote('')
     } else {
@@ -452,6 +454,85 @@ export default function Return() {
                 <div className="product-name">{selectedProduct.name}</div>
               </div>
 
+              {/* Batch selection if multiple batches exist */}
+              {selectedProduct.batches && selectedProduct.batches.length > 1 && (
+                <div className="form-group" style={{ marginBottom: '16px' }}>
+                  <label>เลือก Batch / วันหมดอายุ</label>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '8px' }}>
+                    {selectedProduct.batches.map((batch, idx) => (
+                      <label key={batch.sheetRow || idx} style={{
+                        display: 'flex', alignItems: 'center', gap: '10px',
+                        padding: '10px 14px',
+                        border: `2px solid ${(selectedBatch?.sheetRow === batch.sheetRow || (!selectedBatch && idx === 0)) ? 'var(--accent, #ff9500)' : 'var(--border, #e5e5e7)'}`,
+                        borderRadius: '10px',
+                        background: (selectedBatch?.sheetRow === batch.sheetRow || (!selectedBatch && idx === 0)) ? 'rgba(255,149,0,0.08)' : 'var(--bg-secondary, #f5f5f7)',
+                        cursor: 'pointer'
+                      }}>
+                        <input type="radio" name="batchSelect"
+                          checked={selectedBatch ? selectedBatch.sheetRow === batch.sheetRow : idx === 0}
+                          onChange={() => setSelectedBatch(batch)}
+                          style={{ width: '18px', height: '18px' }}
+                        />
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontSize: '13px', fontWeight: '600' }}>
+                            Batch: {batch.batch || 'N/A'} · Plant: {batch.plant}
+                          </div>
+                          <div style={{ fontSize: '12px', color: 'var(--text-secondary, #86868b)' }}>
+                            ใหญ่: {batch.mainStock?.remaining || 0} · เล็ก: {batch.subStock?.remaining || 0}
+                            {batch.mainStockExpiry && ` · Exp: ${batch.mainStockExpiry}`}
+                          </div>
+                        </div>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Stock type selection */}
+              <div className="form-group" style={{ marginBottom: '16px' }}>
+                <label>คืนเข้าสู่</label>
+                <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
+                  <label style={{
+                    flex: 1, display: 'flex', alignItems: 'center', gap: '8px',
+                    padding: '10px 14px',
+                    border: `2px solid ${stockType === 'main' ? '#ff9500' : 'var(--border, #e5e5e7)'}`,
+                    borderRadius: '10px',
+                    background: stockType === 'main' ? 'rgba(255,149,0,0.08)' : 'var(--bg-secondary, #f5f5f7)',
+                    cursor: 'pointer'
+                  }}>
+                    <input type="radio" name="stockType" value="main"
+                      checked={stockType === 'main'} onChange={(e) => setStockType(e.target.value)}
+                      style={{ width: '18px', height: '18px' }}
+                    />
+                    <div>
+                      <div style={{ fontSize: '14px', fontWeight: '600' }}>สต๊อกใหญ่</div>
+                      <div style={{ fontSize: '12px', color: 'var(--text-secondary, #86868b)' }}>
+                        คงเหลือ: {(selectedBatch || selectedProduct.batches?.[0])?.mainStock?.remaining ?? selectedProduct.totalMainRemaining ?? 0}
+                      </div>
+                    </div>
+                  </label>
+                  <label style={{
+                    flex: 1, display: 'flex', alignItems: 'center', gap: '8px',
+                    padding: '10px 14px',
+                    border: `2px solid ${stockType === 'sub' ? '#ff9500' : 'var(--border, #e5e5e7)'}`,
+                    borderRadius: '10px',
+                    background: stockType === 'sub' ? 'rgba(255,149,0,0.08)' : 'var(--bg-secondary, #f5f5f7)',
+                    cursor: 'pointer'
+                  }}>
+                    <input type="radio" name="stockType" value="sub"
+                      checked={stockType === 'sub'} onChange={(e) => setStockType(e.target.value)}
+                      style={{ width: '18px', height: '18px' }}
+                    />
+                    <div>
+                      <div style={{ fontSize: '14px', fontWeight: '600' }}>สต๊อกเล็ก</div>
+                      <div style={{ fontSize: '12px', color: 'var(--text-secondary, #86868b)' }}>
+                        คงเหลือ: {(selectedBatch || selectedProduct.batches?.[0])?.subStock?.remaining ?? selectedProduct.totalSubRemaining ?? 0}
+                      </div>
+                    </div>
+                  </label>
+                </div>
+              </div>
+
               <div className="form-group">
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
                   <label style={{ margin: 0 }}>จำนวนที่คืน</label>
@@ -542,6 +623,8 @@ export default function Return() {
                 className="btn btn-outline btn-block mt-2"
                 onClick={() => {
                   setSelectedProduct(null)
+                  setSelectedBatch(null)
+                  setStockType('main')
                   setQuantity('')
                   setNote('')
                   window.scrollTo({ top: 0, behavior: 'smooth' })

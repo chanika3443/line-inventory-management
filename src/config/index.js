@@ -2,13 +2,13 @@ export const config = {
   // For READ operations - Google Sheets API
   sheetsApi: {
     baseUrl: 'https://sheets.googleapis.com/v4/spreadsheets',
-    spreadsheetId: import.meta.env.VITE_SPREADSHEET_ID || '13231Zdy1BQbX0BDmCVGIAgsKRJx_7UdDvxVBNO8MUM8',
+    spreadsheetId: import.meta.env.VITE_SPREADSHEET_ID || '1wjqnycMAHWVKQIzZLnyjLboOj5GhiinuB_zENg1Ttuo',
     apiKey: import.meta.env.VITE_GOOGLE_API_KEY || ''
   },
   
   // For WRITE operations - Apps Script API
   appsScript: {
-    url: import.meta.env.VITE_APPS_SCRIPT_URL || ''
+    url: import.meta.env.VITE_APPS_SCRIPT_URL || 'https://script.google.com/macros/s/AKfycbx485xIyUla9r78h6rxgwbr0JHlCt4skYjsXdxwPgHwjjwshVqhYI9OOVWY9fjVpYT0/exec'
   },
   
   // LINE LIFF

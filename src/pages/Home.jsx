@@ -1,8 +1,16 @@
+import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
+import { useSheets } from '../contexts/SheetsContext'
+import { getTabShortLabel } from '../utils/sheetHelpers'
 import Icon from '../components/Icon'
 import './Home.css'
 
 export default function Home() {
+  const { currentTab, availableTabs, fetchTabs, switchTab, loading } = useSheets()
+
+  useEffect(() => {
+    fetchTabs()
+  }, [fetchTabs])
   const menuItems = [
     { 
       icon: 'withdraw', 
@@ -45,6 +53,53 @@ export default function Home() {
       </div>
 
       <div className="container">
+        {/* Month / Tab Selector */}
+        <div style={{
+          background: 'var(--bg-card, #ffffff)',
+          borderRadius: 'var(--radius-lg, 16px)',
+          padding: '12px 16px',
+          marginBottom: '16px',
+          boxShadow: 'var(--shadow-sm, 0 1px 3px rgba(0,0,0,0.08))',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: '12px',
+          border: '1px solid var(--border, #e5e5e7)'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontSize: '20px' }}>📅</span>
+            <div>
+              <div style={{ fontSize: '11px', color: 'var(--text-secondary, #86868b)', fontWeight: '500' }}>รอบนับสต็อกเดือน</div>
+              <div style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-primary)' }}>
+                {getTabShortLabel(currentTab)}
+              </div>
+            </div>
+          </div>
+          {availableTabs.length > 1 && (
+            <select
+              value={currentTab}
+              onChange={(e) => switchTab(e.target.value)}
+              disabled={loading}
+              style={{
+                padding: '6px 12px',
+                borderRadius: '8px',
+                border: '1px solid var(--border, #d1d1d6)',
+                background: 'var(--bg-secondary, #f2f2f7)',
+                fontSize: '13px',
+                fontWeight: '600',
+                color: 'var(--text-primary)',
+                cursor: 'pointer'
+              }}
+            >
+              {availableTabs.map((tab) => (
+                <option key={tab.title} value={tab.title}>
+                  {getTabShortLabel(tab.title)}
+                </option>
+              ))}
+            </select>
+          )}
+        </div>
+
         <div className="menu-grid">
           {menuItems.map((item) => (
             <Link key={item.path} to={item.path} className="menu-item">

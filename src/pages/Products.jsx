@@ -5,7 +5,7 @@ import * as sheetsService from '../services/sheetsService'
 import SkeletonLoader from '../components/SkeletonLoader'
 import ConfirmDialog from '../components/ConfirmDialog'
 import { haptics } from '../utils/haptics'
-import { getExpiryStatus, getNearestExpiryDate, formatThaiDate } from '../utils/expiryDate'
+import { getExpiryStatus, getNearestExpiryDate } from '../utils/expiryDate'
 import './Products.css'
 
 export default function Products() {
@@ -313,38 +313,46 @@ export default function Products() {
 
             <div className="product-details">
               <div className="detail-row">
-                <span>คงเหลือ:</span>
+                <span>สต๊อกใหญ่:</span>
                 <span className="detail-value" style={{ fontWeight: '600' }}>
+                  {product.totalMainRemaining ?? product.mainStock?.remaining ?? 0} {product.unit}
+                </span>
+              </div>
+              <div className="detail-row">
+                <span>สต๊อกเล็ก:</span>
+                <span className="detail-value" style={{ fontWeight: '600' }}>
+                  {product.totalSubRemaining ?? product.subStock?.remaining ?? 0} {product.unit}
+                </span>
+              </div>
+              <div className="detail-row">
+                <span>รวมคงเหลือ:</span>
+                <span className="detail-value" style={{ fontWeight: '700', color: 'var(--accent)' }}>
                   {product.quantity} {product.unit}
-                  {product.quantity <= product.lowStockThreshold && (
+                  {product.quantity <= 5 && (
                     <span className="badge badge-warning ml-sm" style={{ fontSize: '11px', padding: '2px 8px' }}>ใกล้หมด</span>
                   )}
                 </span>
               </div>
-              <div className="detail-row">
-                <span>เกณฑ์:</span>
-                <span className="detail-value" style={{ fontWeight: '600' }}>{product.lowStockThreshold}</span>
-              </div>
-              {product.category && (
+              {product.plant && (
                 <div className="detail-row">
-                  <span>หมวดหมู่:</span>
-                  <span className="detail-value">{product.category}</span>
+                  <span>Plant:</span>
+                  <span className="detail-value">{product.plant}</span>
                 </div>
               )}
-            </div>
-            <div style={{ 
-              marginTop: '10px', 
-              padding: '8px 12px', 
-              background: product.returnable ? 'rgba(81, 207, 102, 0.1)' : '#f0f0f0', 
-              borderRadius: 'var(--radius-md)',
-              textAlign: 'center',
-              fontSize: '12px',
-              color: product.returnable ? '#51cf66' : '#999',
-              opacity: product.returnable ? 1 : 0.7,
-              fontWeight: product.returnable ? '600' : '400',
-              border: product.returnable ? '1px solid #51cf66' : '1px solid #ddd'
-            }}>
-              {product.returnable ? '✓ คืนได้' : '✗ คืนไม่ได้'}
+              {product.batches && product.batches.length > 1 && (
+                <div className="detail-row">
+                  <span>จำนวน Batch:</span>
+                  <span className="detail-value" style={{ color: 'var(--accent)', fontWeight: '600' }}>
+                    {product.batches.length} batches
+                  </span>
+                </div>
+              )}
+              {product.price && (
+                <div className="detail-row">
+                  <span>ราคา:</span>
+                  <span className="detail-value">{product.price} บาท</span>
+                </div>
+              )}
             </div>
           </div>
         )

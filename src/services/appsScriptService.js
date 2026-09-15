@@ -1,10 +1,12 @@
 /**
  * Apps Script API Service
  * Handles WRITE operations through Apps Script backend
+ * Works with the real monthly stock count sheet
  */
 
 import { config } from '../config'
 import { getDeviceInfoString } from '../utils/deviceInfo'
+import { getCurrentMonthTabName } from '../utils/sheetHelpers'
 
 const APPS_SCRIPT_URL = config.appsScript.url
 
@@ -24,13 +26,12 @@ async function callAppsScript(data) {
 
   try {
     console.log('Calling Apps Script:', APPS_SCRIPT_URL, data)
-    
-    // Add device info to all requests
+
     const dataWithDevice = {
       ...data,
       deviceInfo: getDeviceInfoString()
     }
-    
+
     const response = await fetch(APPS_SCRIPT_URL, {
       method: 'POST',
       redirect: 'follow',
@@ -39,18 +40,18 @@ async function callAppsScript(data) {
       },
       body: JSON.stringify(dataWithDevice)
     })
-    
+
     console.log('Apps Script response status:', response.status)
-    
+
     if (!response.ok) {
       throw new Error(`Apps Script error: ${response.status}`)
     }
-    
+
     const result = await response.json()
     console.log('Apps Script result:', result)
-    
+
     return result
-    
+
   } catch (error) {
     console.error('Error calling Apps Script:', error)
     return {
@@ -61,88 +62,114 @@ async function callAppsScript(data) {
 }
 
 /**
- * Add a new product
+ * Withdraw material
+ * @param {string} materialCode
+ * @param {number} quantity
+ * @param {string} userName
+ * @param {string} note
+ * @param {string} stockType - 'main' or 'sub'
+ * @param {string} batch - specific batch
+ * @param {number} sheetRow - 1-based row number in the sheet
+ * @param {string} tabName - tab name (defaults to current month)
  */
-export async function addProduct(product, userName) {
-  return await callAppsScript({
-    action: 'addProduct',
-    product: {
-      ...product,
-      userName
-    }
-  })
-}
-
-/**
- * Update an existing product
- */
-export async function updateProduct(code, updates, userName) {
-  return await callAppsScript({
-    action: 'updateProduct',
-    code,
-    updates: {
-      ...updates,
-      userName
-    }
-  })
-}
-
-/**
- * Delete a product
- */
-export async function deleteProduct(code, userName) {
-  return await callAppsScript({
-    action: 'deleteProduct',
-    code,
-    userName
-  })
-}
-
-/**
- * Withdraw product
- */
-export async function withdraw(productCode, quantity, userName, note = '') {
+export async function withdraw(materialCode, quantity, userName, note = '', stockType = 'main', batch = '', sheetRow = null, tabName = null) {
   return await callAppsScript({
     action: 'withdraw',
-    productCode,
+    materialCode,
     quantity: parseInt(quantity),
     userName,
-    note
+    note,
+    stockType,
+    batch,
+    sheetRow,
+    tabName: tabName || getCurrentMonthTabName()
   })
 }
 
 /**
- * Receive product
+ * Receive material
  */
-export async function receive(productCode, quantity, userName) {
+export async function receive(materialCode, quantity, userName, stockType = 'main', batch = '', sheetRow = null, tabName = null) {
   return await callAppsScript({
     action: 'receive',
-    productCode,
-    quantity: parseInt(quantity),
-    userName
-  })
-}
-
-/**
- * Return product
- */
-export async function returnProduct(productCode, quantity, userName, note = '') {
-  return await callAppsScript({
-    action: 'return',
-    productCode,
+    materialCode,
     quantity: parseInt(quantity),
     userName,
-    note
+    stockType,
+    batch,
+    sheetRow,
+    tabName: tabName || getCurrentMonthTabName()
   })
 }
 
 /**
- * Batch withdraw
+ * Return material
  */
-export async function batchWithdraw(items, userName) {
+export async function returnMaterial(materialCode, quantity, userName, note = '', stockType = 'main', batch = '', sheetRow = null, tabName = null) {
+  return await callAppsScript({
+    action: 'return',
+    materialCode,
+    quantity: parseInt(quantity),
+    userName,
+    note,
+    stockType,
+    batch,
+    sheetRow,
+    tabName: tabName || getCurrentMonthTabName()
+  })
+}
+
+/**
+ * Add a new material
+ */
+export async function addMaterial(material, tabName = null) {
+  return await callAppsScript({
+    action: 'addMaterial',
+    material,
+    tabName: tabName || getCurrentMonthTabName()
+  })
+}
+
+/**
+ * Update material at a specific row
+ */
+export async function updateMaterial(sheetRow, updates, tabName = null) {
+  return await callAppsScript({
+    action: 'updateMaterial',
+    sheetRow,
+    updates,
+    tabName: tabName || getCurrentMonthTabName()
+  })
+}
+
+/**
+ * Delete material at a specific row
+ */
+export async function deleteMaterial(sheetRow, userName, tabName = null) {
+  return await callAppsScript({
+    action: 'deleteMaterial',
+    sheetRow,
+    userName,
+    tabName: tabName || getCurrentMonthTabName()
+  })
+}
+
+/**
+ * Batch withdraw multiple materials
+ */
+export async function batchWithdraw(items, userName, tabName = null) {
   return await callAppsScript({
     action: 'batchWithdraw',
     items,
-    userName
+    userName,
+    tabName: tabName || getCurrentMonthTabName()
   })
 }
+
+// ============================================
+// Legacy compatibility aliases
+// ============================================
+export const addProduct = (product, userName) => addMaterial({ ...product, userName })
+export const updateProduct = (code, updates, userName) => updateMaterial(null, { ...updates, userName })
+export const deleteProduct = (code, userName) => deleteMaterial(null, userName)
+export const returnProduct = returnMaterial

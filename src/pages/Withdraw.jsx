@@ -5,16 +5,18 @@ import Icon from '../components/Icon'
 import SkeletonLoader from '../components/SkeletonLoader'
 import { haptics } from '../utils/haptics'
 import { ERROR_MESSAGES } from '../utils/errorMessages'
-import { getExpiryStatus, getNearestExpiryDate, formatThaiDate } from '../utils/expiryDate'
+import { getNearestExpiryDate, getExpiryStatus } from '../utils/expiryDate'
 import './Transaction.css'
 
 export default function Withdraw() {
-  const { products, fetchProducts, withdraw, loading } = useSheets()
+  const { mergedMaterials, fetchMaterials, withdraw, loading } = useSheets()
   const { userName: liffUserName } = useLiff()
   
 
   
   const [selectedProduct, setSelectedProduct] = useState(null)
+  const [selectedBatch, setSelectedBatch] = useState(null) // selected batch entry
+  const [stockType, setStockType] = useState('main') // 'main' or 'sub'
   const [quantity, setQuantity] = useState('1')
   const [userName, setLocalUserName] = useState(liffUserName || '')
   const [roomNumber, setRoomNumber] = useState('')
@@ -46,8 +48,8 @@ export default function Withdraw() {
   const [isFooterExpanded, setIsFooterExpanded] = useState(false)
 
   useEffect(() => {
-    fetchProducts()
-  }, [fetchProducts])
+    fetchMaterials()
+  }, [fetchMaterials])
 
   // Lock scroll on mount, unlock on unmount
   useEffect(() => {
@@ -62,17 +64,17 @@ export default function Withdraw() {
     }
   }, [])
 
-  // Refresh products when page becomes visible
+  // Refresh materials when page becomes visible
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
-        fetchProducts()
+        fetchMaterials()
       }
     }
 
     document.addEventListener('visibilitychange', handleVisibilityChange)
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
-  }, [fetchProducts])
+  }, [fetchMaterials])
 
   useEffect(() => {
     // Update local userName when LIFF userName changes
@@ -83,18 +85,18 @@ export default function Withdraw() {
 
   const toggleProductSelection = (product) => {
     haptics.selection()
-    const isSelected = selectedItems.some(item => item.product.code === product.code)
+    const isSelected = selectedItems.some(item => item.product.materialCode === product.materialCode)
     if (isSelected) {
-      setSelectedItems(selectedItems.filter(item => item.product.code !== product.code))
+      setSelectedItems(selectedItems.filter(item => item.product.materialCode !== product.materialCode))
     } else {
-      setSelectedItems([...selectedItems, { product, quantity: 1 }])
+      setSelectedItems([...selectedItems, { product, quantity: 1, stockType: 'main', batch: product.batches[0] }])
     }
     setIsMultiSelectMode(true)
   }
 
-  const updateItemQuantity = (productCode, newQuantity) => {
+  const updateItemQuantity = (materialCode, newQuantity) => {
     setSelectedItems(selectedItems.map(item => 
-      item.product.code === productCode 
+      item.product.materialCode === materialCode 
         ? { ...item, quantity: parseInt(newQuantity) || 1 }
         : item
     ))
@@ -117,7 +119,11 @@ export default function Withdraw() {
     let failCount = 0
 
     for (const item of selectedItems) {
-      const result = await withdraw(item.product.code, item.quantity, userName)
+      const batch = item.batch || item.product.batches[0]
+      const result = await withdraw(
+        item.product.materialCode, item.quantity, userName, '',
+        item.stockType || 'main', batch.batch || '', batch.sheetRow || null
+      )
       if (result.success) {
         successCount++
       } else {
@@ -165,19 +171,20 @@ export default function Withdraw() {
       return
     }
 
-    // Check stock availability before submitting
-    const currentProduct = products.find(p => p.code === selectedProduct.code)
-    if (!currentProduct) {
+    // Check stock availability
+    const batch = selectedBatch || selectedProduct.batches[0]
+    if (!batch) {
       haptics.error()
-      setMessage({ type: 'error', text: 'ไม่พบข้อมูลสินค้า กรุณารีเฟรชหน้าใหม่' })
+      setMessage({ type: 'error', text: 'ไม่พบข้อมูลวัสดุ กรุณารีเฟรชหน้าใหม่' })
       return
     }
-    
-    if (currentProduct.quantity < quantity) {
+
+    const available = stockType === 'sub' ? batch.subStock.remaining : batch.mainStock.remaining
+    if (available < parseInt(quantity)) {
       haptics.error()
       setMessage({ 
         type: 'error', 
-        text: `สต็อกไม่เพียงพอ (เหลือ ${currentProduct.quantity} ${currentProduct.unit})` 
+        text: `สต็อกไม่เพียงพอ (เหลือ ${available} ${batch.unit || selectedProduct.unit})` 
       })
       return
     }
@@ -187,13 +194,16 @@ export default function Withdraw() {
     if (roomNumber.trim()) {
       noteParts.push(`ห้อง: ${roomNumber}`)
     }
-    if (selectedProduct.requirePatientType) {
+    if (patientType) {
       noteParts.push(`ประเภท: ${patientType}`)
     }
     const note = noteParts.join(', ')
     
     setIsSubmitting(true)
-    const result = await withdraw(selectedProduct.code, quantity, userName, note)
+    const result = await withdraw(
+      selectedProduct.materialCode, quantity, userName, note,
+      stockType, batch.batch || '', batch.sheetRow || null
+    )
     setIsSubmitting(false)
     
     if (result.success) {
@@ -201,6 +211,8 @@ export default function Withdraw() {
       setMessage({ type: 'success', text: result.message })
       
       setSelectedProduct(null)
+      setSelectedBatch(null)
+      setStockType('main')
       setQuantity('1')
       setRoomNumber('')
       setPatientType(getDefaultPatientType())
@@ -210,7 +222,7 @@ export default function Withdraw() {
     }
   }
 
-  if (loading && products.length === 0) {
+  if (loading && mergedMaterials.length === 0) {
     return (
       <div className="transaction-page">
         <div className="header">
@@ -261,21 +273,22 @@ export default function Withdraw() {
             </div>
 
             <div className="product-list">
-              {products.map((product) => {
-                const isSelected = selectedItems.some(item => item.product.code === product.code)
-                const nearestExpiry = getNearestExpiryDate(product.expiryDates)
-                const expiryStatus = nearestExpiry ? getExpiryStatus(nearestExpiry) : null
+              {mergedMaterials.map((material) => {
+                const isSelected = selectedItems.some(item => item.product.materialCode === material.materialCode)
+                const totalStock = material.totalMainRemaining + material.totalSubRemaining
                 
                 return (
                   <div
-                    key={product.code}
+                    key={material.materialCode}
                     className={`product-item ${isSelected ? 'selected' : ''}`}
                     style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}
                     onClick={() => {
                       if (isMultiSelectMode) {
-                        toggleProductSelection(product)
+                        toggleProductSelection(material)
                       } else {
-                        setSelectedProduct(product)
+                        setSelectedProduct(material)
+                        setSelectedBatch(material.batches[0])
+                        setStockType('main')
                       }
                     }}
                   >
@@ -283,7 +296,7 @@ export default function Withdraw() {
                       <input
                         type="checkbox"
                         checked={isSelected}
-                        onChange={() => {}} // Handled by parent onClick
+                        onChange={() => {}}
                         style={{ width: '20px', height: '20px', cursor: 'pointer', flexShrink: 0, pointerEvents: 'none' }}
                       />
                     )}
@@ -291,26 +304,22 @@ export default function Withdraw() {
                       style={{ flex: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
                     >
                       <div className="product-info">
-                        <div className="product-name">{product.name}</div>
-                        {expiryStatus && (
-                          <div style={{ 
-                            fontSize: '12px', 
-                            color: expiryStatus.color,
-                            fontWeight: '600',
-                            marginTop: '4px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '4px'
-                          }}>
-                            <span>📅</span>
-                            <span>{expiryStatus.text} ({formatThaiDate(nearestExpiry)})</span>
+                        <div className="product-name">{material.description}</div>
+                        <div style={{ fontSize: '11px', color: '#86868b', marginTop: '2px' }}>
+                          {material.materialCode}
+                          {material.batches.length > 1 && ` · ${material.batches.length} batches`}
+                        </div>
+                        {material.mainStockExpiry && (
+                          <div style={{ fontSize: '11px', color: '#ff9500', marginTop: '2px' }}>
+                            📅 {material.mainStockExpiry}
                           </div>
                         )}
                       </div>
-                      <div className="product-quantity">
-                        {product.quantity} {product.unit}
-                        {product.quantity <= product.lowStockThreshold && (
-                          <span className="badge badge-warning ml-sm">ใกล้หมด</span>
+                      <div className="product-quantity" style={{ textAlign: 'right' }}>
+                        <div>ใหญ่: {material.totalMainRemaining}</div>
+                        <div style={{ fontSize: '11px', color: '#86868b' }}>เล็ก: {material.totalSubRemaining}</div>
+                        {totalStock <= 0 && (
+                          <span className="badge badge-warning ml-sm" style={{ background: '#ffebee', color: '#ff3b30' }}>หมด</span>
                         )}
                       </div>
                     </div>
@@ -402,7 +411,7 @@ export default function Withdraw() {
                           const expiryStatus = nearestExpiry ? getExpiryStatus(nearestExpiry) : null
                           
                           return (
-                      <div key={item.product.code} style={{ 
+                      <div key={item.product.materialCode || item.product.code} style={{ 
                         background: 'var(--bg-secondary)', 
                         padding: '12px', 
                         borderRadius: 'var(--radius-md)', 
@@ -413,19 +422,23 @@ export default function Withdraw() {
                       }}>
                         <div style={{ flex: 1 }}>
                           <div style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-primary)' }}>
-                            {item.product.name}
+                            {item.product.description || item.product.name}
                           </div>
                           <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
-                            คงเหลือ: {item.product.quantity} {item.product.unit}
+                            คงเหลือ: {item.product.totalMainRemaining ?? item.product.quantity} {item.product.unit}
                           </div>
                           {expiryStatus && (
                             <div style={{ 
                               fontSize: '11px', 
                               color: expiryStatus.color,
                               fontWeight: '600',
-                              marginTop: '4px'
+                              marginTop: '2px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '4px'
                             }}>
-                              📅 {expiryStatus.text}
+                              <span>📅</span>
+                              <span>{expiryStatus.text}</span>
                             </div>
                           )}
                         </div>
@@ -434,7 +447,7 @@ export default function Withdraw() {
                             onClick={(e) => {
                               e.stopPropagation()
                               const newQty = Math.max(1, item.quantity - 1)
-                              updateItemQuantity(item.product.code, newQty)
+                              updateItemQuantity(item.product.materialCode || item.product.code, newQty)
                             }}
                             style={{
                               width: '32px',
@@ -456,9 +469,9 @@ export default function Withdraw() {
                           <input
                             type="number"
                             value={item.quantity}
-                            onChange={(e) => updateItemQuantity(item.product.code, e.target.value)}
+                            onChange={(e) => updateItemQuantity(item.product.materialCode || item.product.code, e.target.value)}
                             min="1"
-                            max={item.product.quantity}
+                            max={item.product.totalMainRemaining ?? item.product.quantity}
                             style={{
                               width: '60px',
                               padding: '8px',
@@ -474,8 +487,9 @@ export default function Withdraw() {
                           <button
                             onClick={(e) => {
                               e.stopPropagation()
-                              const newQty = Math.min(item.product.quantity, item.quantity + 1)
-                              updateItemQuantity(item.product.code, newQty)
+                              const max = item.product.totalMainRemaining ?? item.product.quantity
+                              const newQty = Math.min(max, item.quantity + 1)
+                              updateItemQuantity(item.product.materialCode || item.product.code, newQty)
                             }}
                             style={{
                               width: '32px',
@@ -548,46 +562,97 @@ export default function Withdraw() {
             <div className="card-title">รายละเอียดการเบิก</div>
             <form onSubmit={handleWithdraw}>
               <div className="selected-product">
-                <div className="product-name">{selectedProduct.name}</div>
-                {(() => {
-                  const nearestExpiry = getNearestExpiryDate(selectedProduct.expiryDates)
-                  const expiryStatus = nearestExpiry ? getExpiryStatus(nearestExpiry) : null
-                  
-                  if (expiryStatus) {
-                    return (
-                      <div style={{ 
-                        marginTop: '8px',
-                        padding: '8px 12px',
-                        background: `${expiryStatus.color}15`,
-                        border: `1.5px solid ${expiryStatus.color}`,
-                        borderRadius: '8px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '6px'
-                      }}>
-                        <span style={{ fontSize: '16px' }}>📅</span>
+                <div className="product-name">{selectedProduct.description}</div>
+                <div style={{ fontSize: '12px', color: '#86868b', marginTop: '4px' }}>
+                  รหัส: {selectedProduct.materialCode} · หน่วย: {selectedProduct.unit}
+                </div>
+              </div>
+
+              {/* Batch selection (if multiple batches) */}
+              {selectedProduct.batches.length > 1 && (
+                <div className="form-group">
+                  <label>เลือก Batch</label>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '8px' }}>
+                    {selectedProduct.batches.map((batch, idx) => (
+                      <label
+                        key={idx}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '10px',
+                          padding: '10px 14px',
+                          border: `2px solid ${selectedBatch === batch ? '#007aff' : '#e5e5e7'}`,
+                          borderRadius: '10px',
+                          background: selectedBatch === batch ? 'rgba(0,122,255,0.05)' : '#f5f5f7',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s'
+                        }}
+                      >
+                        <input
+                          type="radio"
+                          name="batch"
+                          checked={selectedBatch === batch}
+                          onChange={() => setSelectedBatch(batch)}
+                          style={{ width: '18px', height: '18px' }}
+                        />
                         <div style={{ flex: 1 }}>
-                          <div style={{ 
-                            fontSize: '13px', 
-                            fontWeight: '600',
-                            color: expiryStatus.color
-                          }}>
-                            {expiryStatus.text}
+                          <div style={{ fontSize: '13px', fontWeight: '600' }}>
+                            Batch: {batch.batch || 'N/A'} · Plant: {batch.plant}
                           </div>
-                          <div style={{ 
-                            fontSize: '12px', 
-                            color: expiryStatus.color,
-                            opacity: 0.8,
-                            marginTop: '2px'
-                          }}>
-                            หมดอายุ: {formatThaiDate(nearestExpiry)}
+                          <div style={{ fontSize: '12px', color: '#86868b' }}>
+                            ใหญ่: {batch.mainStock.remaining} · เล็ก: {batch.subStock.remaining}
+                            {batch.mainStockExpiry && ` · Exp: ${batch.mainStockExpiry}`}
                           </div>
                         </div>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Stock type selection */}
+              <div className="form-group">
+                <label>เบิกจาก</label>
+                <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
+                  <label style={{
+                    flex: 1, display: 'flex', alignItems: 'center', gap: '8px',
+                    padding: '10px 14px',
+                    border: `2px solid ${stockType === 'main' ? '#007aff' : '#e5e5e7'}`,
+                    borderRadius: '10px',
+                    background: stockType === 'main' ? 'rgba(0,122,255,0.05)' : '#f5f5f7',
+                    cursor: 'pointer'
+                  }}>
+                    <input type="radio" name="stockType" value="main"
+                      checked={stockType === 'main'} onChange={(e) => setStockType(e.target.value)}
+                      style={{ width: '18px', height: '18px' }}
+                    />
+                    <div>
+                      <div style={{ fontSize: '14px', fontWeight: '600' }}>สต๊อกใหญ่</div>
+                      <div style={{ fontSize: '12px', color: '#86868b' }}>
+                        คงเหลือ: {(selectedBatch || selectedProduct.batches[0])?.mainStock.remaining || 0}
                       </div>
-                    )
-                  }
-                  return null
-                })()}
+                    </div>
+                  </label>
+                  <label style={{
+                    flex: 1, display: 'flex', alignItems: 'center', gap: '8px',
+                    padding: '10px 14px',
+                    border: `2px solid ${stockType === 'sub' ? '#007aff' : '#e5e5e7'}`,
+                    borderRadius: '10px',
+                    background: stockType === 'sub' ? 'rgba(0,122,255,0.05)' : '#f5f5f7',
+                    cursor: 'pointer'
+                  }}>
+                    <input type="radio" name="stockType" value="sub"
+                      checked={stockType === 'sub'} onChange={(e) => setStockType(e.target.value)}
+                      style={{ width: '18px', height: '18px' }}
+                    />
+                    <div>
+                      <div style={{ fontSize: '14px', fontWeight: '600' }}>สต๊อกเล็ก</div>
+                      <div style={{ fontSize: '12px', color: '#86868b' }}>
+                        คงเหลือ: {(selectedBatch || selectedProduct.batches[0])?.subStock.remaining || 0}
+                      </div>
+                    </div>
+                  </label>
+                </div>
               </div>
 
               <div className="form-group">
@@ -601,7 +666,10 @@ export default function Withdraw() {
                     fontSize: '12px',
                     fontWeight: '600'
                   }}>
-                    คงเหลือ {selectedProduct.quantity} {selectedProduct.unit}
+                    คงเหลือ {stockType === 'sub' 
+                      ? (selectedBatch || selectedProduct.batches[0])?.subStock.remaining 
+                      : (selectedBatch || selectedProduct.batches[0])?.mainStock.remaining
+                    } {selectedProduct.unit}
                   </span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -631,14 +699,17 @@ export default function Withdraw() {
                     value={quantity}
                     onChange={(e) => setQuantity(e.target.value)}
                     min="1"
-                    max={selectedProduct.quantity}
+                    max={stockType === 'sub' ? (selectedBatch || selectedProduct.batches[0])?.subStock.remaining : (selectedBatch || selectedProduct.batches[0])?.mainStock.remaining}
                     placeholder="ระบุจำนวน"
                     required
                     style={{ flex: 1, textAlign: 'center', fontSize: '14px', fontWeight: '600' }}
                   />
                   <button
                     type="button"
-                    onClick={() => setQuantity(Math.min(selectedProduct.quantity, parseInt(quantity || 0) + 1).toString())}
+                    onClick={() => {
+                      const max = stockType === 'sub' ? (selectedBatch || selectedProduct.batches[0])?.subStock.remaining : (selectedBatch || selectedProduct.batches[0])?.mainStock.remaining
+                      setQuantity(Math.min(max || 999, parseInt(quantity || 0) + 1).toString())
+                    }}
                     style={{
                       width: '36px',
                       height: '40px',
@@ -661,70 +732,16 @@ export default function Withdraw() {
 
 
 
-              {selectedProduct.requireRoom && (
-                <div className="form-group">
-                  <label>ห้องผู้ป่วย (ถ้ามี)</label>
-                  <input
-                    type="text"
-                    className="input"
-                    value={roomNumber}
-                    onChange={(e) => setRoomNumber(e.target.value)}
-                    placeholder="เช่น 101, 102, 103"
-                  />
-                </div>
-              )}
-
-              {selectedProduct.requirePatientType && (
-                <div className="form-group">
-                  <label>ประเภท</label>
-                  <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
-                    <label style={{ 
-                      flex: 1, 
-                      display: 'flex', 
-                      alignItems: 'center', 
-                      gap: '8px',
-                      padding: '12px 16px',
-                      border: `2px solid ${patientType === 'ดึก' ? 'var(--accent)' : 'var(--border)'}`,
-                      borderRadius: 'var(--radius-md)',
-                      background: patientType === 'ดึก' ? 'var(--accent-light)' : 'var(--bg-secondary)',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s'
-                    }}>
-                      <input
-                        type="radio"
-                        name="patientType"
-                        value="ดึก"
-                        checked={patientType === 'ดึก'}
-                        onChange={(e) => setPatientType(e.target.value)}
-                        style={{ width: '18px', height: '18px', cursor: 'pointer' }}
-                      />
-                      <span style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-primary)' }}>ดึก</span>
-                    </label>
-                    <label style={{ 
-                      flex: 1, 
-                      display: 'flex', 
-                      alignItems: 'center', 
-                      gap: '8px',
-                      padding: '12px 16px',
-                      border: `2px solid ${patientType === 'รับใหม่' ? 'var(--accent)' : 'var(--border)'}`,
-                      borderRadius: 'var(--radius-md)',
-                      background: patientType === 'รับใหม่' ? 'var(--accent-light)' : 'var(--bg-secondary)',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s'
-                    }}>
-                      <input
-                        type="radio"
-                        name="patientType"
-                        value="รับใหม่"
-                        checked={patientType === 'รับใหม่'}
-                        onChange={(e) => setPatientType(e.target.value)}
-                        style={{ width: '18px', height: '18px', cursor: 'pointer' }}
-                      />
-                      <span style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-primary)' }}>รับใหม่</span>
-                    </label>
-                  </div>
-                </div>
-              )}
+              <div className="form-group">
+                <label>ห้องผู้ป่วย (ถ้ามี)</label>
+                <input
+                  type="text"
+                  className="input"
+                  value={roomNumber}
+                  onChange={(e) => setRoomNumber(e.target.value)}
+                  placeholder="เช่น 101, 102, 103"
+                />
+              </div>
 
               <button type="submit" className="btn btn-primary btn-block" disabled={loading} style={{ marginTop: '16px' }}>
                 <Icon name="withdraw" size={20} color="white" />

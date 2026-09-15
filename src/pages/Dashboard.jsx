@@ -1,23 +1,24 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Link } from 'react-router-dom'
+import { useSheets } from '../contexts/SheetsContext'
 import * as sheetsService from '../services/sheetsService'
+import { getTabShortLabel } from '../utils/sheetHelpers'
 import Icon from '../components/Icon'
 import SkeletonLoader from '../components/SkeletonLoader'
 import { haptics } from '../utils/haptics'
 import './Dashboard.css'
 
 export default function Dashboard() {
+  const { currentTab } = useSheets()
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
 
   const loadData = useCallback(async () => {
     haptics.light()
-    const dashboardData = await sheetsService.getDashboardData()
+    const dashboardData = await sheetsService.getDashboardData(currentTab)
     setData(dashboardData)
     setLoading(false)
-  }, [])
-
-
+  }, [currentTab])
 
   useEffect(() => {
     loadData()
@@ -54,36 +55,40 @@ export default function Dashboard() {
     <div className="dashboard-page">
       <div className="header">
         <h1>ภาพรวม</h1>
-        <p className="header-subtitle">ภาพรวมคลังวัสดุ</p>
+        <p className="header-subtitle">ภาพรวมคลังวัสดุ · {getTabShortLabel(currentTab)}</p>
       </div>
 
       <div className="container">
         <div className="hero-stat">
           <div className="hero-stat-label">วัสดุทั้งหมด</div>
-          <div className="hero-stat-value">{data.totalProducts}</div>
-          <div className="hero-stat-desc">รายการในระบบ</div>
+          <div className="hero-stat-value">{data.totalMaterials || data.totalProducts}</div>
+          <div className="hero-stat-desc">รายการในรอบเดือน {getTabShortLabel(currentTab)}</div>
         </div>
 
-        <div className="stats-grid">
+        <div className="stats-grid" style={{ gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
           <div className="stat-card">
-            <Icon name="products" size={28} color="var(--color-success)" />
-            <div className="stat-value">{data.totalQuantity.toLocaleString()}</div>
-            <div className="stat-label">จำนวนรวม</div>
+            <Icon name="products" size={24} color="var(--color-success)" />
+            <div className="stat-value">{(data.totalMainRemaining ?? 0).toLocaleString()}</div>
+            <div className="stat-label">สต๊อกใหญ่</div>
           </div>
           <div className="stat-card">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--color-danger)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-              <line x1="12" y1="9" x2="12" y2="13"/>
-              <line x1="12" y1="17" x2="12.01" y2="17"/>
-            </svg>
-            <div className="stat-value" style={{ color: 'var(--color-danger)' }}>{data.lowStockCount}</div>
-            <div className="stat-label">ใกล้หมด</div>
+            <Icon name="products" size={24} color="#5ac8fa" />
+            <div className="stat-value">{(data.totalSubRemaining ?? 0).toLocaleString()}</div>
+            <div className="stat-label">สต๊อกเล็ก</div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-value" style={{ color: 'var(--accent)' }}>{(data.totalRemaining ?? data.totalQuantity ?? 0).toLocaleString()}</div>
+            <div className="stat-label">รวมทุกสต๊อก</div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-value" style={{ color: 'var(--color-danger)' }}>{data.lowStockCount ?? 0}</div>
+            <div className="stat-label">ใกล้หมด (≤5)</div>
           </div>
         </div>
 
         <div className="card">
           <div className="card-title">วัสดุใกล้หมด</div>
-          {data.lowStockProducts.length === 0 ? (
+          {(data.lowStockMaterials || data.lowStockProducts || []).length === 0 ? (
             <div className="empty-state">
               <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--color-success)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="20 6 9 17 4 12"/>
@@ -92,15 +97,18 @@ export default function Dashboard() {
             </div>
           ) : (
             <div className="list">
-              {data.lowStockProducts.map((product) => (
-                <div key={product.code} className="list-item">
-                  <div>
-                    <div className="list-item-title">{product.name}</div>
-                    <div className="list-item-subtitle">{product.code}</div>
+              {(data.lowStockMaterials || data.lowStockProducts).map((product) => (
+                <div key={product.materialCode || product.code} className="list-item">
+                  <div style={{ flex: 1 }}>
+                    <div className="list-item-title">{product.description || product.name}</div>
+                    <div className="list-item-subtitle">
+                      รหัส: {product.materialCode || product.code}
+                      {product.plant && ` · Plant: ${product.plant}`}
+                    </div>
                   </div>
                   <div style={{ textAlign: 'right' }}>
                     <span className="badge badge-danger">
-                      {product.quantity} / {product.lowStockThreshold} {product.unit}
+                      ใหญ่: {product.totalMainRemaining ?? product.mainStock?.remaining ?? 0} · เล็ก: {product.totalSubRemaining ?? product.subStock?.remaining ?? 0} {product.unit}
                     </span>
                   </div>
                 </div>

@@ -1,9 +1,18 @@
 /**
  * Google Sheets API Service
  * Handles READ operations directly from Google Sheets API
+ * Reads from the real monthly stock count sheet
  */
 
 import { config } from '../config'
+import {
+  rowToMaterial,
+  mergeBatches,
+  filterActiveMaterials,
+  getCurrentMonthTabName,
+  isMonthlyStockTab,
+  HEADER_ROWS
+} from '../utils/sheetHelpers'
 
 const SHEETS_API_BASE = config.sheetsApi.baseUrl
 const SPREADSHEET_ID = config.sheetsApi.spreadsheetId
@@ -11,19 +20,19 @@ const API_KEY = config.sheetsApi.apiKey
 
 /**
  * Fetch data from Google Sheets
- * @param {string} range - Sheet range (e.g., "Products!A2:I")
+ * @param {string} range - Sheet range (e.g., "TabName!A4:S")
  * @returns {Promise<Array>} Array of rows
  */
 async function fetchSheetData(range) {
-  const url = `${SHEETS_API_BASE}/${SPREADSHEET_ID}/values/${range}?key=${API_KEY}`
-  
+  const url = `${SHEETS_API_BASE}/${SPREADSHEET_ID}/values/${encodeURIComponent(range)}?key=${API_KEY}`
+
   try {
     const response = await fetch(url)
-    
+
     if (!response.ok) {
       throw new Error(`Sheets API error: ${response.status}`)
     }
-    
+
     const data = await response.json()
     return data.values || []
   } catch (error) {
@@ -33,197 +42,269 @@ async function fetchSheetData(range) {
 }
 
 /**
- * Convert row data to Product object
+ * Fetch spreadsheet metadata to get list of tabs
+ * @returns {Promise<Array>} Array of sheet tab objects { title, sheetId, index }
  */
-function rowToProduct(row) {
-  // Parse expiry dates from JSON string
-  let expiryDates = []
-  if (row[11]) {
-    try {
-      expiryDates = JSON.parse(row[11])
-    } catch (e) {
-      console.error('Error parsing expiry dates:', e)
-    }
-  }
-  
-  return {
-    code: row[0] || '',
-    name: row[1] || '',
-    unit: row[2] || '',
-    quantity: parseInt(row[3]) || 0,
-    lowStockThreshold: parseInt(row[4]) || 0,
-    category: row[5] || '',
-    returnable: row[6] === 'TRUE' || row[6] === true,
-    requireRoom: row[7] === 'TRUE' || row[7] === true,
-    requirePatientType: row[8] === 'TRUE' || row[8] === true,
-    createdAt: row[9] || '',
-    updatedAt: row[10] || '',
-    expiryDates: expiryDates
-  }
-}
+async function fetchSpreadsheetMeta() {
+  const url = `${SHEETS_API_BASE}/${SPREADSHEET_ID}?fields=sheets.properties&key=${API_KEY}`
 
-/**
- * Convert row data to Transaction object
- */
-function rowToTransaction(row) {
-  // Parse timestamp from format "15/1/2026, 0:23:39" to ISO format
-  let timestamp = row[1] || ''
-  if (timestamp && timestamp.includes('/')) {
-    try {
-      // Split "15/1/2026, 0:23:39" into parts
-      const [datePart, timePart] = timestamp.split(', ')
-      const [day, month, year] = datePart.split('/')
-      const [hour, minute, second] = timePart.split(':')
-      
-      // Create ISO format: 2026-01-15T00:23:39
-      timestamp = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}T${hour.padStart(2, '0')}:${minute.padStart(2, '0')}:${second.padStart(2, '0')}`
-    } catch (e) {
-      console.error('Error parsing timestamp:', row[1], e)
-    }
-  }
-  
-  return {
-    id: row[0] || '',
-    timestamp: timestamp,
-    type: row[2] || '',
-    productCode: row[3] || '',
-    productName: row[4] || '',
-    quantity: parseInt(row[5]) || 0,
-    beforeQuantity: parseInt(row[6]) || 0,
-    afterQuantity: parseInt(row[7]) || 0,
-    userName: row[8] || '',
-    note: row[9] || ''
-  }
-}
-
-/**
- * Get all products
- */
-export async function getAllProducts() {
   try {
-    const rows = await fetchSheetData('Products!A2:L')
-    return rows.map(rowToProduct)
+    const response = await fetch(url)
+    if (!response.ok) {
+      throw new Error(`Sheets API metadata error: ${response.status}`)
+    }
+
+    const data = await response.json()
+    return (data.sheets || []).map(s => ({
+      title: s.properties.title,
+      sheetId: s.properties.sheetId,
+      index: s.properties.index,
+    }))
   } catch (error) {
-    console.error('Error getting products:', error)
+    console.error('Error fetching spreadsheet metadata:', error)
+    throw error
+  }
+}
+
+/**
+ * Get list of available monthly stock tabs
+ * @returns {Promise<Array>} Array of { title, sheetId, index } for monthly tabs, sorted newest first
+ */
+export async function getAvailableTabs() {
+  try {
+    const allTabs = await fetchSpreadsheetMeta()
+    const monthlyTabs = allTabs.filter(tab => isMonthlyStockTab(tab.title))
+
+    // Sort by index (newest tabs are typically last, but we reverse for UI)
+    monthlyTabs.sort((a, b) => b.index - a.index)
+
+    return monthlyTabs
+  } catch (error) {
+    console.error('Error getting available tabs:', error)
     return []
   }
 }
 
 /**
- * Get product by code
+ * Get all materials from a specific tab
+ * @param {string} tabName - Tab name to read from (defaults to current month)
+ * @returns {Promise<Array>} Array of Material objects
  */
-export async function getProductByCode(code) {
-  const products = await getAllProducts()
-  return products.find(p => p.code === code) || null
+export async function getAllMaterials(tabName = null) {
+  try {
+    const tab = tabName || getCurrentMonthTabName()
+    // Read from row 4 onward (skip 3 header rows), columns A through S
+    const range = `'${tab}'!A${HEADER_ROWS + 1}:S`
+    const rows = await fetchSheetData(range)
+
+    const materials = rows
+      .map((row, index) => rowToMaterial(row, index, tab))
+      .filter(m => m !== null)
+
+    return filterActiveMaterials(materials)
+  } catch (error) {
+    console.error('Error getting materials:', error)
+    return []
+  }
 }
 
 /**
- * Search products by query
+ * Get merged materials (batches combined) for display
+ * @param {string} tabName - Tab name
+ * @returns {Promise<Array>} Array of merged Material objects
  */
-export async function searchProducts(query) {
-  const products = await getAllProducts()
-  
-  if (!query) return products
-  
+export async function getMergedMaterials(tabName = null) {
+  const materials = await getAllMaterials(tabName)
+  return mergeBatches(materials)
+}
+
+/**
+ * Search materials by query (code or description)
+ * @param {string} query - Search term
+ * @param {string} tabName - Tab name
+ * @returns {Promise<Array>} Filtered merged materials
+ */
+export async function searchMaterials(query, tabName = null) {
+  const merged = await getMergedMaterials(tabName)
+
+  if (!query) return merged
+
   const lowerQuery = query.toLowerCase()
-  return products.filter(p => 
-    p.code.toLowerCase().includes(lowerQuery) ||
-    p.name.toLowerCase().includes(lowerQuery)
+  return merged.filter(m =>
+    m.materialCode.toLowerCase().includes(lowerQuery) ||
+    m.description.toLowerCase().includes(lowerQuery)
   )
 }
 
 /**
- * Get low stock products
+ * Get material by code (returns all batches)
+ * @param {string} code - Material code
+ * @param {string} tabName - Tab name
+ * @returns {Promise<Object|null>} Merged material with batches or null
  */
-export async function getLowStockProducts() {
-  const products = await getAllProducts()
-  return products.filter(p => p.quantity <= p.lowStockThreshold)
+export async function getMaterialByCode(code, tabName = null) {
+  const merged = await getMergedMaterials(tabName)
+  return merged.find(m => m.materialCode === code) || null
 }
 
 /**
- * Get transaction logs
+ * Get low stock materials
+ * Materials where mainStock.remaining + subStock.remaining is very low
+ * We define "low" as total remaining <= 5 but > 0
+ * @param {string} tabName
  */
-export async function getTransactionLogs(filters = {}) {
-  try {
-    const rows = await fetchSheetData('Transactions!A2:J')
-    console.log('Raw rows from Sheets:', rows.length, rows.slice(0, 2))
-    
-    let transactions = rows.map(rowToTransaction)
-    console.log('Parsed transactions:', transactions.length, transactions.slice(0, 2))
-    
-    // Apply filters
-    if (filters.startDate) {
-      const startDate = new Date(filters.startDate)
-      startDate.setHours(0, 0, 0, 0)
-      console.log('Filtering by startDate:', startDate, 'Before:', transactions.length)
-      transactions = transactions.filter(t => {
-        const txDate = new Date(t.timestamp)
-        return txDate >= startDate
-      })
-      console.log('After startDate filter:', transactions.length)
-    }
-    
-    if (filters.endDate) {
-      const endDate = new Date(filters.endDate)
-      endDate.setHours(23, 59, 59, 999)
-      console.log('Filtering by endDate:', endDate, 'Before:', transactions.length)
-      transactions = transactions.filter(t => {
-        const txDate = new Date(t.timestamp)
-        return txDate <= endDate
-      })
-      console.log('After endDate filter:', transactions.length)
-    }
-    
-    if (filters.type) {
-      transactions = transactions.filter(t => t.type === filters.type)
-    }
-    
-    if (filters.productCode) {
-      transactions = transactions.filter(t => t.productCode === filters.productCode)
-    }
-    
-    if (filters.userName) {
-      const lowerUserName = filters.userName.toLowerCase()
-      transactions = transactions.filter(t => 
-        t.userName.toLowerCase().includes(lowerUserName)
-      )
-    }
-    
-    // Sort by timestamp descending
-    transactions.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
-    
-    console.log('Final transactions:', transactions.length)
-    return transactions
-  } catch (error) {
-    console.error('Error getting transaction logs:', error)
-    return []
-  }
+export async function getLowStockMaterials(tabName = null) {
+  const merged = await getMergedMaterials(tabName)
+  return merged.filter(m => {
+    const total = m.totalMainRemaining + m.totalSubRemaining
+    return total > 0 && total <= 5
+  })
+}
+
+/**
+ * Get out-of-stock materials
+ * @param {string} tabName
+ */
+export async function getOutOfStockMaterials(tabName = null) {
+  const merged = await getMergedMaterials(tabName)
+  return merged.filter(m => {
+    const total = m.totalMainRemaining + m.totalSubRemaining
+    return total <= 0
+  })
 }
 
 /**
  * Get dashboard data
+ * @param {string} tabName
  */
-export async function getDashboardData() {
+export async function getDashboardData(tabName = null) {
   try {
-    const products = await getAllProducts()
-    const lowStockProducts = await getLowStockProducts()
-    
-    const totalQuantity = products.reduce((sum, p) => sum + p.quantity, 0)
-    
+    const merged = await getMergedMaterials(tabName)
+
+    let totalMainRemaining = 0
+    let totalSubRemaining = 0
+    let outOfStockCount = 0
+    let lowStockCount = 0
+
+    merged.forEach(m => {
+      totalMainRemaining += m.totalMainRemaining
+      totalSubRemaining += m.totalSubRemaining
+      const total = m.totalMainRemaining + m.totalSubRemaining
+      if (total <= 0) outOfStockCount++
+      else if (total <= 5) lowStockCount++
+    })
+
+    const lowStockList = merged.filter(m => {
+      const total = m.totalMainRemaining + m.totalSubRemaining
+      return total > 0 && total <= 5
+    })
+    const outOfStockList = merged.filter(m => {
+      const total = m.totalMainRemaining + m.totalSubRemaining
+      return total <= 0
+    })
+
     return {
-      totalProducts: products.length,
-      totalQuantity,
-      lowStockCount: lowStockProducts.length,
-      lowStockProducts
+      // New schema
+      totalMaterials: merged.length,
+      totalMainRemaining,
+      totalSubRemaining,
+      totalRemaining: totalMainRemaining + totalSubRemaining,
+      outOfStockCount,
+      lowStockCount,
+      lowStockMaterials: lowStockList,
+      outOfStockMaterials: outOfStockList,
+      // Legacy compatibility
+      totalProducts: merged.length,
+      totalQuantity: totalMainRemaining + totalSubRemaining,
+      lowStockProducts: lowStockList,
+      outOfStockProducts: outOfStockList,
     }
   } catch (error) {
     console.error('Error getting dashboard data:', error)
     return {
+      totalMaterials: 0,
+      totalMainRemaining: 0,
+      totalSubRemaining: 0,
+      totalRemaining: 0,
+      outOfStockCount: 0,
+      lowStockCount: 0,
+      lowStockMaterials: [],
+      outOfStockMaterials: [],
       totalProducts: 0,
       totalQuantity: 0,
-      lowStockCount: 0,
-      lowStockProducts: []
+      lowStockProducts: [],
+      outOfStockProducts: [],
     }
+  }
+}
+
+/**
+ * Get transaction logs from the Transactions tab
+ * (This tab needs to be created manually in the real sheet)
+ */
+export async function getTransactionLogs(filters = {}) {
+  try {
+    const rows = await fetchSheetData('Transactions!A2:J')
+    let transactions = rows.map((row) => {
+      // Parse timestamp
+      let timestamp = row[1] || ''
+      if (timestamp && timestamp.includes('/')) {
+        try {
+          const [datePart, timePart] = timestamp.split(', ')
+          const [day, month, year] = datePart.split('/')
+          const [hour, minute, second] = (timePart || '0:0:0').split(':')
+          timestamp = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}T${(hour || '0').padStart(2, '0')}:${(minute || '0').padStart(2, '0')}:${(second || '0').padStart(2, '0')}`
+        } catch (e) {
+          console.error('Error parsing timestamp:', row[1], e)
+        }
+      }
+
+      return {
+        id: row[0] || '',
+        timestamp,
+        type: row[2] || '',
+        materialCode: row[3] || '',
+        productCode: row[3] || '',
+        description: row[4] || '',
+        productName: row[4] || '',
+        quantity: parseInt(row[5]) || 0,
+        stockType: row[6] || '',
+        batch: row[7] || '',
+        userName: row[8] || '',
+        note: row[9] || '',
+        notes: row[9] || '',
+      }
+    })
+
+    // Apply filters
+    if (filters.startDate) {
+      const startDate = new Date(filters.startDate)
+      startDate.setHours(0, 0, 0, 0)
+      transactions = transactions.filter(t => new Date(t.timestamp) >= startDate)
+    }
+    if (filters.endDate) {
+      const endDate = new Date(filters.endDate)
+      endDate.setHours(23, 59, 59, 999)
+      transactions = transactions.filter(t => new Date(t.timestamp) <= endDate)
+    }
+    if (filters.type) {
+      transactions = transactions.filter(t => t.type === filters.type)
+    }
+    if (filters.materialCode) {
+      transactions = transactions.filter(t => t.materialCode === filters.materialCode)
+    }
+    if (filters.userName) {
+      const lower = filters.userName.toLowerCase()
+      transactions = transactions.filter(t => t.userName.toLowerCase().includes(lower))
+    }
+
+    // Sort newest first
+    transactions.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+
+    return transactions
+  } catch (error) {
+    console.error('Error getting transaction logs:', error)
+    return []
   }
 }
 
@@ -237,7 +318,14 @@ export async function getAllowedUsers() {
     return rows.map(row => row[0]).filter(name => name && name.trim())
   } catch (error) {
     console.error('Error getting allowed users:', error)
-    // Return empty array if sheet doesn't exist or error occurs
     return []
   }
 }
+
+// ============================================
+// Legacy compatibility aliases
+// ============================================
+export const getAllProducts = getAllMaterials
+export const getProductByCode = getMaterialByCode
+export const searchProducts = searchMaterials
+export const getLowStockProducts = getLowStockMaterials
