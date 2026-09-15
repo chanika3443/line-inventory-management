@@ -114,13 +114,13 @@ function doPost(e) {
         );
         break;
       case 'addMaterial':
-        result = addMaterial(data.material, data.tabName, deviceInfo);
+        result = addMaterial(data.material || data, data.tabName, deviceInfo);
         break;
       case 'updateMaterial':
-        result = updateMaterial(data.sheetRow, data.updates, data.tabName, deviceInfo);
+        result = updateMaterial(data.sheetRow || data.materialCode || data.code, data.updates || data, data.tabName, deviceInfo);
         break;
       case 'deleteMaterial':
-        result = deleteMaterial(data.sheetRow, data.tabName, data.userName, deviceInfo);
+        result = deleteMaterial(data.sheetRow || data.materialCode || data.code, data.tabName, data.userName, deviceInfo);
         break;
       case 'batchWithdraw':
         result = batchWithdraw(data.items, data.userName, data.tabName, deviceInfo);
@@ -1003,7 +1003,8 @@ function addMaterial(material, tabName, deviceInfo) {
     let lastDataRow = HEADER_ROWS;
     for (let i = HEADER_ROWS; i < data.length; i++) {
       const code = String(data[i][COL.CODE - 1] || '').trim();
-      if (code && /^\d+$/.test(code)) {
+      const desc = String(data[i][COL.DESCRIPTION - 1] || '').trim();
+      if (code || desc) {
         lastDataRow = i + 1;
       }
     }
@@ -1014,28 +1015,32 @@ function addMaterial(material, tabName, deviceInfo) {
 
     // Set values
     const no = lastDataRow - HEADER_ROWS + 1; // Auto-number
+    const code = material.materialCode || material.code || ('MAT' + new Date().getTime().toString().slice(-6));
+    const description = material.description || material.name || '';
+    const initialQty = parseInt(material.mainQuantity !== undefined ? material.mainQuantity : (material.quantity || 0)) || 0;
+    const subQty = parseInt(material.subQuantity || 0) || 0;
+
     sheet.getRange(newRow, COL.NO).setValue(no);
-    sheet.getRange(newRow, COL.CODE).setValue(material.materialCode || '');
-    sheet.getRange(newRow, COL.DESCRIPTION).setValue(material.description || '');
+    sheet.getRange(newRow, COL.CODE).setValue(code);
+    sheet.getRange(newRow, COL.DESCRIPTION).setValue(description);
     sheet.getRange(newRow, COL.PLANT).setValue(material.plant || '1030');
     sheet.getRange(newRow, COL.BATCH).setValue(material.batch || 'MAT_BUY');
     sheet.getRange(newRow, COL.UNIT).setValue(material.unit || 'EA');
-    sheet.getRange(newRow, COL.MAIN_PREV).setValue(parseInt(material.mainQuantity) || 0);
+    sheet.getRange(newRow, COL.MAIN_PREV).setValue(initialQty);
     sheet.getRange(newRow, COL.MAIN_IN).setValue(0);
     sheet.getRange(newRow, COL.MAIN_OUT).setValue(0);
-    sheet.getRange(newRow, COL.MAIN_REM).setValue(parseInt(material.mainQuantity) || 0);
-    sheet.getRange(newRow, COL.MAIN_SYS).setValue(parseInt(material.mainQuantity) || 0);
-    sheet.getRange(newRow, COL.SUB_PREV).setValue(parseInt(material.subQuantity) || 0);
+    sheet.getRange(newRow, COL.MAIN_REM).setValue(initialQty);
+    sheet.getRange(newRow, COL.MAIN_SYS).setValue(initialQty);
+    sheet.getRange(newRow, COL.SUB_PREV).setValue(subQty);
     sheet.getRange(newRow, COL.SUB_IN).setValue(0);
-    sheet.getRange(newRow, COL.SUB_REM).setValue(parseInt(material.subQuantity) || 0);
+    sheet.getRange(newRow, COL.SUB_REM).setValue(subQty);
     if (material.price) sheet.getRange(newRow, COL.PRICE).setValue(material.price);
 
-    const initialQty = parseInt(material.mainQuantity) || 0;
     // Log to Non-Material sheet (ชีทเก่า)
-    addTransaction('ADD', material.materialCode, material.description, initialQty, 0, initialQty, material.userName || 'System', 'เพิ่มรายการใหม่');
-    addAuditLog('ADD_MATERIAL', 'เพิ่มวัสดุ: ' + material.materialCode + ' - ' + material.description, material.userName || 'System', deviceInfo);
+    addTransaction('ADD', code, description, initialQty, 0, initialQty, material.userName || 'System', 'เพิ่มรายการใหม่');
+    addAuditLog('ADD_MATERIAL', 'เพิ่มวัสดุ: ' + code + ' - ' + description, material.userName || 'System', deviceInfo);
 
-    return { success: true, message: 'เพิ่มวัสดุสำเร็จ' };
+    return { success: true, message: 'เพิ่มวัสดุสำเร็จ', materialCode: code };
   } catch (error) {
     return { success: false, message: error.toString() };
   }
@@ -1061,9 +1066,10 @@ function updateMaterial(sheetRow, updates, tabName, deviceInfo) {
     const oldMaterial = getMaterialAtRow(sheet, sheetRow);
     const changes = [];
 
-    if (updates.description !== undefined && updates.description !== oldMaterial.description) {
-      sheet.getRange(sheetRow, COL.DESCRIPTION).setValue(updates.description);
-      changes.push('ชื่อ: ' + oldMaterial.description + ' → ' + updates.description);
+    const newDesc = updates.description !== undefined ? updates.description : updates.name;
+    if (newDesc !== undefined && newDesc !== oldMaterial.description) {
+      sheet.getRange(sheetRow, COL.DESCRIPTION).setValue(newDesc);
+      changes.push('ชื่อ: ' + oldMaterial.description + ' → ' + newDesc);
     }
     if (updates.unit !== undefined && updates.unit !== oldMaterial.unit) {
       sheet.getRange(sheetRow, COL.UNIT).setValue(updates.unit);
@@ -1076,6 +1082,12 @@ function updateMaterial(sheetRow, updates, tabName, deviceInfo) {
     if (updates.mainRemaining !== undefined) {
       sheet.getRange(sheetRow, COL.MAIN_REM).setValue(parseInt(updates.mainRemaining));
       changes.push('สต๊อกใหญ่ คงเหลือ: ' + oldMaterial.mainStock.remaining + ' → ' + updates.mainRemaining);
+    } else if (updates.quantity !== undefined) {
+      const q = parseInt(updates.quantity) || 0;
+      if (q !== oldMaterial.mainStock.remaining) {
+        sheet.getRange(sheetRow, COL.MAIN_REM).setValue(q);
+        changes.push('สต๊อกใหญ่ คงเหลือ: ' + oldMaterial.mainStock.remaining + ' → ' + q);
+      }
     }
     if (updates.subRemaining !== undefined) {
       sheet.getRange(sheetRow, COL.SUB_REM).setValue(parseInt(updates.subRemaining));

@@ -174,8 +174,8 @@ export async function batchWithdraw(items, userName, tabName = null) {
 // Legacy compatibility aliases
 // ============================================
 export const addProduct = (product, userName) => addMaterial({ ...product, userName })
-export const updateProduct = (code, updates, userName) => updateMaterial(null, { ...updates, userName })
-export const deleteProduct = (code, userName) => deleteMaterial(null, userName)
+export const updateProduct = (codeOrRow, updates, userName) => updateMaterial(codeOrRow, { ...updates, userName })
+export const deleteProduct = (codeOrRow, userName) => deleteMaterial(codeOrRow, userName)
 export const returnProduct = returnMaterial
 
 /**

@@ -18,6 +18,7 @@ export default function Products() {
   const [showModal, setShowModal] = useState(false)
   const [editingProduct, setEditingProduct] = useState(null)
   const [formData, setFormData] = useState({
+    code: '',
     name: '',
     unit: '',
     quantity: '',
@@ -75,6 +76,7 @@ export default function Products() {
   function handleAdd() {
     setEditingProduct(null)
     setFormData({
+      code: '',
       name: '',
       unit: '',
       quantity: '',
@@ -91,6 +93,7 @@ export default function Products() {
   function handleEdit(product) {
     setEditingProduct(product)
     setFormData({
+      code: product.materialCode || product.code || '',
       name: product.description || product.name || '',
       unit: product.unit || '',
       quantity: product.quantity ?? (product.totalMainRemaining != null ? product.totalMainRemaining + product.totalSubRemaining : ''),
@@ -109,17 +112,24 @@ export default function Products() {
     haptics.medium()
     setSubmitting(true)
 
+    const codeVal = formData.code.trim() || (editingProduct ? (editingProduct.materialCode || editingProduct.code) : '')
+    const qtyVal = formData.quantity === '' ? 0 : parseInt(formData.quantity) || 0
+
     // Convert empty strings to 0 for numeric fields
     const submitData = {
       ...formData,
-      quantity: formData.quantity === '' ? 0 : parseInt(formData.quantity) || 0,
+      code: codeVal,
+      materialCode: codeVal,
+      description: formData.name.trim(),
+      mainQuantity: qtyVal,
+      quantity: qtyVal,
       lowStockThreshold: formData.lowStockThreshold === '' ? 0 : parseInt(formData.lowStockThreshold) || 0
     }
 
     let result
     if (editingProduct) {
       const row = editingProduct.sheetRow || editingProduct.batches?.[0]?.sheetRow || null
-      result = await updateProduct(row || editingProduct.materialCode || editingProduct.code, submitData, userName)
+      result = await updateProduct(row || codeVal, submitData, userName)
     } else {
       result = await addProduct(submitData, userName)
     }
@@ -365,6 +375,18 @@ export default function Products() {
             <h2>{editingProduct ? 'แก้ไขวัสดุ' : 'เพิ่มวัสดุใหม่'}</h2>
 
             <form onSubmit={handleSubmit}>
+              <div className="input-group">
+                <label className="input-label">รหัสวัสดุ (Material Code)</label>
+                <input
+                  type="text"
+                  className="input"
+                  placeholder={editingProduct ? '' : 'เช่น 10100005 (ถ้าไม่ระบุ ระบบจะสร้างให้อัตโนมัติ)'}
+                  value={formData.code}
+                  onChange={(e) => setFormData({ ...formData, code: e.target.value })}
+                  disabled={!!editingProduct}
+                />
+              </div>
+
               <div className="input-group">
                 <label className="input-label">ชื่อวัสดุ *</label>
                 <input

@@ -212,8 +212,8 @@ export function SheetsProvider({ children }) {
     products: mergedMaterials,
     fetchProducts: fetchMaterials,
     addProduct: addMaterial,
-    updateProduct: (code, updates, userName) => updateMaterial(null, { ...updates, userName }),
-    deleteProduct: (code, userName) => deleteMaterial(null, userName),
+    updateProduct: (codeOrRow, updates, userName) => updateMaterial(codeOrRow, { ...updates, userName }),
+    deleteProduct: (codeOrRow, userName) => deleteMaterial(codeOrRow, userName),
     returnProduct: returnMaterial,
   }
 
