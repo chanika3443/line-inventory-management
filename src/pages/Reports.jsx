@@ -106,6 +106,16 @@ export default function Reports() {
     setFilters(prev => ({ ...prev, [key]: value }))
   }
 
+  const selectMonth = useCallback((year, monthIndex) => {
+    haptics.light()
+    const endDate = new Date(year, monthIndex + 1, 0)
+    const startStr = `${year}-${String(monthIndex + 1).padStart(2, '0')}-01`
+    const endStr = `${year}-${String(monthIndex + 1).padStart(2, '0')}-${String(endDate.getDate()).padStart(2, '0')}`
+    const newFilters = { startDate: startStr, endDate: endStr }
+    setFilters(newFilters)
+    loadReport(newFilters)
+  }, [loadReport])
+
   function handleApplyFilters() {
     loadReport(filters)
   }
@@ -157,11 +167,18 @@ export default function Reports() {
       ['รับเข้า', report.summary.totalReceipts],
       ['คืน', report.summary.totalReturns],
       ['สุทธิ', report.summary.netChange],
-      ['รายการทั้งหมด', report.summary.transactionCount]
+      ['รายการทั้งหมด', report.summary.transactionCount],
+      [],
+      [],
+      ['ลงชื่อ...................................................... ผู้จัดทำรายงาน', '', '', 'ลงชื่อ...................................................... หัวหน้างาน/ผู้อนุมัติ'],
+      ['(......................................................)', '', '', '(......................................................)'],
+      ['ตำแหน่ง..................................................', '', '', 'ตำแหน่ง..................................................'],
+      ['วันที่ ......./......./.......', '', '', 'วันที่ ......./......./.......']
     ]
     
     const summarySheet = XLSX.utils.aoa_to_sheet(summaryData)
-    XLSX.utils.book_append_sheet(wb, summarySheet, 'สรุป')
+    summarySheet['!cols'] = [{ wch: 25 }, { wch: 18 }, { wch: 10 }, { wch: 30 }]
+    XLSX.utils.book_append_sheet(wb, summarySheet, 'สรุปภาพรวมเสนอหัวหน้า')
     
     // Transactions sheet with detailed information
     if (report.transactions.length > 0) {
@@ -300,7 +317,39 @@ export default function Reports() {
 
       <div className="container">
         <div className="filters-card card">
-        <div className="input-group">
+          <div style={{ marginBottom: '16px' }}>
+            <label className="input-label" style={{ marginBottom: '8px', display: 'block', fontWeight: '600' }}>
+              รายงานประจำเดือน (ด่วน)
+            </label>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
+              <button
+                type="button"
+                className="btn btn-outline"
+                style={{ fontSize: '12px', padding: '8px 4px', fontWeight: '600', borderColor: 'var(--color-primary)' }}
+                onClick={() => selectMonth(2026, 2)}
+              >
+                มี.ค. 2569
+              </button>
+              <button
+                type="button"
+                className="btn btn-outline"
+                style={{ fontSize: '12px', padding: '8px 4px', fontWeight: '600' }}
+                onClick={() => selectMonth(2026, 1)}
+              >
+                ก.พ. 2569
+              </button>
+              <button
+                type="button"
+                className="btn btn-outline"
+                style={{ fontSize: '12px', padding: '8px 4px', fontWeight: '600' }}
+                onClick={() => selectMonth(2026, 0)}
+              >
+                ม.ค. 2569
+              </button>
+            </div>
+          </div>
+
+          <div className="input-group">
           <label className="input-label">วันที่เริ่มต้น</label>
           <input
             type="date"
@@ -424,7 +473,23 @@ export default function Reports() {
                       
                       return (
                         <tr key={transaction.id}>
-                          <td className="product-name">{transaction.productName}</td>
+                          <td className="product-name">
+                            <div>{transaction.productName}</div>
+                            {transaction.roomNumber && (
+                              <div style={{ marginTop: '2px' }}>
+                                <span style={{ 
+                                  fontSize: '11px', 
+                                  padding: '1px 6px', 
+                                  borderRadius: '4px', 
+                                  background: 'rgba(6, 199, 85, 0.1)', 
+                                  color: '#059669',
+                                  fontWeight: '500'
+                                }}>
+                                  ห้อง {transaction.roomNumber}{transaction.patientType ? ` (${transaction.patientType})` : ''}
+                                </span>
+                              </div>
+                            )}
+                          </td>
                           <td className="transaction-type">
                             <span className={`type-badge ${
                               isWithdraw ? 'badge-withdraw' :
