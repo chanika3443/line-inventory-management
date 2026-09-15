@@ -171,6 +171,12 @@ function getTransactionLogsAction() {
 // ========================================
 
 function getSpreadsheet() {
+  try {
+    const active = SpreadsheetApp.getActiveSpreadsheet();
+    if (active) return active;
+  } catch (e) {
+    // Not container-bound, fallback to openById
+  }
   return SpreadsheetApp.openById(SPREADSHEET_ID);
 }
 
